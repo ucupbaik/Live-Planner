@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enterprise Live Event Planner</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; overflow: hidden; }
+        .no-select { user-select: none; -webkit-user-select: none; }
+
+        #canvas-area {
+            background-color: #0f172a;
+            background-image:
+                linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+            background-size: 40px 40px;
+            cursor: grab;
+        }
+        #canvas-area.panning { cursor: grabbing; }
+
+        #zoom-wrapper {
+            position: absolute;
+            top: 0; left: 0;
+            width: 4000px; height: 3000px;
+            transform-origin: 0 0;
+        }
+
+        .device-node {
+            position: absolute;
+            background: #1e293b;
+            border: 1px solid #334155;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+            width: 230px;
+            cursor: default;
+            border-radius: 10px;
+            z-index: 10;
+            transition: border-color 0.2s;
+        }
+        .device-node:hover { border-color: #475569; }
+        .device-node .handle { cursor: grab; }
+        .device-node .handle:active { cursor: grabbing; }
+
+        .port {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #cbd5e1;
+            border: 3px solid #0f172a;
+            cursor: crosshair;
+            position: absolute;
+            transition: all 0.2s;
+            z-index: 20;
+        }
+        .port:hover { transform: scale(1.4); background: #3b82f6; }
+        .port.active { background: #eab308; box-shadow: 0 0 12px #eab308; border-color: #fff; }
+
+        .port-in { left: -7px; }
+        .port-out { right: -7px; }
+
+        .device-image {
+            width: 100%;
+            height: 76px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #0f172a;
+            border-top: 1px solid #334155;
+            border-bottom: 1px solid #334155;
+            position: relative;
+            overflow: hidden;
+        }
+        .device-image img { max-width: 100%; max-height: 100%; object-fit: contain; padding: 6px; pointer-events: none; }
+        .device-image .fallback-emoji { display: none; width: 100%; height: 100%; align-items: center; justify-content: center; font-size: 28px; }
+
+        .icon-btn { opacity: 0.75; transition: opacity 0.15s, transform 0.15s; }
+        .icon-btn:hover { opacity: 1; transform: scale(1.15); }
+
+        .notes-dot { width: 7px; height: 7px; border-radius: 50%; background: #eab308; display: inline-block; margin-left: 4px; }
+
+        #toast {
+            position: fixed; top: 20px; right: 20px;
+            padding: 12px 24px; border-radius: 8px; font-weight: bold;
+            transform: translateX(150%); transition: transform 0.3s;
+            z-index: 9999; max-width: 320px;
+        }
+        .toast-error { background: #ef4444; color: white; }
+        .toast-success { background: #10b981; color: white; }
+        #toast.show { transform: translateX(0); }
+
+        .modal-overlay { display: none; }
+        .modal-overlay.active { display: flex; }
+
+        #zoom-controls, #legend-panel { z-index: 30; }
+
+        details > summary { list-style: none; }
+        details > summary::-webkit-details-marker { display: none; }
+        details > summary .chevron { transition: transform 0.15s; }
+        details[open] > summary .chevron { transform: rotate(90deg); }
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #1e293b; }
+        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-200 h-screen flex">
+
+    <!-- Notifikasi -->
+    <div id="toast" class="toast-error shadow-lg">Pesan Error</div>
+
+    <!-- Modal Software Settings -->
+    <div id="settings-modal" class="modal-overlay fixed inset-0 bg-black/70 z-[9999] justify-center items-center backdrop-blur-sm">
+        <div class="bg-slate-800 border border-slate-600 rounded-xl p-6 w-96 shadow-2xl">
+            <h2 class="text-xl font-bold mb-4 text-blue-400">⚙️ Software / Broadcast Settings</h2>
+            <input type="hidden" id="setting-node-id">
+
+            <div class="mb-3">
+                <label class="block text-xs text-slate-400 mb-1">Resolusi Output</label>
+                <select id="set-res" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-sm text-white">
+                    <option value="1080p60">1080p 60fps</option>
+                    <option value="1080p30">1080p 30fps</option>
+                    <option value="4K30">4K 30fps</option>
+                    <option value="720p60">720p 60fps</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="block text-xs text-slate-400 mb-1">Video Bitrate (Kbps)</label>
+                <input type="number" id="set-bitrate" value="6000" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-sm text-white">
+            </div>
+            <div class="mb-3">
+                <label class="block text-xs text-slate-400 mb-1">Audio Sample Rate</label>
+                <select id="set-audio" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-sm text-white">
+                    <option value="48kHz">48 kHz</option>
+                    <option value="44.1kHz">44.1 kHz</option>
+                </select>
+            </div>
+            <div class="mb-5">
+                <label class="block text-xs text-slate-400 mb-1">Server Tujuan (RTMP/RTMPS)</label>
+                <input type="text" id="set-server" placeholder="rtmp://..." class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-sm text-white">
+            </div>
+            <div class="flex justify-end gap-2">
+                <button onclick="closeSettings()" class="px-4 py-2 bg-slate-600 hover:bg-slate-500 rounded text-sm font-bold">Batal</button>
+                <button onclick="saveSettings()" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded text-sm font-bold text-white">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Catatan Alat -->
+    <div id="notes-modal" class="modal-overlay fixed inset-0 bg-black/70 z-[9999] justify-center items-center backdrop-blur-sm">
+        <div class="bg-slate-800 border border-slate-600 rounded-xl p-6 w-96 shadow-2xl">
+            <h2 class="text-xl font-bold mb-1 text-yellow-400">📝 Catatan Alat</h2>
+            <p id="notes-device-name" class="text-xs text-slate-400 mb-4"></p>
+            <input type="hidden" id="notes-node-id">
+            <textarea id="notes-text" rows="5" placeholder="Contoh: IP 192.168.1.20, Channel 2, No. Seri XYZ..." class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-sm text-white mb-5 resize-none"></textarea>
+            <div class="flex justify-end gap-2">
+                <button onclick="closeNotes()" class="px-4 py-2 bg-slate-600 hover:bg-slate-500 rounded text-sm font-bold">Batal</button>
+                <button onclick="saveNotes()" class="px-4 py-2 bg-yellow-600 hover:bg-yellow-500 rounded text-sm font-bold text-white">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar Alat -->
+    <aside class="w-80 bg-slate-800 border-r border-slate-700 flex flex-col z-20 shadow-xl flex-shrink-0">
+        <div class="p-5 border-b border-slate-700 bg-slate-900">
+            <h1 class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">Live Planner</h1>
+            <p class="text-xs text-slate-400 mt-1">Enterprise Architecture Builder</p>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="grid grid-cols-2 gap-2 p-4 border-b border-slate-700">
+            <button onclick="saveProject()" class="py-2 bg-green-600 hover:bg-green-500 rounded text-sm font-bold flex justify-center items-center gap-1 shadow">💾 Save</button>
+            <button onclick="loadProject()" class="py-2 bg-blue-600 hover:bg-blue-500 rounded text-sm font-bold flex justify-center items-center gap-1 shadow">📂 Load</button>
+            <button onclick="clearCanvas()" class="py-2 bg-red-700 hover:bg-red-600 rounded text-sm font-bold flex justify-center items-center gap-1 shadow">🗑️ Clear</button>
+            <button onclick="exportToImage()" class="py-2 bg-purple-600 hover:bg-purple-500 rounded text-sm font-bold flex justify-center items-center gap-1 shadow">📸 Export</button>
+            <button onclick="autoWire()" class="col-span-2 py-2 bg-amber-600 hover:bg-amber-500 rounded text-sm font-bold flex justify-center items-center gap-1 shadow" title="Rangkai otomatis dari alat terpilih">🔗 Rangkai Otomatis</button>
+            <button onclick="openSummary()" class="col-span-2 py-2 bg-teal-600 hover:bg-teal-500 rounded text-sm font-bold flex justify-center items-center gap-1 shadow" title="Cetak ringkasan total alat & kabel">🖨️ Ringkasan Cetak</button>
+            <button onclick="clearSelection()" class="col-span-2 py-1.5 bg-slate-600 hover:bg-slate-500 rounded text-xs font-bold flex justify-center items-center gap-1 shadow">✕ Bersihkan Pilihan</button>
+        </div>
+
+        <div id="selection-bar" class="p-2 border-t border-slate-700 text-xs text-center font-semibold bg-slate-900 text-slate-400">0 alat dipilih</div>
+
+        <!-- Search -->
+        <div class="p-4 pb-2">
+            <input id="search-input" type="text" placeholder="🔍 Cari alat..." oninput="renderCatalog(this.value)"
+                class="w-full bg-slate-900 border border-slate-600 rounded-lg p-2 text-sm text-white focus:outline-none focus:border-blue-500">
+        </div>
+
+        <div class="flex-grow overflow-y-auto px-4 pb-4 space-y-1" id="device-catalog">
+            <!-- Render via JS -->
+        </div>
+
+        <div id="stats-bar" class="p-3 border-t border-slate-700 bg-slate-900 text-xs text-slate-400 text-center font-semibold">
+            0 Alat • 0 Koneksi
+        </div>
+    </aside>
+
+    <!-- Canvas -->
+    <main id="canvas-area" class="flex-grow relative overflow-hidden">
+        <div id="zoom-wrapper">
+            <svg id="cables-layer" class="absolute top-0 left-0 w-full h-full pointer-events-none z-0"></svg>
+            <div id="devices-layer" class="absolute top-0 left-0 w-full h-full z-10"></div>
+        </div>
+
+        <!-- Zoom Controls -->
+        <div id="zoom-controls" class="absolute bottom-5 right-5 bg-slate-800/90 border border-slate-600 rounded-lg shadow-xl flex items-center gap-1 p-1 backdrop-blur">
+            <button onclick="zoomOut()" class="w-8 h-8 flex items-center justify-center hover:bg-slate-700 rounded text-lg font-bold">−</button>
+            <span id="zoom-label" class="text-xs w-12 text-center select-none">100%</span>
+            <button onclick="zoomIn()" class="w-8 h-8 flex items-center justify-center hover:bg-slate-700 rounded text-lg font-bold">+</button>
+            <button onclick="zoomReset()" class="w-8 h-8 flex items-center justify-center hover:bg-slate-700 rounded text-xs ml-1" title="Reset tampilan">⤢</button>
+        </div>
+
+        <!-- Legend -->
+        <div id="legend-panel" class="absolute bottom-5 left-5 bg-slate-800/90 border border-slate-600 rounded-lg shadow-xl p-3 text-xs backdrop-blur">
+            <p class="font-bold mb-2 text-slate-300">Jenis Kabel</p>
+            <div class="grid grid-cols-2 gap-x-3 gap-y-1" id="legend-list"></div>
+        </div>
+    </main>
+
+    <script src="equipment-data.js"></script>
+    <script>
+        const svgNS = "http://www.w3.org/2000/svg";
+
+        // --- DATABASE ALAT (di-generate dari Excel: Peralatan_Multimedia_Live_Streaming_FINAL.xlsx) ---
+        // deviceDB dimuat dari file equipment-data.js (kategori -> brand -> alat, dengan gambar lokal)
+
+        const cableColors = {
+            "HDMI": "#3b82f6",
+            "SDI": "#22c55e",
+            "Audio": "#ef4444",
+            "LAN": "#eab308",
+            "USB": "#a855f7",
+            "Wireless": "#e2e8f0",
+            "Power": "#f97316"
+        };
+
+        // --- STATE ---
+        let nodesCounter = 0;
+        let connections = [];
+        let activePort = null;
+
+        let zoom = 1, panX = 0, panY = 0;
+        let isDragging = false, dragNode = null, offset = { x: 0, y: 0 };
+        let isPanning = false, panStart = { x: 0, y: 0, panX: 0, panY: 0 };
+
+        const canvasArea = document.getElementById('canvas-area');
+        const zoomWrapper = document.getElementById('zoom-wrapper');
+        const devicesLayer = document.getElementById('devices-layer');
+        const cablesLayer = document.getElementById('cables-layer');
+
+        // --- CATALOG (kategori -> merk, bisa di-collapse, dengan checkbox pilih) ---
+        let selectedItems = new Map();
+
+        function renderCatalog(filter = '') {
+            const catalog = document.getElementById('device-catalog');
+            const f = filter.trim().toLowerCase();
+            let html = '';
+            for (const catKey in deviceDB) {
+                const cat = deviceDB[catKey];
+                // kelompokkan per merk
+                const byBrand = {};
+                cat.items.forEach(it => {
+                    if (f && !it.name.toLowerCase().includes(f) && !(it.brand||'').toLowerCase().includes(f)) return;
+                    (byBrand[it.brand || 'Lainnya'] = byBrand[it.brand || 'Lainnya'] || []).push(it);
+                });
+                const brandKeys = Object.keys(byBrand);
+                if (brandKeys.length === 0) continue;
+                const catCount = brandKeys.reduce((a, b) => a + byBrand[b].length, 0);
+                html += `
+                    <details class="mb-1" open>
+                        <summary class="text-xs font-bold text-slate-400 uppercase cursor-pointer flex justify-between items-center py-2 select-none hover:text-slate-200">
+                            <span><span class="chevron inline-block">▸</span> ${cat.title}</span>
+                            <span class="text-slate-600 text-[10px] font-normal">${catCount}</span>
+                        </summary>
+                        <div class="space-y-1 pb-2 pl-1">`;
+                brandKeys.forEach(brand => {
+                    const items = byBrand[brand];
+                    html += `
+                        <details class="mb-0.5" open>
+                            <summary class="text-[11px] font-semibold text-blue-300 cursor-pointer flex justify-between items-center py-1 select-none hover:text-blue-200">
+                                <span><span class="chevron inline-block">▸</span> ${brand}</span>
+                                <span class="text-slate-600 text-[10px] font-normal">${items.length}</span>
+                            </summary>
+                            <div class="space-y-1.5 pb-1 pl-2">`;
+                    items.forEach(item => {
+                        const encodedData = encodeURIComponent(JSON.stringify(item));
+                        const checked = selectedItems.has(item.id) ? 'checked' : '';
+                        html += `
+                            <label class="bg-slate-700 hover:bg-slate-600 p-2 rounded cursor-pointer transition flex items-center gap-2 border border-slate-600 hover:border-blue-500">
+                                <input type="checkbox" class="sel-chk flex-shrink-0" data-id="${item.id}" data-item="${encodedData}" ${checked} onchange="toggleSelect(this)">
+                                <div class="w-8 h-8 rounded bg-slate-900 flex-shrink-0 relative overflow-hidden flex items-center justify-center">
+                                    <img src="${item.img}" class="max-w-full max-h-full object-contain p-0.5" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                                    <span class="absolute inset-0 items-center justify-center text-base" style="display:none">${item.emoji||'🔧'}</span>
+                                </div>
+                                <div class="flex-grow min-w-0">
+                                    <div class="text-[13px] font-semibold truncate leading-tight">${item.name}</div>
+                                    <div class="text-[10px] text-slate-400">${item.inputs.length} in / ${item.outputs.length} out</div>
+                                </div>
+                                <button type="button" onclick="event.preventDefault(); spawnDevice('${encodedData}')" class="icon-btn text-green-400 text-xs flex-shrink-0" title="Tambah ke kanvas">＋</button>
+                            </label>`;
+                    });
+                    html += `</div></details>`;
+                });
+                html += `</div></details>`;
+            }
+            catalog.innerHTML = html || `<p class="text-sm text-slate-500 text-center mt-8">Tidak ada alat ditemukan.</p>`;
+            updateSelectionBar();
+        }
+
+        function toggleSelect(chk) {
+            const id = chk.getAttribute('data-id');
+            const item = JSON.parse(decodeURIComponent(chk.getAttribute('data-item')));
+            if (chk.checked) selectedItems.set(id, item);
+            else selectedItems.delete(id);
+            updateSelectionBar();
+        }
+
+        function getSelectedArray() { return Array.from(selectedItems.values()); }
+
+        function updateSelectionBar() {
+            const bar = document.getElementById('selection-bar');
+            if (!bar) return;
+            const n = selectedItems.size;
+            bar.textContent = `${n} alat dipilih`;
+            bar.className = `p-2 border-t border-slate-700 text-xs text-center font-semibold ${n > 0 ? 'bg-blue-900/40 text-blue-200' : 'bg-slate-900 text-slate-400'}`;
+        }
+
+        function clearSelection() {
+            selectedItems.clear();
+            document.querySelectorAll('.sel-chk').forEach(c => c.checked = false);
+            updateSelectionBar();
+        }
+
+        // --- RANGKAI OTOMATIS (auto-wire) dari alat terpilih ---
+        function autoWire() {
+            if (selectedItems.size === 0) { showToast('Pilih alat dari katalog terlebih dahulu!'); return; }
+            // spawn semua alat terpilih
+            const items = getSelectedArray();
+            const spawned = [];
+            const cols = Math.ceil(Math.sqrt(items.length));
+            items.forEach((item, i) => {
+                const col = i % cols, row = Math.floor(i / cols);
+                const left = 60 + col * 280;
+                const top = 60 + row * 200;
+                nodesCounter++;
+                const newId = 'node-' + nodesCounter;
+                spawnDevice(null, {
+                    id: newId, left: left + 'px', top: top + 'px',
+                    config: item, settings: JSON.stringify({res:'1080p60',bitrate:6000,audio:'48kHz',server:''}), notes: ''
+                });
+                spawned.push(newId);
+            });
+            // hubungkan berdasarkan tipe port yang cocok (output -> input)
+            const usedInputs = new Set();
+            for (let a = 0; a < spawned.length; a++) {
+                const na = document.getElementById(spawned[a]);
+                const ca = JSON.parse(na.dataset.config);
+                for (const out of ca.outputs) {
+                    let connected = false;
+                    for (let b = 0; b < spawned.length && !connected; b++) {
+                        if (b === a) continue;
+                        const nb = document.getElementById(spawned[b]);
+                        const cb = JSON.parse(nb.dataset.config);
+                        cb.inputs.forEach((inp, idx) => {
+                            if (connected) return;
+                            if (inp.type === out.type) {
+                                const inId = `${spawned[b]}-in-${idx}`;
+                                if (usedInputs.has(inId)) return;
+                                const outId = `${spawned[a]}-out-${ca.outputs.indexOf(out)}`;
+                                connections.push({ from: outId, to: inId, type: out.type });
+                                usedInputs.add(inId);
+                                connected = true;
+                            }
+                        });
+                    }
+                }
+            }
+            setTimeout(() => { drawCables(); updateStats(); }, 50);
+            showToast(`Rangkai otomatis: ${spawned.length} alat, ${connections.length} kabel.`, true);
+        }
+
+        // --- RINGKASAN CETAK (total alat & kabel) ---
+        function buildSummary() {
+            const deviceCount = document.querySelectorAll('.device-node').length;
+            // hitung alat per kategori & merk
+            const catMap = {}, brandMap = {}, typeMap = {};
+            document.querySelectorAll('.device-node').forEach(node => {
+                const c = JSON.parse(node.dataset.config);
+                catMap[c.cat] = (catMap[c.cat] || 0) + 1;
+                const br = c.brand || 'Lainnya';
+                brandMap[br] = (brandMap[br] || 0) + 1;
+            });
+            connections.forEach(conn => {
+                typeMap[conn.type] = (typeMap[conn.type] || 0) + 1;
+            });
+            return { deviceCount, catMap, brandMap, typeMap, connCount: connections.length };
+        }
+
+        function openSummary() {
+            const s = buildSummary();
+            const d = new Date().toLocaleString('id-ID');
+            let catRows = Object.entries(s.catMap).sort((a,b)=>b[1]-a[1])
+                .map(([k,v]) => `<tr><td>${k}</td><td style="text-align:right">${v}</td></tr>`).join('');
+            let brandRows = Object.entries(s.brandMap).sort((a,b)=>b[1]-a[1])
+                .map(([k,v]) => `<tr><td>${k}</td><td style="text-align:right">${v}</td></tr>`).join('');
+            let cableRows = Object.keys(s.typeMap).length
+                ? Object.entries(s.typeMap).map(([k,v]) => `<tr><td>${k}</td><td style="text-align:right">${v}</td></tr>`).join('')
+                : `<tr><td colspan="2" style="text-align:center">— belum ada kabel —</td></tr>`;
+            const html = `
+                <div style="font-family:Segoe UI,Arial;color:#111;padding:24px;max-width:900px;margin:auto">
+                    <h1 style="margin:0 0 4px">Rangkuman Peralatan Live Streaming</h1>
+                    <p style="color:#555;margin:0 0 16px">Dicetak: ${d}</p>
+                    <div style="display:flex;gap:16px;flex-wrap:wrap">
+                        <div style="flex:1;min-width:260px;border:1px solid #ccc;border-radius:8px;padding:12px">
+                            <h3 style="margin:0 0 8px">Total Alat: ${s.deviceCount}</h3>
+                            <table style="width:100%;border-collapse:collapse;font-size:13px">
+                                <thead><tr style="border-bottom:2px solid #333"><th style="text-align:left">Kategori</th><th style="text-align:right">Jml</th></tr></thead>
+                                <tbody>${catRows}</tbody>
+                            </table>
+                        </div>
+                        <div style="flex:1;min-width:260px;border:1px solid #ccc;border-radius:8px;padding:12px">
+                            <h3 style="margin:0 0 8px">Berdasarkan Merk</h3>
+                            <table style="width:100%;border-collapse:collapse;font-size:13px">
+                                <thead><tr style="border-bottom:2px solid #333"><th style="text-align:left">Merk</th><th style="text-align:right">Jml</th></tr></thead>
+                                <tbody>${brandRows}</tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div style="margin-top:16px;border:1px solid #ccc;border-radius:8px;padding:12px">
+                        <h3 style="margin:0 0 8px">Total Kabel / Koneksi: ${s.connCount}</h3>
+                        <table style="width:100%;border-collapse:collapse;font-size:13px">
+                            <thead><tr style="border-bottom:2px solid #333"><th style="text-align:left">Jenis Kabel</th><th style="text-align:right">Jml</th></tr></thead>
+                            <tbody>${cableRows}</tbody>
+                        </table>
+                    </div>
+                    <p style="margin-top:16px;color:#888;font-size:11px">Dihasilkan oleh Live Planner — ${s.deviceCount} alat, ${s.connCount} koneksi.</p>
+                </div>`;
+            const w = window.open('', '_blank');
+            w.document.write(`<!DOCTYPE html><html><head><title>Rangkuman Peralatan</title></head><body>${html}<script>window.onload=function(){setTimeout(function(){window.print()},300)}<\/script></body></html>`);
+            w.document.close();
+        }
+
+        function renderLegend() {
+            const legend = document.getElementById('legend-list');
+            legend.innerHTML = Object.entries(cableColors).map(([type, color]) => `
+                <div class="flex items-center gap-1.5">
+                    <span class="w-2.5 h-2.5 rounded-full flex-shrink-0" style="background:${color}"></span>
+                    <span class="text-slate-300">${type}</span>
+                </div>`).join('');
+        }
+
+        // --- COORDINATE HELPERS (zoom/pan aware) ---
+        function screenToLocal(clientX, clientY) {
+            const rect = canvasArea.getBoundingClientRect();
+            return {
+                x: (clientX - rect.left - panX) / zoom,
+                y: (clientY - rect.top - panY) / zoom
+            };
+        }
+
+        function applyTransform() {
+            zoomWrapper.style.transform = `translate(${panX}px, ${panY}px) scale(${zoom})`;
+            document.getElementById('zoom-label').textContent = Math.round(zoom * 100) + '%';
+            drawCables();
+        }
+
+        function zoomIn() { setZoomAtCenter(Math.min(2.5, zoom + 0.15)); }
+        function zoomOut() { setZoomAtCenter(Math.max(0.3, zoom - 0.15)); }
+        function zoomReset() { zoom = 1; panX = 0; panY = 0; applyTransform(); }
+
+        function setZoomAtCenter(newZoom) {
+            const rect = canvasArea.getBoundingClientRect();
+            const cx = rect.width / 2, cy = rect.height / 2;
+            const localX = (cx - panX) / zoom, localY = (cy - panY) / zoom;
+            zoom = newZoom;
+            panX = cx - localX * zoom;
+            panY = cy - localY * zoom;
+            applyTransform();
+        }
+
+        // --- SPAWN DEVICE ---
+        function spawnDevice(encodedData, restoreData = null) {
+            const data = restoreData ? restoreData.config : JSON.parse(decodeURIComponent(encodedData));
+
+            if (!restoreData) nodesCounter++;
+            const nodeId = restoreData ? restoreData.id : 'node-' + nodesCounter;
+
+            const nodeDiv = document.createElement('div');
+            nodeDiv.id = nodeId;
+            nodeDiv.dataset.config = JSON.stringify(data);
+            nodeDiv.dataset.settings = restoreData ? (restoreData.settings || JSON.stringify({res: '1080p60', bitrate: 6000, audio: '48kHz', server: ''})) : JSON.stringify({res: '1080p60', bitrate: 6000, audio: '48kHz', server: ''});
+            nodeDiv.dataset.notes = restoreData ? (restoreData.notes || '') : '';
+            nodeDiv.className = 'device-node text-sm flex flex-col no-select';
+
+            let localLeft, localTop;
+            if (restoreData) {
+                localLeft = parseFloat(restoreData.left) || 0;
+                localTop = parseFloat(restoreData.top) || 0;
+            } else {
+                const center = screenToLocal(canvasArea.getBoundingClientRect().width / 2, canvasArea.getBoundingClientRect().height / 2);
+                localLeft = center.x - 115 + (Math.random() * 160 - 80);
+                localTop = center.y - 60 + (Math.random() * 120 - 60);
+            }
+            nodeDiv.style.left = localLeft + 'px';
+            nodeDiv.style.top = localTop + 'px';
+
+            const hasNotes = nodeDiv.dataset.notes && nodeDiv.dataset.notes.trim().length > 0;
+
+            let innerHTML = `
+                <div class="bg-slate-800 p-2 rounded-t-lg border-b border-slate-700 font-bold flex justify-between items-center handle">
+                    <span class="truncate flex items-center">${data.name}${hasNotes ? '<span class="notes-dot" title="Ada catatan"></span>' : ''}</span>
+                    <div class="flex gap-1.5 flex-shrink-0 ml-1">
+                        <button onclick="openNotes('${nodeId}')" class="icon-btn text-yellow-400 text-xs" title="Catatan">📝</button>
+                        ${data.hasSettings ? `<button onclick="openSettings('${nodeId}')" class="icon-btn text-blue-400 text-xs" title="Pengaturan">⚙️</button>` : ''}
+                        <button onclick="duplicateDevice('${nodeId}')" class="icon-btn text-purple-400 text-xs" title="Duplikat">⧉</button>
+                        <button onclick="deleteDevice('${nodeId}')" class="icon-btn text-red-400 text-xs font-black" title="Hapus">✕</button>
+                    </div>
+                </div>
+                <div class="device-image">
+                    <img src="${data.img}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                    <span class="fallback-emoji">${data.emoji || '🔧'}</span>
+                </div>
+                <div class="p-2 flex justify-between relative min-h-[60px] bg-slate-800 rounded-b-lg">
+            `;
+
+            innerHTML += `<div class="flex flex-col gap-3">`;
+            data.inputs.forEach((inp, idx) => {
+                const portId = `${nodeId}-in-${idx}`;
+                innerHTML += `
+                    <div class="relative flex items-center">
+                        <div id="${portId}" class="port port-in" data-node="${nodeId}" data-type="${inp.type}" data-io="input" onclick="handlePortClick(event, this)"></div>
+                        <span class="text-[10px] text-slate-300 ml-3 font-semibold">${inp.name} <span class="text-[9px] text-slate-500">(${inp.type})</span></span>
+                    </div>`;
+            });
+            innerHTML += `</div>`;
+
+            innerHTML += `<div class="flex flex-col gap-3 text-right">`;
+            data.outputs.forEach((out, idx) => {
+                const portId = `${nodeId}-out-${idx}`;
+                innerHTML += `
+                    <div class="relative flex items-center justify-end">
+                        <span class="text-[10px] text-slate-300 mr-3 font-semibold"><span class="text-[9px] text-slate-500">(${out.type})</span> ${out.name}</span>
+                        <div id="${portId}" class="port port-out" data-node="${nodeId}" data-type="${out.type}" data-io="output" onclick="handlePortClick(event, this)"></div>
+                    </div>`;
+            });
+            innerHTML += `</div></div>`;
+
+            nodeDiv.innerHTML = innerHTML;
+            nodeDiv.querySelector('.handle').addEventListener('mousedown', handleNodeDragStart);
+            devicesLayer.appendChild(nodeDiv);
+            updateStats();
+        }
+
+        function duplicateDevice(nodeId) {
+            const node = document.getElementById(nodeId);
+            if (!node) return;
+            const config = JSON.parse(node.dataset.config);
+            nodesCounter++;
+            const newId = 'node-' + nodesCounter;
+            spawnDevice(null, {
+                id: newId,
+                left: (parseFloat(node.style.left) + 30) + 'px',
+                top: (parseFloat(node.style.top) + 30) + 'px',
+                config,
+                settings: node.dataset.settings,
+                notes: ''
+            });
+            showToast('Alat berhasil diduplikat!', true);
+        }
+
+        function deleteDevice(nodeId) {
+            connections = connections.filter(conn => !conn.from.includes(nodeId) && !conn.to.includes(nodeId));
+            const node = document.getElementById(nodeId);
+            if (node) node.remove();
+            resetActivePort();
+            drawCables();
+            updateStats();
+        }
+
+        function clearCanvas() {
+            if (!confirm('Hapus semua alat dan kabel dari kanvas? Tindakan ini tidak bisa dibatalkan.')) return;
+            devicesLayer.innerHTML = '';
+            cablesLayer.innerHTML = '';
+            connections = [];
+            nodesCounter = 0;
+            updateStats();
+            showToast('Kanvas berhasil dibersihkan.', true);
+        }
+
+        function updateStats() {
+            const deviceCount = document.querySelectorAll('.device-node').length;
+            document.getElementById('stats-bar').textContent = `${deviceCount} Alat • ${connections.length} Koneksi`;
+        }
+
+        // --- DRAG (zoom/pan aware) ---
+        function handleNodeDragStart(e) {
+            if (e.target.closest('button')) return;
+            e.stopPropagation();
+            isDragging = true;
+            dragNode = this.parentElement;
+            dragNode.style.zIndex = 1000;
+            const local = screenToLocal(e.clientX, e.clientY);
+            offset.x = local.x - parseFloat(dragNode.style.left);
+            offset.y = local.y - parseFloat(dragNode.style.top);
+        }
+
+        window.addEventListener('mousemove', (e) => {
+            if (isDragging && dragNode) {
+                const local = screenToLocal(e.clientX, e.clientY);
+                dragNode.style.left = (local.x - offset.x) + 'px';
+                dragNode.style.top = (local.y - offset.y) + 'px';
+                drawCables();
+                return;
+            }
+            if (isPanning) {
+                panX = panStart.panX + (e.clientX - panStart.x);
+                panY = panStart.panY + (e.clientY - panStart.y);
+                applyTransform();
+            }
+        });
+
+        window.addEventListener('mouseup', () => {
+            if (dragNode) dragNode.style.zIndex = 10;
+            isDragging = false; dragNode = null;
+            isPanning = false;
+            canvasArea.classList.remove('panning');
+        });
+
+        // --- PAN & ZOOM ---
+        canvasArea.addEventListener('mousedown', (e) => {
+            if (e.target === canvasArea || e.target === devicesLayer || e.target === cablesLayer || e.target === zoomWrapper) {
+                isPanning = true;
+                panStart = { x: e.clientX, y: e.clientY, panX, panY };
+                canvasArea.classList.add('panning');
+                resetActivePort();
+            }
+        });
+
+        canvasArea.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const rect = canvasArea.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left, mouseY = e.clientY - rect.top;
+            const localX = (mouseX - panX) / zoom, localY = (mouseY - panY) / zoom;
+            const delta = e.deltaY > 0 ? -0.1 : 0.1;
+            zoom = Math.min(2.5, Math.max(0.3, zoom + delta));
+            panX = mouseX - localX * zoom;
+            panY = mouseY - localY * zoom;
+            applyTransform();
+        }, { passive: false });
+
+        // --- PORTS & CABLES ---
+        function showToast(msg, isSuccess = false) {
+            const toast = document.getElementById('toast');
+            toast.innerText = msg;
+            toast.className = (isSuccess ? 'toast-success' : 'toast-error') + ' shadow-lg';
+            toast.classList.add('show');
+            clearTimeout(window._toastTimer);
+            window._toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        function handlePortClick(e, portEl) {
+            e.stopPropagation();
+            const pNode = portEl.getAttribute('data-node');
+            const pType = portEl.getAttribute('data-type');
+            const pIO = portEl.getAttribute('data-io');
+            const pId = portEl.id;
+
+            if (!activePort) {
+                activePort = { id: pId, node: pNode, type: pType, io: pIO, el: portEl };
+                portEl.classList.add('active'); return;
+            }
+
+            if (activePort.id === pId) { resetActivePort(); return; }
+            if (activePort.node === pNode) { showToast("Tidak bisa menyambungkan ke alat yang sama!"); resetActivePort(); return; }
+            if (activePort.io === pIO) { showToast(`Keduanya adalah ${pIO.toUpperCase()}! Harus Output -> Input.`); resetActivePort(); return; }
+            if (activePort.type !== pType) { showToast(`Kabel Ditolak! Port ${activePort.type} tidak cocok dengan ${pType}.`); resetActivePort(); return; }
+
+            const inputId = activePort.io === 'input' ? activePort.id : pId;
+            const isUsed = connections.some(c => c.to === inputId);
+            if (isUsed) { showToast("Port Input ini sudah terisi! Hapus kabel yang ada terlebih dahulu."); resetActivePort(); return; }
+
+            connections.push({
+                from: activePort.io === 'output' ? activePort.id : pId,
+                to: activePort.io === 'input' ? activePort.id : pId,
+                type: pType
+            });
+
+            resetActivePort();
+            drawCables();
+            updateStats();
+        }
+
+        function resetActivePort() {
+            if (activePort && activePort.el) activePort.el.classList.remove('active');
+            activePort = null;
+        }
+
+        function deleteConnection(idx) {
+            connections.splice(idx, 1);
+            drawCables();
+            updateStats();
+        }
+
+        function drawCables() {
+            cablesLayer.innerHTML = '';
+            connections.forEach((conn, idx) => {
+                const elFrom = document.getElementById(conn.from);
+                const elTo = document.getElementById(conn.to);
+                if (!elFrom || !elTo) return;
+
+                const rFrom = elFrom.getBoundingClientRect();
+                const rTo = elTo.getBoundingClientRect();
+                const p1 = screenToLocal(rFrom.left + rFrom.width / 2, rFrom.top + rFrom.height / 2);
+                const p2 = screenToLocal(rTo.left + rTo.width / 2, rTo.top + rTo.height / 2);
+
+                const color = cableColors[conn.type] || '#ffffff';
+                const curve = Math.abs(p2.x - p1.x) * 0.6;
+                const d = `M ${p1.x} ${p1.y} C ${p1.x + curve} ${p1.y}, ${p2.x - curve} ${p2.y}, ${p2.x} ${p2.y}`;
+
+                const path = document.createElementNS(svgNS, 'path');
+                path.setAttribute('d', d);
+                path.setAttribute('fill', 'none');
+                path.setAttribute('stroke', color);
+                path.setAttribute('stroke-width', '4');
+                path.setAttribute('stroke-linecap', 'round');
+
+                if (conn.type === 'Wireless') {
+                    path.setAttribute('stroke-dasharray', '8, 8');
+                    path.setAttribute('opacity', '0.7');
+                } else {
+                    const animate = document.createElementNS(svgNS, 'animate');
+                    animate.setAttribute('attributeName', 'stroke-dashoffset');
+                    animate.setAttribute('from', '20'); animate.setAttribute('to', '0');
+                    animate.setAttribute('dur', '1s'); animate.setAttribute('repeatCount', 'indefinite');
+                    path.setAttribute('stroke-dasharray', '10, 10');
+                    path.appendChild(animate);
+                }
+                path.style.filter = `drop-shadow(0 0 5px ${color})`;
+                cablesLayer.appendChild(path);
+
+                // Hit area lebih tebal supaya mudah diklik untuk dihapus
+                const hit = document.createElementNS(svgNS, 'path');
+                hit.setAttribute('d', d);
+                hit.setAttribute('fill', 'none');
+                hit.setAttribute('stroke', 'transparent');
+                hit.setAttribute('stroke-width', '18');
+                hit.style.cursor = 'pointer';
+                hit.style.pointerEvents = 'stroke';
+                hit.addEventListener('click', (ev) => { ev.stopPropagation(); deleteConnection(idx); });
+                cablesLayer.appendChild(hit);
+
+                // Tombol hapus di tengah kabel
+                const midX = (p1.x + p2.x) / 2, midY = (p1.y + p2.y) / 2;
+                const g = document.createElementNS(svgNS, 'g');
+                g.style.cursor = 'pointer';
+                g.style.pointerEvents = 'auto';
+                g.addEventListener('click', (ev) => { ev.stopPropagation(); deleteConnection(idx); });
+                const circle = document.createElementNS(svgNS, 'circle');
+                circle.setAttribute('cx', midX); circle.setAttribute('cy', midY); circle.setAttribute('r', '8');
+                circle.setAttribute('fill', '#1e293b'); circle.setAttribute('stroke', color); circle.setAttribute('stroke-width', '1.5');
+                const text = document.createElementNS(svgNS, 'text');
+                text.setAttribute('x', midX); text.setAttribute('y', midY + 3);
+                text.setAttribute('text-anchor', 'middle'); text.setAttribute('font-size', '9');
+                text.setAttribute('fill', '#f87171'); text.textContent = '✕';
+                g.appendChild(circle); g.appendChild(text);
+                cablesLayer.appendChild(g);
+            });
+        }
+
+        // --- SAVE & LOAD (window.storage, menggantikan localStorage yang tidak didukung) ---
+        async function saveProject() {
+            try {
+                const nodes = [];
+                document.querySelectorAll('.device-node').forEach(node => {
+                    nodes.push({
+                        id: node.id,
+                        left: node.style.left,
+                        top: node.style.top,
+                        config: JSON.parse(node.dataset.config),
+                        settings: node.dataset.settings,
+                        notes: node.dataset.notes || ''
+                    });
+                });
+                const projectData = { nodes, connections, nodesCounter };
+                const result = await window.storage.set('live-planner-project', JSON.stringify(projectData), false);
+                if (result) {
+                    showToast('Konfigurasi berhasil disimpan!', true);
+                } else {
+                    showToast('Gagal menyimpan konfigurasi.');
+                }
+            } catch (err) {
+                console.error('Save error:', err);
+                showToast('Gagal menyimpan konfigurasi.');
+            }
+        }
+
+        async function loadProject() {
+            try {
+                const result = await window.storage.get('live-planner-project', false);
+                if (!result) { showToast('Tidak ada data tersimpan.'); return; }
+                const projectData = JSON.parse(result.value);
+
+                devicesLayer.innerHTML = '';
+                cablesLayer.innerHTML = '';
+                connections = projectData.connections || [];
+                nodesCounter = projectData.nodesCounter || 0;
+
+                (projectData.nodes || []).forEach(nodeData => spawnDevice(null, nodeData));
+
+                setTimeout(() => { drawCables(); updateStats(); }, 100);
+                showToast('Konfigurasi berhasil dimuat!', true);
+            } catch (err) {
+                console.error('Load error:', err);
+                showToast('Tidak ada data tersimpan atau gagal memuat.');
+            }
+        }
+
+        // --- SOFTWARE SETTINGS MODAL ---
+        const settingsModal = document.getElementById('settings-modal');
+        function openSettings(nodeId) {
+            const node = document.getElementById(nodeId);
+            const settings = JSON.parse(node.dataset.settings);
+            document.getElementById('setting-node-id').value = nodeId;
+            document.getElementById('set-res').value = settings.res || '1080p60';
+            document.getElementById('set-bitrate').value = settings.bitrate || 6000;
+            document.getElementById('set-audio').value = settings.audio || '48kHz';
+            document.getElementById('set-server').value = settings.server || '';
+            settingsModal.classList.add('active');
+        }
+        function closeSettings() { settingsModal.classList.remove('active'); }
+        function saveSettings() {
+            const nodeId = document.getElementById('setting-node-id').value;
+            const node = document.getElementById(nodeId);
+            const newSettings = {
+                res: document.getElementById('set-res').value,
+                bitrate: document.getElementById('set-bitrate').value,
+                audio: document.getElementById('set-audio').value,
+                server: document.getElementById('set-server').value
+            };
+            node.dataset.settings = JSON.stringify(newSettings);
+            closeSettings();
+            showToast('Setting Software Disimpan!', true);
+        }
+
+        // --- NOTES MODAL ---
+        const notesModal = document.getElementById('notes-modal');
+        function openNotes(nodeId) {
+            const node = document.getElementById(nodeId);
+            const config = JSON.parse(node.dataset.config);
+            document.getElementById('notes-node-id').value = nodeId;
+            document.getElementById('notes-device-name').textContent = config.name;
+            document.getElementById('notes-text').value = node.dataset.notes || '';
+            notesModal.classList.add('active');
+        }
+        function closeNotes() { notesModal.classList.remove('active'); }
+        function saveNotes() {
+            const nodeId = document.getElementById('notes-node-id').value;
+            const node = document.getElementById(nodeId);
+            node.dataset.notes = document.getElementById('notes-text').value;
+            const dot = node.querySelector('.notes-dot');
+            const hasNotes = node.dataset.notes.trim().length > 0;
+            if (hasNotes && !dot) {
+                node.querySelector('.handle span').insertAdjacentHTML('beforeend', '<span class="notes-dot" title="Ada catatan"></span>');
+            } else if (!hasNotes && dot) {
+                dot.remove();
+            }
+            closeNotes();
+            showToast('Catatan disimpan!', true);
+        }
+
+        // --- EXPORT ---
+        function exportToImage() {
+            const zc = document.getElementById('zoom-controls');
+            const lp = document.getElementById('legend-panel');
+            const originalBg = canvasArea.style.backgroundImage;
+            zc.style.display = 'none'; lp.style.display = 'none';
+            canvasArea.style.backgroundImage = 'none';
+            canvasArea.style.backgroundColor = '#0f172a';
+            html2canvas(canvasArea, { backgroundColor: '#0f172a', scale: 2 }).then(canvas => {
+                canvasArea.style.backgroundImage = originalBg;
+                zc.style.display = ''; lp.style.display = '';
+                const link = document.createElement('a');
+                link.download = 'Live-Event-Planner.jpg';
+                link.href = canvas.toDataURL('image/jpeg', 0.9);
+                link.click();
+            }).catch(err => {
+                zc.style.display = ''; lp.style.display = '';
+                canvasArea.style.backgroundImage = originalBg;
+                console.error(err);
+                showToast('Gagal export gambar.');
+            });
+        }
+
+        // --- INIT ---
+        window.onload = () => {
+            renderCatalog();
+            renderLegend();
+            updateStats();
+        };
+    </script>
+</body>
+</html>
