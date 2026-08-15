@@ -6,6 +6,7 @@
     <title>Enterprise Live Event Planner</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; overflow: hidden; }
         .no-select { user-select: none; -webkit-user-select: none; }
@@ -74,8 +75,8 @@
         .device-image img { max-width: 100%; max-height: 100%; object-fit: contain; padding: 6px; pointer-events: none; }
         .device-image .fallback-emoji { display: none; width: 100%; height: 100%; align-items: center; justify-content: center; font-size: 28px; }
 
-        .icon-btn { opacity: 0.75; transition: opacity 0.15s, transform 0.15s; }
-        .icon-btn:hover { opacity: 1; transform: scale(1.15); }
+        .icon-btn { opacity: 0.8; transition: opacity 0.15s, transform 0.15s; width: 26px; height: 26px; display: inline-flex; align-items: center; justify-content: center; border-radius: 6px; font-size: 15px; }
+        .icon-btn:hover { opacity: 1; transform: scale(1.18); background: rgba(255,255,255,0.08); }
 
         .notes-dot { width: 7px; height: 7px; border-radius: 50%; background: #eab308; display: inline-block; margin-left: 4px; }
 
@@ -112,7 +113,7 @@
     <!-- Modal Software Settings -->
     <div id="settings-modal" class="modal-overlay fixed inset-0 bg-black/70 z-[9999] justify-center items-center backdrop-blur-sm">
         <div class="bg-slate-800 border border-slate-600 rounded-xl p-6 w-96 shadow-2xl">
-            <h2 class="text-xl font-bold mb-4 text-blue-400">⚙️ Software / Broadcast Settings</h2>
+            <h2 class="text-xl font-bold mb-4 text-blue-400"><i class="fa-solid fa-gear"></i> Software / Broadcast Settings</h2>
             <input type="hidden" id="setting-node-id">
 
             <div class="mb-3">
@@ -149,13 +150,129 @@
     <!-- Modal Catatan Alat -->
     <div id="notes-modal" class="modal-overlay fixed inset-0 bg-black/70 z-[9999] justify-center items-center backdrop-blur-sm">
         <div class="bg-slate-800 border border-slate-600 rounded-xl p-6 w-96 shadow-2xl">
-            <h2 class="text-xl font-bold mb-1 text-yellow-400">📝 Catatan Alat</h2>
+            <h2 class="text-xl font-bold mb-1 text-yellow-400"><i class="fa-solid fa-note-sticky"></i> Catatan Alat</h2>
             <p id="notes-device-name" class="text-xs text-slate-400 mb-4"></p>
             <input type="hidden" id="notes-node-id">
             <textarea id="notes-text" rows="5" placeholder="Contoh: IP 192.168.1.20, Channel 2, No. Seri XYZ..." class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-sm text-white mb-5 resize-none"></textarea>
             <div class="flex justify-end gap-2">
                 <button onclick="closeNotes()" class="px-4 py-2 bg-slate-600 hover:bg-slate-500 rounded text-sm font-bold">Batal</button>
                 <button onclick="saveNotes()" class="px-4 py-2 bg-yellow-600 hover:bg-yellow-500 rounded text-sm font-bold text-white">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Generate dari Gambar -->
+    <div id="imagegen-modal" class="modal-overlay fixed inset-0 bg-black/70 z-[9999] justify-center items-center backdrop-blur-sm">
+        <div class="bg-slate-800 border border-slate-600 rounded-xl p-6 w-[28rem] shadow-2xl">
+            <h2 class="text-xl font-bold mb-1 text-indigo-400"><i class="fa-solid fa-image"></i> Generate Alat dari Gambar</h2>
+            <p class="text-xs text-slate-400 mb-4">Unggah foto produk, lalu isi nama & kategori. Alat akan muncul di kanvas.</p>
+            <div id="img-drop" class="border-2 border-dashed border-slate-600 rounded-lg p-6 text-center cursor-pointer hover:border-indigo-400 transition">
+                <i class="fa-solid fa-cloud-arrow-up text-3xl text-slate-500"></i>
+                <p class="text-sm text-slate-400 mt-2">Klik atau seret gambar ke sini</p>
+                <input type="file" id="img-file" accept="image/*" class="hidden">
+            </div>
+            <div id="img-preview-wrap" class="hidden mt-3">
+                <img id="img-preview" class="max-h-40 mx-auto rounded border border-slate-600">
+            </div>
+            <div class="mt-4">
+                <label class="block text-xs text-slate-400 mb-1">Nama Alat</label>
+                <input type="text" id="img-name" placeholder="Mis. Kamera Sony A7 IV" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-sm text-white">
+            </div>
+            <div class="mt-3 grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">Merk</label>
+                    <input type="text" id="img-brand" placeholder="Sony" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-sm text-white">
+                </div>
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">Kategori</label>
+                    <input type="text" id="img-cat" placeholder="Kamera Utama" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-sm text-white">
+                </div>
+            </div>
+            <div class="mt-3 grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">Input (pisah dengan koma)</label>
+                    <input type="text" id="img-ins" placeholder="HDMI, Audio" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-sm text-white">
+                </div>
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">Output (pisah dengan koma)</label>
+                    <input type="text" id="img-outs" placeholder="HDMI, USB" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-sm text-white">
+                </div>
+            </div>
+            <div class="flex justify-end gap-2 mt-5">
+                <button onclick="closeImageGen()" class="px-4 py-2 bg-slate-600 hover:bg-slate-500 rounded text-sm font-bold">Batal</button>
+                <button onclick="createFromImage()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded text-sm font-bold text-white">Buat Alat</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Panduan (Blueprint / Tutorial / Troubleshooting) -->
+    <div id="guide-modal" class="modal-overlay fixed inset-0 bg-black/70 z-[9999] justify-center items-center backdrop-blur-sm p-4">
+        <div class="bg-slate-800 border border-slate-600 rounded-xl w-[52rem] max-w-full max-h-[90vh] shadow-2xl flex flex-col">
+            <div class="flex items-center justify-between p-4 border-b border-slate-700">
+                <h2 class="text-lg font-bold text-blue-400"><i class="fa-solid fa-book"></i> Panduan Realisasi</h2>
+                <button onclick="closeGuide()" class="icon-btn text-slate-300"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="flex border-b border-slate-700 text-sm">
+                <button class="guide-tab flex-1 py-2 font-bold border-b-2 border-blue-500 text-blue-400" data-tab="blueprint" onclick="switchGuide('blueprint')"><i class="fa-solid fa-diagram-project"></i> Blueprint</button>
+                <button class="guide-tab flex-1 py-2 font-bold text-slate-400" data-tab="tutorial" onclick="switchGuide('tutorial')"><i class="fa-solid fa-screwdriver-wrench"></i> Tutorial</button>
+                <button class="guide-tab flex-1 py-2 font-bold text-slate-400" data-tab="trouble" onclick="switchGuide('trouble')"><i class="fa-solid fa-circle-question"></i> Troubleshooting</button>
+            </div>
+            <div class="overflow-y-auto p-5 text-sm text-slate-300 leading-relaxed">
+                <div id="guide-blueprint">
+                    <h3 class="text-base font-bold text-white mb-2">Blueprint Arsitektur Live Streaming</h3>
+                    <p class="mb-3">Alur sinyal dasar sebuah siaran langsung:</p>
+                    <pre class="bg-slate-900 border border-slate-700 rounded p-3 text-xs text-green-300 overflow-x-auto">[Kamera] --HDMI/SDI--> [Video Switcher] --SDI--> [Capture Card] --USB--> [PC OBS/vMix]
+   |                                  |                                      |
+[Microphone] --XLR/Audio--> [Audio Mixer] --Audio--> [Switcher/Encoder]   [Encoder] --RTMP--> [Platform Live]</pre>
+                    <ul class="list-disc pl-5 space-y-1 mt-3">
+                        <li><strong>Kamera</strong> menangkap video; output HDMI/SDI masuk ke switcher.</li>
+                        <li><strong>Video Switcher</strong> memilih sumber gambar & menggabungkan layer.</li>
+                        <li><strong>Capture Card</strong> mengubah sinyal video menjadi data ke PC.</li>
+                        <li><strong>Audio Mixer</strong> menyeimbangkan mic & musik sebelum ke encoder.</li>
+                        <li><strong>Encoder / OBS</strong> mengompres & mengirim stream via RTMP ke platform.</li>
+                        <li><strong>Monitor</strong> & <strong>Tally</strong> membantu kru melihat hasil & status on-air.</li>
+                    </ul>
+                </div>
+                <div id="guide-tutorial" class="hidden">
+                    <h3 class="text-base font-bold text-white mb-2">Cara Instalasi & Penggunaan</h3>
+                    <ol class="list-decimal pl-5 space-y-2">
+                        <li><strong>Pilih alat:</strong> Buka katalog kiri, cari alat, centang lalu klik <i class="fa-solid fa-plus text-green-400"></i> untuk menaruh di kanvas.</li>
+                        <li><strong>Susun posisi:</strong> Tarik judul alat (handle) untuk memindahkan; scroll untuk zoom; drag area kosong untuk pan.</li>
+                        <li><strong>Hubungkan kabel:</strong> Klik port <span class="inline-block w-3 h-3 rounded-full bg-blue-500 align-middle"></span> (Output) lalu port Input alat tujuan. Warna = jenis kabel.</li>
+                        <li><strong>Rangkai otomatis:</strong> Centang beberapa alat lalu klik <em>Rangkai Otomatis</em> untuk menyambung port yang cocok otomatis.</li>
+                        <li><strong>Catatan & Setting:</strong> Klik <i class="fa-solid fa-note-sticky text-yellow-400"></i> untuk catatan, <i class="fa-solid fa-gear text-blue-400"></i> untuk setting software (resolusi, bitrate, server).</li>
+                        <li><strong>Simpan:</strong> Klik <i class="fa-solid fa-floppy-disk text-green-400"></i> Save (perlu login admin) atau export gambar <i class="fa-solid fa-camera-retro text-purple-400"></i>.</li>
+                        <li><strong>Cetak ringkasan:</strong> Klik <em>Ringkasan Cetak</em> untuk PDF daftar alat & kabel.</li>
+                        <li><strong>Generate dari gambar:</strong> Klik <em>Generate dari Gambar</em>, unggah foto produk, isi nama & kategori, lalu <em>Buat Alat</em>.</li>
+                    </ol>
+                </div>
+                <div id="guide-trouble" class="hidden">
+                    <h3 class="text-base font-bold text-white mb-2">Troubleshooting</h3>
+                    <table class="w-full text-xs border-collapse">
+                        <thead><tr class="border-b border-slate-600 text-slate-400"><th class="text-left py-1">Masalah</th><th class="text-left py-1">Solusi</th></tr></thead>
+                        <tbody class="align-top">
+                            <tr class="border-b border-slate-700"><td class="py-1.5 pr-3">Kabel ditolak / tidak nyambung</td><td class="py-1.5">Pastikan tipe port cocok (HDMI→HDMI, SDI→SDI, Audio→Audio) dan arah Output→Input.</td></tr>
+                            <tr class="border-b border-slate-700"><td class="py-1.5 pr-3">Gambar alat tidak muncul</td><td class="py-1.5">Gambar fallback Font Awesome akan tampil. Pastikan file di folder <code>images_real/</code> terunggah ke repo.</td></tr>
+                            <tr class="border-b border-slate-700"><td class="py-1.5 pr-3">Data tidak tersimpan</td><td class="py-1.5">Login sebagai admin di panel kiri. Simpanan disimpan ke Turso (cloud).</td></tr>
+                            <tr class="border-b border-slate-700"><td class="py-1.5 pr-3">API /api/equipment gagal</td><td class="py-1.5">Cek env <code>TURSO_URL</code> & <code>TURSO_TOKEN</code> di Vercel. Fallback ke <code>equipment-data.js</code> lokal otomatis.</td></tr>
+                            <tr class="border-b border-slate-700"><td class="py-1.5 pr-3">Zoom/pan tidak responsif</td><td class="py-1.5">Klik area kanvas kosong lalu drag untuk pan; scroll mouse untuk zoom.</td></tr>
+                            <tr><td class="py-1.5 pr-3">Deploy gagal di Vercel</td><td class="py-1.5">Pastikan <code>vercel.json</code> rewrite <code>/api</code> benar & <code>@libsql/client</code> ter-install (<code>npm install</code>).</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Simpanan (admin manage, viewer download) -->
+    <div id="saves-modal" class="modal-overlay fixed inset-0 bg-black/70 z-[9999] justify-center items-center backdrop-blur-sm p-4">
+        <div class="bg-slate-800 border border-slate-600 rounded-xl w-[40rem] max-w-full max-h-[85vh] shadow-2xl flex flex-col">
+            <div class="flex items-center justify-between p-4 border-b border-slate-700">
+                <h2 class="text-lg font-bold text-teal-400"><i class="fa-solid fa-folder-open"></i> Simpanan Publik</h2>
+                <button onclick="closeSaves()" class="icon-btn text-slate-300"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="overflow-y-auto p-4" id="saves-list">
+                <p class="text-sm text-slate-500 text-center">Memuat simpanan…</p>
             </div>
         </div>
     </div>
@@ -167,22 +284,43 @@
             <p class="text-xs text-slate-400 mt-1">Enterprise Architecture Builder</p>
         </div>
 
+        <!-- Login Admin (kiri) -->
+        <div id="login-panel" class="p-4 border-b border-slate-700 bg-slate-900/60">
+            <div id="login-form">
+                <label class="block text-xs text-slate-400 mb-1"><i class="fa-solid fa-lock"></i> Login Admin</label>
+                <div class="flex gap-2">
+                    <input type="password" id="login-pass" placeholder="Password admin" class="flex-grow bg-slate-900 border border-slate-600 rounded p-2 text-sm text-white focus:outline-none focus:border-blue-500" onkeydown="if(event.key==='Enter')adminLogin()">
+                    <button onclick="adminLogin()" class="px-3 bg-blue-600 hover:bg-blue-500 rounded text-sm font-bold"><i class="fa-solid fa-right-to-bracket"></i></button>
+                </div>
+                <p class="text-[10px] text-slate-500 mt-1">Login untuk simpan ke cloud & kelola simpanan.</p>
+            </div>
+            <div id="login-info" class="hidden">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs text-green-400 font-bold"><i class="fa-solid fa-circle-check"></i> Admin aktif</span>
+                    <button onclick="adminLogout()" class="text-xs text-slate-400 hover:text-red-400"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+                </div>
+                <button onclick="openSaves()" class="mt-2 w-full py-1.5 bg-teal-600 hover:bg-teal-500 rounded text-xs font-bold"><i class="fa-solid fa-folder-open"></i> Lihat Simpanan</button>
+            </div>
+        </div>
+
         <!-- Action Buttons -->
         <div class="grid grid-cols-2 gap-2 p-4 border-b border-slate-700">
-            <button onclick="saveProject()" class="py-2 bg-green-600 hover:bg-green-500 rounded text-sm font-bold flex justify-center items-center gap-1 shadow">💾 Save</button>
-            <button onclick="loadProject()" class="py-2 bg-blue-600 hover:bg-blue-500 rounded text-sm font-bold flex justify-center items-center gap-1 shadow">📂 Load</button>
-            <button onclick="clearCanvas()" class="py-2 bg-red-700 hover:bg-red-600 rounded text-sm font-bold flex justify-center items-center gap-1 shadow">🗑️ Clear</button>
-            <button onclick="exportToImage()" class="py-2 bg-purple-600 hover:bg-purple-500 rounded text-sm font-bold flex justify-center items-center gap-1 shadow">📸 Export</button>
-            <button onclick="autoWire()" class="col-span-2 py-2 bg-amber-600 hover:bg-amber-500 rounded text-sm font-bold flex justify-center items-center gap-1 shadow" title="Rangkai otomatis dari alat terpilih">🔗 Rangkai Otomatis</button>
-            <button onclick="openSummary()" class="col-span-2 py-2 bg-teal-600 hover:bg-teal-500 rounded text-sm font-bold flex justify-center items-center gap-1 shadow" title="Cetak ringkasan total alat & kabel">🖨️ Ringkasan Cetak</button>
-            <button onclick="clearSelection()" class="col-span-2 py-1.5 bg-slate-600 hover:bg-slate-500 rounded text-xs font-bold flex justify-center items-center gap-1 shadow">✕ Bersihkan Pilihan</button>
+            <button onclick="saveProject()" class="py-2 bg-green-600 hover:bg-green-500 rounded text-sm font-bold flex justify-center items-center gap-1 shadow"><i class="fa-solid fa-floppy-disk"></i> Save</button>
+            <button onclick="loadProject()" class="py-2 bg-blue-600 hover:bg-blue-500 rounded text-sm font-bold flex justify-center items-center gap-1 shadow"><i class="fa-solid fa-folder-open"></i> Load</button>
+            <button onclick="clearCanvas()" class="py-2 bg-red-700 hover:bg-red-600 rounded text-sm font-bold flex justify-center items-center gap-1 shadow"><i class="fa-solid fa-trash-can"></i> Clear</button>
+            <button onclick="exportToImage()" class="py-2 bg-purple-600 hover:bg-purple-500 rounded text-sm font-bold flex justify-center items-center gap-1 shadow"><i class="fa-solid fa-camera-retro"></i> Export</button>
+            <button onclick="autoWire()" class="col-span-2 py-2 bg-amber-600 hover:bg-amber-500 rounded text-sm font-bold flex justify-center items-center gap-1 shadow" title="Rangkai otomatis dari alat terpilih"><i class="fa-solid fa-link"></i> Rangkai Otomatis</button>
+            <button onclick="openSummary()" class="col-span-2 py-2 bg-teal-600 hover:bg-teal-500 rounded text-sm font-bold flex justify-center items-center gap-1 shadow" title="Cetak ringkasan total alat & kabel"><i class="fa-solid fa-print"></i> Ringkasan Cetak</button>
+            <button onclick="openImageGen()" class="col-span-2 py-2 bg-indigo-600 hover:bg-indigo-500 rounded text-sm font-bold flex justify-center items-center gap-1 shadow" title="Buat alat dari gambar (upload)"><i class="fa-solid fa-image"></i> Generate dari Gambar</button>
+            <button onclick="openGuide()" class="col-span-2 py-2 bg-slate-700 hover:bg-slate-600 rounded text-sm font-bold flex justify-center items-center gap-1 shadow" title="Blueprint, tutorial & troubleshooting"><i class="fa-solid fa-book"></i> Panduan & Blueprint</button>
+            <button onclick="clearSelection()" class="col-span-2 py-1.5 bg-slate-600 hover:bg-slate-500 rounded text-xs font-bold flex justify-center items-center gap-1 shadow"><i class="fa-solid fa-xmark"></i> Bersihkan Pilihan</button>
         </div>
 
         <div id="selection-bar" class="p-2 border-t border-slate-700 text-xs text-center font-semibold bg-slate-900 text-slate-400">0 alat dipilih</div>
 
         <!-- Search -->
         <div class="p-4 pb-2">
-            <input id="search-input" type="text" placeholder="🔍 Cari alat..." oninput="renderCatalog(this.value)"
+                <input id="search-input" type="text" placeholder="Cari alat..." oninput="renderCatalog(this.value)"
                 class="w-full bg-slate-900 border border-slate-600 rounded-lg p-2 text-sm text-white focus:outline-none focus:border-blue-500">
         </div>
 
@@ -204,10 +342,10 @@
 
         <!-- Zoom Controls -->
         <div id="zoom-controls" class="absolute bottom-5 right-5 bg-slate-800/90 border border-slate-600 rounded-lg shadow-xl flex items-center gap-1 p-1 backdrop-blur">
-            <button onclick="zoomOut()" class="w-8 h-8 flex items-center justify-center hover:bg-slate-700 rounded text-lg font-bold">−</button>
-            <span id="zoom-label" class="text-xs w-12 text-center select-none">100%</span>
-            <button onclick="zoomIn()" class="w-8 h-8 flex items-center justify-center hover:bg-slate-700 rounded text-lg font-bold">+</button>
-            <button onclick="zoomReset()" class="w-8 h-8 flex items-center justify-center hover:bg-slate-700 rounded text-xs ml-1" title="Reset tampilan">⤢</button>
+            <button onclick="zoomOut()" class="w-10 h-10 flex items-center justify-center hover:bg-slate-700 rounded text-2xl font-bold leading-none">−</button>
+            <span id="zoom-label" class="text-sm w-14 text-center select-none">100%</span>
+            <button onclick="zoomIn()" class="w-10 h-10 flex items-center justify-center hover:bg-slate-700 rounded text-2xl font-bold leading-none">+</button>
+            <button onclick="zoomReset()" class="w-10 h-10 flex items-center justify-center hover:bg-slate-700 rounded text-base ml-1" title="Reset tampilan">⤢</button>
         </div>
 
         <!-- Legend -->
@@ -233,6 +371,39 @@
             "Wireless": "#e2e8f0",
             "Power": "#f97316"
         };
+
+        // --- Font Awesome icon berdasarkan kategori (fallback bila gambar gagal) ---
+        function faIconFor(cat) {
+            const c = (cat || '').toLowerCase();
+            const map = [
+                [/kamera|camera|webcam|ptz|action cam|gopro|osmo|insta360/, 'fa-solid fa-camera'],
+                [/lensa|lens|optik/, 'fa-solid fa-circle-half-stroke'],
+                [/mikrofon|mic|audio|sound|mixer|console/, 'fa-solid fa-microphone'],
+                [/headphone|earphone|headset/, 'fa-solid fa-headphones'],
+                [/speaker|monitor audio|pengeras/, 'fa-solid fa-volume-high'],
+                [/switcher|video mixer|vision/, 'fa-solid fa-sliders'],
+                [/encoder|stream|obs|vMix|wirecast|software/, 'fa-solid fa-server'],
+                [/capture|card|recorder|record/, 'fa-solid fa-video'],
+                [/monitor|layar|display|tv|screen/, 'fa-solid fa-tv'],
+                [/komputer|pc|laptop|computer|mac|workstation/, 'fa-solid fa-computer'],
+                [/router|switch|network|lan|hub|po[e]?|access point|wifi|wireless/, 'fa-solid fa-network-wired'],
+                [/kabel|cable|hdmi|sdi|konektor|connector|adapter|konverter|converter/, 'fa-solid fa-plug'],
+                [/baterai|battery|power|charger|dummy|psu|listrik/, 'fa-solid fa-battery-full'],
+                [/lampu|light|led|studio light|ring/, 'fa-solid fa-lightbulb'],
+                [/tripod|stand|mount|rig|gimbal|stabilizer|dolly/, 'fa-solid fa-arrows-up-down-left-right'],
+                [/drone/, 'fa-solid fa-helicopter'],
+                [/green screen|chromakey|backdrop/, 'fa-solid fa-clone'],
+                [/case|bag|tas|koper/, 'fa-solid fa-suitcase'],
+                [/antena|antenna/, 'fa-solid fa-wifi'],
+                [/streamdeck|controller|panel|remote/, 'fa-solid fa-gamepad'],
+                [/teleprompter|prompter/, 'fa-solid fa-scroll'],
+                [/sd|card|storage|memory|ssd|hdd/, 'fa-solid fa-memory'],
+                [/gimbal/, 'fa-solid fa-compass'],
+                [/filter|nd filter/, 'fa-solid fa-circle-half-stroke']
+            ];
+            for (const [re, icon] of map) if (re.test(c)) return icon;
+            return 'fa-solid fa-circle-question';
+        }
 
         // --- STATE ---
         let nodesCounter = 0;
@@ -290,13 +461,13 @@
                                 <input type="checkbox" class="sel-chk flex-shrink-0" data-id="${item.id}" data-item="${encodedData}" ${checked} onchange="toggleSelect(this)">
                                 <div class="w-8 h-8 rounded bg-slate-900 flex-shrink-0 relative overflow-hidden flex items-center justify-center">
                                     <img src="${item.img}" class="max-w-full max-h-full object-contain p-0.5" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
-                                    <span class="absolute inset-0 items-center justify-center text-base" style="display:none">${item.emoji||'🔧'}</span>
+                                    <span class="absolute inset-0 items-center justify-center text-base text-slate-400" style="display:none"><i class="${faIconFor(cat.title)}"></i></span>
                                 </div>
                                 <div class="flex-grow min-w-0">
                                     <div class="text-[13px] font-semibold truncate leading-tight">${item.name}</div>
                                     <div class="text-[10px] text-slate-400">${item.inputs.length} in / ${item.outputs.length} out</div>
                                 </div>
-                                <button type="button" onclick="event.preventDefault(); spawnDevice('${encodedData}')" class="icon-btn text-green-400 text-xs flex-shrink-0" title="Tambah ke kanvas">＋</button>
+                                <button type="button" onclick="event.preventDefault(); spawnDevice('${encodedData}')" class="icon-btn text-green-400 text-xs flex-shrink-0" title="Tambah ke kanvas"><i class="fa-solid fa-plus"></i></button>
                             </label>`;
                     });
                     html += `</div></details>`;
@@ -400,43 +571,70 @@
             const s = buildSummary();
             const d = new Date().toLocaleString('id-ID');
             let catRows = Object.entries(s.catMap).sort((a,b)=>b[1]-a[1])
-                .map(([k,v]) => `<tr><td>${k}</td><td style="text-align:right">${v}</td></tr>`).join('');
+                .map(([k,v]) => `<tr><td>${k}</td><td class="num">${v}</td></tr>`).join('');
             let brandRows = Object.entries(s.brandMap).sort((a,b)=>b[1]-a[1])
-                .map(([k,v]) => `<tr><td>${k}</td><td style="text-align:right">${v}</td></tr>`).join('');
+                .map(([k,v]) => `<tr><td>${k}</td><td class="num">${v}</td></tr>`).join('');
             let cableRows = Object.keys(s.typeMap).length
-                ? Object.entries(s.typeMap).map(([k,v]) => `<tr><td>${k}</td><td style="text-align:right">${v}</td></tr>`).join('')
-                : `<tr><td colspan="2" style="text-align:center">— belum ada kabel —</td></tr>`;
+                ? Object.entries(s.typeMap).map(([k,v]) => `<tr><td><span class="dot" style="background:${cableColors[k]||'#888'}"></span>${k}</td><td class="num">${v}</td></tr>`).join('')
+                : `<tr><td colspan="2" class="empty">— belum ada kabel —</td></tr>`;
             const html = `
-                <div style="font-family:Segoe UI,Arial;color:#111;padding:24px;max-width:900px;margin:auto">
-                    <h1 style="margin:0 0 4px">Rangkuman Peralatan Live Streaming</h1>
-                    <p style="color:#555;margin:0 0 16px">Dicetak: ${d}</p>
-                    <div style="display:flex;gap:16px;flex-wrap:wrap">
-                        <div style="flex:1;min-width:260px;border:1px solid #ccc;border-radius:8px;padding:12px">
-                            <h3 style="margin:0 0 8px">Total Alat: ${s.deviceCount}</h3>
-                            <table style="width:100%;border-collapse:collapse;font-size:13px">
-                                <thead><tr style="border-bottom:2px solid #333"><th style="text-align:left">Kategori</th><th style="text-align:right">Jml</th></tr></thead>
-                                <tbody>${catRows}</tbody>
-                            </table>
+                <div class="page">
+                    <div class="header">
+                        <div class="logo"><i class="fa-solid fa-satellite-dish"></i></div>
+                        <div>
+                            <h1>Rangkuman Peralatan Live Streaming</h1>
+                            <p>Dicetak: ${d}</p>
                         </div>
-                        <div style="flex:1;min-width:260px;border:1px solid #ccc;border-radius:8px;padding:12px">
-                            <h3 style="margin:0 0 8px">Berdasarkan Merk</h3>
-                            <table style="width:100%;border-collapse:collapse;font-size:13px">
-                                <thead><tr style="border-bottom:2px solid #333"><th style="text-align:left">Merk</th><th style="text-align:right">Jml</th></tr></thead>
-                                <tbody>${brandRows}</tbody>
-                            </table>
+                        <div class="totals">
+                            <div class="total-box"><span class="big">${s.deviceCount}</span><span class="lbl">Total Alat</span></div>
+                            <div class="total-box"><span class="big">${s.connCount}</span><span class="lbl">Total Kabel</span></div>
                         </div>
                     </div>
-                    <div style="margin-top:16px;border:1px solid #ccc;border-radius:8px;padding:12px">
-                        <h3 style="margin:0 0 8px">Total Kabel / Koneksi: ${s.connCount}</h3>
-                        <table style="width:100%;border-collapse:collapse;font-size:13px">
-                            <thead><tr style="border-bottom:2px solid #333"><th style="text-align:left">Jenis Kabel</th><th style="text-align:right">Jml</th></tr></thead>
-                            <tbody>${cableRows}</tbody>
-                        </table>
+                    <div class="cards">
+                        <div class="card">
+                            <h3><i class="fa-solid fa-layer-group"></i> Per Kategori</h3>
+                            <table><thead><tr><th>Kategori</th><th class="num">Jml</th></tr></thead><tbody>${catRows}</tbody></table>
+                        </div>
+                        <div class="card">
+                            <h3><i class="fa-solid fa-trademark"></i> Per Merk</h3>
+                            <table><thead><tr><th>Merk</th><th class="num">Jml</th></tr></thead><tbody>${brandRows}</tbody></table>
+                        </div>
                     </div>
-                    <p style="margin-top:16px;color:#888;font-size:11px">Dihasilkan oleh Live Planner — ${s.deviceCount} alat, ${s.connCount} koneksi.</p>
+                    <div class="card full">
+                        <h3><i class="fa-solid fa-plug"></i> Jenis Kabel / Koneksi</h3>
+                        <table><thead><tr><th>Jenis Kabel</th><th class="num">Jml</th></tr></thead><tbody>${cableRows}</tbody></table>
+                    </div>
+                    <div class="footer">Dihasilkan oleh <strong>Live Planner</strong> — Enterprise Live Event Architecture Builder</div>
                 </div>`;
             const w = window.open('', '_blank');
-            w.document.write(`<!DOCTYPE html><html><head><title>Rangkuman Peralatan</title></head><body>${html}<script>window.onload=function(){setTimeout(function(){window.print()},300)}<\/script></body></html>`);
+            w.document.write(`<!DOCTYPE html><html><head><title>Rangkuman Peralatan</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; color: #1e293b; margin: 0; background: #f1f5f9; }
+  .page { max-width: 920px; margin: 24px auto; background: #fff; padding: 36px 40px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,.12); }
+  .header { display: flex; align-items: center; gap: 16px; border-bottom: 3px solid #2563eb; padding-bottom: 18px; }
+  .logo { width: 54px; height: 54px; border-radius: 12px; background: linear-gradient(135deg,#2563eb,#7c3aed); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 26px; flex-shrink: 0; }
+  .header h1 { margin: 0; font-size: 22px; color: #0f172a; }
+  .header p { margin: 2px 0 0; color: #64748b; font-size: 12px; }
+  .totals { margin-left: auto; display: flex; gap: 12px; }
+  .total-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 8px 16px; text-align: center; min-width: 84px; }
+  .total-box .big { display: block; font-size: 26px; font-weight: 800; color: #2563eb; line-height: 1; }
+  .total-box .lbl { font-size: 10px; color: #64748b; text-transform: uppercase; letter-spacing: .5px; }
+  .cards { display: flex; gap: 18px; margin-top: 22px; flex-wrap: wrap; }
+  .card { flex: 1; min-width: 280px; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px 18px; }
+  .card.full { margin-top: 18px; }
+  .card h3 { margin: 0 0 12px; font-size: 14px; color: #334155; display: flex; align-items: center; gap: 8px; }
+  .card h3 i { color: #2563eb; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead th { text-align: left; border-bottom: 2px solid #cbd5e1; padding: 6px 4px; color: #475569; font-size: 11px; text-transform: uppercase; letter-spacing: .4px; }
+  tbody td { padding: 6px 4px; border-bottom: 1px solid #f1f5f9; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
+  .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 8px; vertical-align: middle; }
+  .empty { text-align: center; color: #94a3b8; font-style: italic; }
+  .footer { margin-top: 24px; padding-top: 14px; border-top: 1px solid #e2e8f0; text-align: center; color: #94a3b8; font-size: 11px; }
+  @media print { body { background: #fff; } .page { margin: 0; box-shadow: none; border-radius: 0; } @page { margin: 14mm; } }
+</style></head><body>${html}<script>window.onload=function(){setTimeout(function(){window.print()},400)}<\/script></body></html>`);
             w.document.close();
         }
 
@@ -509,16 +707,16 @@
             let innerHTML = `
                 <div class="bg-slate-800 p-2 rounded-t-lg border-b border-slate-700 font-bold flex justify-between items-center handle">
                     <span class="truncate flex items-center">${data.name}${hasNotes ? '<span class="notes-dot" title="Ada catatan"></span>' : ''}</span>
-                    <div class="flex gap-1.5 flex-shrink-0 ml-1">
-                        <button onclick="openNotes('${nodeId}')" class="icon-btn text-yellow-400 text-xs" title="Catatan">📝</button>
-                        ${data.hasSettings ? `<button onclick="openSettings('${nodeId}')" class="icon-btn text-blue-400 text-xs" title="Pengaturan">⚙️</button>` : ''}
-                        <button onclick="duplicateDevice('${nodeId}')" class="icon-btn text-purple-400 text-xs" title="Duplikat">⧉</button>
-                        <button onclick="deleteDevice('${nodeId}')" class="icon-btn text-red-400 text-xs font-black" title="Hapus">✕</button>
+                    <div class="flex gap-1 flex-shrink-0 ml-1">
+                        <button onclick="openNotes('${nodeId}')" class="icon-btn text-yellow-400" title="Catatan"><i class="fa-solid fa-note-sticky"></i></button>
+                        ${data.hasSettings ? `<button onclick="openSettings('${nodeId}')" class="icon-btn text-blue-400" title="Pengaturan"><i class="fa-solid fa-gear"></i></button>` : ''}
+                        <button onclick="duplicateDevice('${nodeId}')" class="icon-btn text-purple-400" title="Duplikat"><i class="fa-solid fa-copy"></i></button>
+                        <button onclick="deleteDevice('${nodeId}')" class="icon-btn text-red-400" title="Hapus"><i class="fa-solid fa-xmark"></i></button>
                     </div>
                 </div>
                 <div class="device-image">
                     <img src="${data.img}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
-                    <span class="fallback-emoji">${data.emoji || '🔧'}</span>
+                    <span class="fallback-emoji"><i class="${faIconFor(data.cat || '')}"></i></span>
                 </div>
                 <div class="p-2 flex justify-between relative min-h-[60px] bg-slate-800 rounded-b-lg">
             `;
@@ -761,39 +959,13 @@
                 const text = document.createElementNS(svgNS, 'text');
                 text.setAttribute('x', midX); text.setAttribute('y', midY + 3);
                 text.setAttribute('text-anchor', 'middle'); text.setAttribute('font-size', '9');
-                text.setAttribute('fill', '#f87171'); text.textContent = '✕';
+                text.setAttribute('fill', '#f87171'); text.textContent = '\u2715';
                 g.appendChild(circle); g.appendChild(text);
                 cablesLayer.appendChild(g);
             });
         }
 
         // --- SAVE & LOAD (window.storage, menggantikan localStorage yang tidak didukung) ---
-        async function saveProject() {
-            try {
-                const nodes = [];
-                document.querySelectorAll('.device-node').forEach(node => {
-                    nodes.push({
-                        id: node.id,
-                        left: node.style.left,
-                        top: node.style.top,
-                        config: JSON.parse(node.dataset.config),
-                        settings: node.dataset.settings,
-                        notes: node.dataset.notes || ''
-                    });
-                });
-                const projectData = { nodes, connections, nodesCounter };
-                const result = await window.storage.set('live-planner-project', JSON.stringify(projectData), false);
-                if (result) {
-                    showToast('Konfigurasi berhasil disimpan!', true);
-                } else {
-                    showToast('Gagal menyimpan konfigurasi.');
-                }
-            } catch (err) {
-                console.error('Save error:', err);
-                showToast('Gagal menyimpan konfigurasi.');
-            }
-        }
-
         async function loadProject() {
             try {
                 const result = await window.storage.get('live-planner-project', false);
@@ -891,9 +1063,234 @@
             });
         }
 
+        // --- GENERATE DARI GAMBAR (upload) ---
+        const imageGenModal = document.getElementById('imagegen-modal');
+        let pendingImageData = null;
+        function openImageGen() {
+            document.getElementById('img-file').value = '';
+            document.getElementById('img-preview-wrap').classList.add('hidden');
+            ['img-name','img-brand','img-cat','img-ins','img-outs'].forEach(id => document.getElementById(id).value = '');
+            pendingImageData = null;
+            imageGenModal.classList.add('active');
+        }
+        function closeImageGen() { imageGenModal.classList.remove('active'); }
+        (function setupImageDrop() {
+            const drop = document.getElementById('img-drop');
+            const file = document.getElementById('img-file');
+            drop.addEventListener('click', () => file.click());
+            file.addEventListener('change', e => handleImageFile(e.target.files[0]));
+            ['dragover','dragenter'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('border-indigo-400'); }));
+            ['dragleave','drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('border-indigo-400'); }));
+            drop.addEventListener('drop', e => { if (e.dataTransfer.files[0]) handleImageFile(e.dataTransfer.files[0]); });
+        })();
+        function handleImageFile(f) {
+            if (!f || !f.type.startsWith('image/')) return;
+            const reader = new FileReader();
+            reader.onload = ev => {
+                pendingImageData = ev.target.result;
+                document.getElementById('img-preview').src = pendingImageData;
+                document.getElementById('img-preview-wrap').classList.remove('hidden');
+            };
+            reader.readAsDataURL(f);
+        }
+        function createFromImage() {
+            const name = document.getElementById('img-name').value.trim();
+            if (!name) { showToast('Isi nama alat terlebih dahulu!'); return; }
+            const brand = document.getElementById('img-brand').value.trim() || 'Custom';
+            const cat = document.getElementById('img-cat').value.trim() || 'Custom';
+            const parsePorts = s => s.split(',').map(x => x.trim()).filter(Boolean).map(t => ({ name: t, type: t }));
+            const item = {
+                id: 'custom_' + Date.now(),
+                name, brand, cat,
+                img: pendingImageData || '',
+                emoji: '🔧',
+                hasSettings: false,
+                inputs: parsePorts(document.getElementById('img-ins').value),
+                outputs: parsePorts(document.getElementById('img-outs').value),
+                func: ''
+            };
+            // taruh di tengah kanvas
+            const center = screenToLocal(canvasArea.getBoundingClientRect().width / 2, canvasArea.getBoundingClientRect().height / 2);
+            nodesCounter++;
+            spawnDevice(null, {
+                id: 'node-' + nodesCounter,
+                left: (center.x - 115) + 'px',
+                top: (center.y - 60) + 'px',
+                config: item,
+                settings: JSON.stringify({res:'1080p60',bitrate:6000,audio:'48kHz',server:''}),
+                notes: ''
+            });
+            closeImageGen();
+            showToast('Alat "' + name + '" dibuat dari gambar!', true);
+        }
+
+        // --- PANDAAN / GUIDE MODAL ---
+        const guideModal = document.getElementById('guide-modal');
+        function openGuide() { guideModal.classList.add('active'); }
+        function closeGuide() { guideModal.classList.remove('active'); }
+        function switchGuide(tab) {
+            ['blueprint','tutorial','trouble'].forEach(t => {
+                document.getElementById('guide-' + t).classList.toggle('hidden', t !== tab);
+                const btn = document.querySelector('.guide-tab[data-tab="' + t + '"]');
+                btn.classList.toggle('text-blue-400', t === tab);
+                btn.classList.toggle('border-blue-500', t === tab);
+                btn.classList.toggle('text-slate-400', t !== tab);
+                btn.classList.toggle('border-transparent', t !== tab);
+            });
+        }
+
+        // --- LOGIN ADMIN (kiri) ---
+        const ADMIN_HASH = 'liveplanner2024'; // password sederhana (demo)
+        let isAdmin = false;
+        function adminLogin() {
+            const p = document.getElementById('login-pass').value;
+            if (p === ADMIN_HASH) {
+                isAdmin = true;
+                document.getElementById('login-form').classList.add('hidden');
+                document.getElementById('login-info').classList.remove('hidden');
+                showToast('Login admin berhasil!', true);
+            } else {
+                showToast('Password admin salah!');
+            }
+        }
+        function adminLogout() {
+            isAdmin = false;
+            document.getElementById('login-pass').value = '';
+            document.getElementById('login-form').classList.remove('hidden');
+            document.getElementById('login-info').classList.add('hidden');
+            showToast('Logout admin.');
+        }
+
+        // --- SIMPAN KE CLOUD (Turso via API) ---
+        async function saveProject() {
+            if (!isAdmin) { showToast('Login sebagai admin untuk menyimpan ke cloud!'); openSaves(); return; }
+            try {
+                const nodes = [];
+                document.querySelectorAll('.device-node').forEach(node => {
+                    nodes.push({
+                        id: node.id, left: node.style.left, top: node.style.top,
+                        config: JSON.parse(node.dataset.config),
+                        settings: node.dataset.settings, notes: node.dataset.notes || ''
+                    });
+                });
+                const projectData = { nodes, connections, nodesCounter };
+                const title = prompt('Nama simpanan:', 'Rencana ' + new Date().toLocaleDateString('id-ID')) || 'Tanpa Nama';
+                const res = await fetch('/api/saves', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title, data: projectData })
+                });
+                if (res.ok) { showToast('Tersimpan ke cloud!', true); }
+                else { showToast('Gagal simpan ke cloud (pakai Save lokal).'); await localSave(projectData); }
+            } catch (err) {
+                console.error(err);
+                showToast('Gagal simpan cloud — cek koneksi.');
+            }
+        }
+        async function localSave(projectData) {
+            const result = await window.storage.set('live-planner-project', JSON.stringify(projectData), false);
+            if (result) showToast('Konfigurasi disimpan lokal!', true);
+        }
+
+        // --- LIHAT SIMPANAN (admin & viewer bisa download) ---
+        const savesModal = document.getElementById('saves-modal');
+        function openSaves() {
+            savesModal.classList.add('active');
+            loadSaves();
+        }
+        function closeSaves() { savesModal.classList.remove('active'); }
+        async function loadSaves() {
+            const list = document.getElementById('saves-list');
+            list.innerHTML = '<p class="text-sm text-slate-500 text-center">Memuat simpanan…</p>';
+            try {
+                const res = await fetch('/api/saves');
+                if (!res.ok) throw new Error('no api');
+                const data = await res.json();
+                if (!data.items || !data.items.length) {
+                    list.innerHTML = '<p class="text-sm text-slate-500 text-center">Belum ada simpanan publik.</p>';
+                    return;
+                }
+                list.innerHTML = data.items.map(s => `
+                    <div class="bg-slate-700 rounded-lg p-3 mb-2 flex items-center justify-between">
+                        <div>
+                            <div class="font-bold text-sm">${s.title}</div>
+                            <div class="text-[11px] text-slate-400">${s.count} alat • ${new Date(s.created_at).toLocaleString('id-ID')}</div>
+                        </div>
+                        <div class="flex gap-2">
+                            ${isAdmin ? `<button onclick="loadSaveById('${s.id}')" class="px-2 py-1 bg-blue-600 hover:bg-blue-500 rounded text-xs"><i class="fa-solid fa-folder-open"></i> Buka</button>` : ''}
+                            <button onclick="downloadSave('${s.id}')" class="px-2 py-1 bg-green-600 hover:bg-green-500 rounded text-xs"><i class="fa-solid fa-download"></i> Download</button>
+                        </div>
+                    </div>`).join('');
+            } catch (e) {
+                list.innerHTML = '<p class="text-sm text-slate-500 text-center">API simpanan tidak tersedia.</p>';
+            }
+        }
+        async function downloadSave(id) {
+            const res = await fetch('/api/saves/' + id);
+            if (!res.ok) { showToast('Gagal mengunduh.'); return; }
+            const data = await res.json();
+            const blob = new Blob([JSON.stringify(data.data, null, 2)], { type: 'application/json' });
+            const link = document.createElement('a');
+            link.download = (data.title || 'planner') + '.json';
+            link.href = URL.createObjectURL(blob);
+            link.click();
+            showToast('Unduhan dimulai!', true);
+        }
+        async function loadSaveById(id) {
+            const res = await fetch('/api/saves/' + id);
+            if (!res.ok) { showToast('Gagal memuat.'); return; }
+            const data = await res.json();
+            const pd = data.data;
+            devicesLayer.innerHTML = ''; cablesLayer.innerHTML = '';
+            connections = pd.connections || []; nodesCounter = pd.nodesCounter || 0;
+            (pd.nodes || []).forEach(n => spawnDevice(null, n));
+            setTimeout(() => { drawCables(); updateStats(); }, 100);
+            closeSaves();
+            showToast('Simpanan dimuat!', true);
+        }
+
+        // --- LOAD DATA (dari Turso via /api/equipment, fallback ke equipment-data.js lokal) ---
+        let deviceDB = (typeof window.__deviceDB !== 'undefined') ? window.__deviceDB : {};
+
+        function buildDeviceDB(items) {
+            const db = {};
+            items.forEach(it => {
+                const cat = it.cat || 'Lainnya';
+                const key = 'cat_' + cat.toLowerCase().replace(/[\s/&]/g, '_');
+                if (!db[key]) db[key] = { title: cat, items: [] };
+                db[key].items.push({
+                    id: it.id, name: it.name, brand: it.brand, img: it.img,
+                    emoji: it.emoji || '🔧', hasSettings: !!it.hasSettings,
+                    inputs: it.inputs || [], outputs: it.outputs || [], func: it.func || ''
+                });
+            });
+            return db;
+        }
+
+        async function loadEquipment() {
+            try {
+                const res = await fetch('/api/equipment');
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.items && data.items.length) {
+                        deviceDB = buildDeviceDB(data.items);
+                        renderCatalog();
+                        return;
+                    }
+                }
+            } catch (e) {
+                console.warn('API gagal, pakai data lokal:', e);
+            }
+            // Fallback: gunakan deviceDB dari equipment-data.js
+            if (typeof window.__deviceDB !== 'undefined') {
+                deviceDB = window.__deviceDB;
+            }
+            renderCatalog();
+        }
+
         // --- INIT ---
         window.onload = () => {
-            renderCatalog();
+            loadEquipment();
             renderLegend();
             updateStats();
         };

@@ -3,6 +3,11 @@
 __pycache__/
 *.pyc
 
+# Node
+node_modules/
+.env
+.env.local
+
 # OS
 Thumbs.db
 Desktop.ini
