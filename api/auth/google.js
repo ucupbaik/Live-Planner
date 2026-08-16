@@ -1,6 +1,6 @@
 import crypto from 'crypto';
-import { getDb, ensureSchema } from './lib/db.js';
-import { signSession, setSessionCookie } from './lib/auth.js';
+import { getDb, ensureSchema } from '../lib/db.js';
+import { signSession, setSessionCookie } from '../lib/auth.js';
 
 export const config = { runtime: 'nodejs' };
 
