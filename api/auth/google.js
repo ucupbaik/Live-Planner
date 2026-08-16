@@ -27,7 +27,9 @@ export default async function handler(req, res) {
 
     if (action === 'callback') {
       const code = req.query.code;
-      if (!code || !CLIENT_ID) return res.status(400).send('Missing code or Google not configured');
+      const err = req.query.error;
+      if (err) return res.redirect('/?gerr=' + encodeURIComponent('Google login dibatalkan: ' + err));
+      if (!code || !CLIENT_ID) return res.redirect('/?gerr=' + encodeURIComponent('Missing code atau Google belum dikonfigurasi'));
       const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -37,13 +39,13 @@ export default async function handler(req, res) {
         })
       });
       const tokenData = await tokenRes.json();
-      if (!tokenData.access_token) return res.status(400).send('Google token failed');
+      if (!tokenData.access_token) return res.redirect('/?gerr=' + encodeURIComponent('Google token gagal'));
       const profRes = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
         headers: { Authorization: `Bearer ${tokenData.access_token}` }
       });
       const prof = await profRes.json();
       const email = (prof.email || '').toLowerCase();
-      if (!email) return res.status(400).send('No email from Google');
+      if (!email) return res.redirect('/?gerr=' + encodeURIComponent('Tidak ada email dari Google'));
 
       const exists = await db.execute({ sql: 'SELECT * FROM users WHERE email = ?', args: [email] });
       let row;

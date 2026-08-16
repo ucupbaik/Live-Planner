@@ -1084,6 +1084,7 @@
             const params = new URLSearchParams(location.search);
             const shareId = params.get('template') || params.get('share');
             if (shareId) { await loadEquipment(); loadShareView(shareId); return; }
+            if (params.get('gerr')) { showToast(params.get('gerr')); history.replaceState(null, '', location.pathname); }
             if (params.get('loggedin') === '1') { currentUser = await refreshMe(); if (currentUser) { enterApp(); return; } }
             currentUser = await refreshMe();
             await loadEquipment();

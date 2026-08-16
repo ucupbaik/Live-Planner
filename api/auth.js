@@ -17,8 +17,8 @@ export default async function handler(req, res) {
   try {
     const db = getDb();
     await ensureSchema(db);
-    const { action } = req.query;
     const body = req.body || {};
+    const action = req.query.action || body.action;
 
     if (action === 'register') {
       const email = (body.email || '').trim().toLowerCase();
