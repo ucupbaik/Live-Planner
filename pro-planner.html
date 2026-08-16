@@ -482,12 +482,8 @@
             else showToast(data && data.error ? data.error : 'Gagal daftar');
         }
         async function startGoogle() {
-            try {
-                const r = await fetch('/api/auth/google?action=begin');
-                const data = await r.json();
-                if (data.configured && data.url) { window.location.href = data.url; }
-                else { showToast('Login Google belum dikonfigurasi. Gunakan email/password.'); }
-            } catch(e) { showToast('Gagal memulai login Google.'); }
+            // Langsung redirect ke endpoint begin yang akan meneruskan ke Google
+            window.location.href = '/api/auth/google?action=begin';
         }
         async function doLogout() {
             await api('/api/auth', { method:'POST', body:{ action:'logout' } });

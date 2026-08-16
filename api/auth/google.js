@@ -21,7 +21,8 @@ export default async function handler(req, res) {
       const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${encodeURIComponent(CLIENT_ID)}`
         + `&redirect_uri=${encodeURIComponent(REDIRECT)}&response_type=code&scope=${encodeURIComponent('openid email profile')}`
         + `&state=${state}`;
-      return res.status(200).json({ configured: true, url });
+      // Redirect langsung ke Google agar tidak pernah menampilkan JSON ke user
+      return res.redirect(url);
     }
 
     if (action === 'callback') {
