@@ -139,6 +139,7 @@
             </div>
             <div class="flex items-center gap-3">
                 <button onclick="openGallery()" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm font-bold"><i class="fa-solid fa-layer-group"></i> Template & Galeri</button>
+                <button id="btn-equip-admin" onclick="openEquipAdmin()" class="hidden px-4 py-2 bg-amber-600 hover:bg-amber-500 rounded-lg text-sm font-bold"><i class="fa-solid fa-boxes-stacked"></i> Kelola Alat</button>
                 <div id="user-chip" class="flex items-center gap-2 text-sm"></div>
                 <button onclick="doLogout()" class="px-3 py-2 bg-slate-700 hover:bg-red-600 rounded-lg text-sm"><i class="fa-solid fa-right-from-bracket"></i></button>
             </div>
@@ -508,6 +509,74 @@
             const role = currentUser.role === 'admin' ? '<span class="text-[10px] bg-red-600 px-1.5 py-0.5 rounded text-white">ADMIN</span>' : '';
             const pic = currentUser.picture ? `<img src="${currentUser.picture}" class="w-7 h-7 rounded-full">` : `<div class="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-xs"><i class="fa-solid fa-user"></i></div>`;
             chip.innerHTML = `${pic}<span class="text-slate-300">${currentUser.name || currentUser.email}</span>${role}`;
+            const adminBtn = document.getElementById('btn-equip-admin');
+            if (adminBtn) adminBtn.classList.toggle('hidden', !currentUser);
+        }
+
+        // ===== EQUIPMENT ADMIN =====
+        function openEquipAdmin() {
+            document.getElementById('equip-admin-modal').classList.remove('hidden');
+            refreshEquipCount();
+        }
+        function closeEquipAdmin() {
+            document.getElementById('equip-admin-modal').classList.add('hidden');
+        }
+        async function refreshEquipCount() {
+            try {
+                const r = await fetch('/api/equipment-admin?action=count');
+                const d = await r.json();
+                document.getElementById('equip-count').textContent = d.count ?? '?';
+            } catch (e) { document.getElementById('equip-count').textContent = 'err'; }
+        }
+        function downloadEquipTemplate() {
+            const header = 'no,name,brand,category,img,emoji,has_settings,inputs,outputs,func,ports_raw';
+            const sample = '1,Sony FX6,Kamera Utama,Kamera,https://...,🎥,1,HDMI|Video; XLR|Audio,SDI|Video,Kamera sinema full-frame,12G-SDI x2';
+            const csv = '\uFEFF' + header + '\n' + sample + '\n';
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'equipment-template.csv';
+            a.click();
+        }
+        async function exportEquip() {
+            const r = await fetch('/api/equipment-admin?action=export');
+            const blob = await r.blob();
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'equipment-export.csv';
+            a.click();
+            refreshEquipCount();
+        }
+        async function importEquip() {
+            const input = document.getElementById('equip-csv-input');
+            const status = document.getElementById('equip-import-status');
+            if (!input.files.length) { status.textContent = 'Pilih file CSV dulu.'; status.className = 'text-xs text-red-400 mt-2'; return; }
+            const text = await input.files[0].text();
+            status.textContent = 'Mengimport...';
+            status.className = 'text-xs text-amber-300 mt-2';
+            try {
+                const r = await fetch('/api/equipment-admin?action=import', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/csv' },
+                    body: text
+                });
+                const d = await r.json();
+                if (d.ok) { status.textContent = `Berhasil import ${d.imported} alat.`; status.className = 'text-xs text-green-400 mt-2'; }
+                else { status.textContent = 'Gagal: ' + (d.error || 'unknown'); status.className = 'text-xs text-red-400 mt-2'; }
+            } catch (e) { status.textContent = 'Error: ' + e.message; status.className = 'text-xs text-red-400 mt-2'; }
+            refreshEquipCount();
+        }
+        async function deleteAllEquip() {
+            if (!confirm('YAKIN hapus SEMUA daftar alat? Tidak bisa dibatalkan.')) return;
+            const status = document.getElementById('equip-import-status');
+            status.textContent = 'Menghapus...';
+            try {
+                const r = await fetch('/api/equipment-admin', { method: 'DELETE' });
+                const d = await r.json();
+                status.textContent = d.ok ? 'Semua alat dihapus.' : 'Gagal: ' + (d.error || '');
+                status.className = d.ok ? 'text-xs text-green-400 mt-2' : 'text-xs text-red-400 mt-2';
+            } catch (e) { status.textContent = 'Error: ' + e.message; status.className = 'text-xs text-red-400 mt-2'; }
+            refreshEquipCount();
         }
         function renderModuleGrid() {
             const grid = document.getElementById('module-grid');
@@ -1091,5 +1160,53 @@
             if (currentUser) enterApp(); else showScreen('login-screen');
         };
     </script>
+
+    <!-- ============ EQUIPMENT ADMIN MODAL ============ -->
+    <div id="equip-admin-modal" class="hidden fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
+        <div class="bg-slate-800 rounded-2xl border border-slate-700 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between p-5 border-b border-slate-700">
+                <h3 class="text-lg font-bold"><i class="fa-solid fa-boxes-stacked text-amber-400"></i> Kelola Daftar Alat (Equipment)</h3>
+                <button onclick="closeEquipAdmin()" class="text-slate-400 hover:text-white text-xl"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="p-5 space-y-5">
+                <div class="bg-slate-900 rounded-lg p-4 text-sm text-slate-300">
+                    <p class="font-bold text-amber-300 mb-2"><i class="fa-solid fa-circle-info"></i> Keterangan Kolom CSV</p>
+                    <ul class="list-disc pl-5 space-y-1 text-xs">
+                        <li><b>no</b> — Nomor urut (angka, opsional)</li>
+                        <li><b>name</b> — Nama alat (wajib)</li>
+                        <li><b>brand</b> — Merek alat</li>
+                        <li><b>category</b> — Kategori (mis. Kamera, Switcher, Audio, PC, Kabel)</li>
+                        <li><b>img</b> — URL gambar alat</li>
+                        <li><b>emoji</b> — Ikon emoji (mis. 🎥 🔊 💻)</li>
+                        <li><b>has_settings</b> — 1 jika punya pengaturan, 0 jika tidak</li>
+                        <li><b>inputs</b> — Daftar input, format: <code>Nama|Jenis; Nama2|Jenis2</code> (mis. HDMI|Video; XLR|Audio)</li>
+                        <li><b>outputs</b> — Daftar output, format sama seperti inputs</li>
+                        <li><b>func</b> — Keterangan / spesifikasi alat</li>
+                        <li><b>ports_raw</b> — Catatan port mentah (teks bebas)</li>
+                    </ul>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <button onclick="downloadEquipTemplate()" class="py-3 bg-blue-600 hover:bg-blue-500 rounded-lg font-bold text-sm"><i class="fa-solid fa-file-csv"></i> Unduh Template CSV</button>
+                    <button onclick="exportEquip()" class="py-3 bg-teal-600 hover:bg-teal-500 rounded-lg font-bold text-sm"><i class="fa-solid fa-download"></i> Export Data Saat Ini</button>
+                </div>
+
+                <div class="border-t border-slate-700 pt-4">
+                    <label class="block text-sm font-bold mb-2">Import CSV</label>
+                    <input id="equip-csv-input" type="file" accept=".csv,text/csv" class="block w-full text-sm text-slate-300 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-amber-600 file:hover:bg-amber-500 file:text-white file:font-bold mb-3">
+                    <button onclick="importEquip()" class="w-full py-3 bg-amber-600 hover:bg-amber-500 rounded-lg font-bold text-sm"><i class="fa-solid fa-upload"></i> Import CSV</button>
+                    <p id="equip-import-status" class="text-xs text-slate-400 mt-2"></p>
+                </div>
+
+                <div class="border-t border-slate-700 pt-4">
+                    <p class="text-sm font-bold text-red-300 mb-2"><i class="fa-solid fa-triangle-exclamation"></i> Zona Berbahaya</p>
+                    <p class="text-xs text-slate-400 mb-3">Menghapus SELURUH daftar alat. Pastikan sudah export dulu jika perlu backup.</p>
+                    <button onclick="deleteAllEquip()" class="w-full py-3 bg-red-700 hover:bg-red-600 rounded-lg font-bold text-sm"><i class="fa-solid fa-trash-can"></i> Hapus Semua Alat</button>
+                </div>
+
+                <p class="text-xs text-slate-500 text-center">Jumlah alat saat ini: <span id="equip-count" class="font-bold text-white">?</span></p>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

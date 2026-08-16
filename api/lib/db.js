@@ -43,4 +43,18 @@ export async function ensureSchema(db) {
     data TEXT,
     created_at TEXT DEFAULT (datetime('now'))
   )`);
+  await db.execute(`CREATE TABLE IF NOT EXISTS equipment (
+    id TEXT PRIMARY KEY,
+    no INTEGER,
+    name TEXT NOT NULL,
+    brand TEXT,
+    category TEXT,
+    img TEXT,
+    emoji TEXT,
+    has_settings INTEGER DEFAULT 0,
+    inputs TEXT,
+    outputs TEXT,
+    func TEXT,
+    ports_raw TEXT
+  )`);
 }
