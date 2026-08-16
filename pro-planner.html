@@ -29,11 +29,12 @@
         .device-node {
             position: absolute; background: #1e293b; border: 1px solid #334155;
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5); width: 230px;
-            cursor: default; border-radius: 10px; z-index: 10; transition: border-color 0.2s;
+            cursor: grab; border-radius: 10px; z-index: 10; transition: border-color 0.2s;
         }
+        .device-node:active { cursor: grabbing; }
         .device-node:hover { border-color: #475569; }
-        .device-node .handle { cursor: grab; }
-        .device-node .handle:active { cursor: grabbing; }
+        .device-node .handle { cursor: inherit; }
+        .device-node button, .device-node .port { cursor: pointer; }
 
         .port {
             width: 14px; height: 14px; border-radius: 50%; background: #cbd5e1;
@@ -753,6 +754,12 @@
             nodeDiv.dataset.settings = restoreData ? (restoreData.settings || JSON.stringify({res:'1080p60',bitrate:6000,audio:'48kHz',server:''})) : JSON.stringify({res:'1080p60',bitrate:6000,audio:'48kHz',server:''});
             nodeDiv.dataset.notes = restoreData ? (restoreData.notes || '') : '';
             nodeDiv.className = 'device-node text-sm flex flex-col no-select';
+            if (!restoreData) {
+                const n = nodesCounter;
+                const col = n % 6, row = Math.floor(n / 6);
+                nodeDiv.style.left = (40 + col * 250) + 'px';
+                nodeDiv.style.top = (40 + row * 180) + 'px';
+            }
             const hasNotes = nodeDiv.dataset.notes && nodeDiv.dataset.notes.trim().length > 0;
             const specLine = (data.func && currentModule === 'pc') ? `<div class="px-2 pb-1 text-[10px] text-slate-400 line-clamp-2">${data.func}</div>` : '';
             let innerHTML = `
@@ -783,7 +790,7 @@
             });
             innerHTML += `</div></div>`;
             nodeDiv.innerHTML = innerHTML;
-            nodeDiv.querySelector('.handle').addEventListener('mousedown', handleNodeDragStart);
+            nodeDiv.addEventListener('mousedown', handleNodeDragStart);
             devicesLayer.appendChild(nodeDiv);
             updateStats();
         }
@@ -809,7 +816,8 @@
         function handleNodeDragStart(e) {
             if (readOnlyMode) return;
             if (e.target.closest('button')) return;
-            e.stopPropagation(); isDragging = true; dragNode = this.parentElement; dragNode.style.zIndex = 1000;
+            if (e.target.classList.contains('port')) return;
+            e.stopPropagation(); isDragging = true; dragNode = this; dragNode.style.zIndex = 1000;
             const local = screenToLocal(e.clientX, e.clientY);
             offset.x = local.x - parseFloat(dragNode.style.left); offset.y = local.y - parseFloat(dragNode.style.top);
         }
