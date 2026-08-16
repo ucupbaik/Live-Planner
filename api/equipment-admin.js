@@ -114,7 +114,19 @@ export default async function handler(req, res) {
 
     // IMPORT CSV (POST with raw body)
     if (req.method === 'POST' && action === 'import') {
-      const raw = typeof req.body === 'string' ? req.body : (req.body && req.body.csv) || '';
+      let raw = '';
+      if (typeof req.body === 'string') raw = req.body;
+      else if (Buffer.isBuffer(req.body)) raw = req.body.toString('utf-8');
+      else if (req.body && req.body.csv) raw = req.body.csv;
+      else {
+        // read raw stream
+        raw = await new Promise((resolve, reject) => {
+          let data = '';
+          req.on('data', c => data += c);
+          req.on('end', () => resolve(data));
+          req.on('error', reject);
+        });
+      }
       if (!raw || !raw.trim()) return res.status(400).json({ error: 'CSV kosong' });
       const rows = parseCSV(raw);
       if (rows.length < 2) return res.status(400).json({ error: 'CSV tidak punya baris data' });

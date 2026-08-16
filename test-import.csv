@@ -1,0 +1,3 @@
+﻿no,name,brand,category,img,emoji,has_settings,inputs,outputs,func,ports_raw
+1,Test Cam,Sony,Kamera,,🎥,1,HDMI|Video; XLR|Audio,SDI|Video,Kamera test,12G-SDI
+2,Test Mix,Blackmagic,Switcher,,🔀,0,HDMI|Video,HDMI|Video; SDI|Video,Mixer test,--
