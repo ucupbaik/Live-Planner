@@ -153,6 +153,9 @@
 
             <div class="mt-10 flex gap-4 flex-wrap">
                 <button onclick="openGallery()" class="px-5 py-3 bg-purple-600 hover:bg-purple-500 rounded-lg font-bold"><i class="fa-solid fa-layer-group"></i> Buka Template / Galeri</button>
+                <button onclick="openPCModule()" class="px-5 py-3 bg-amber-600 hover:bg-amber-500 rounded-lg font-bold"><i class="fa-solid fa-computer"></i> Perakitan PC</button>
+                <button onclick="openSoftwareModule()" class="px-5 py-3 bg-emerald-600 hover:bg-emerald-500 rounded-lg font-bold"><i class="fa-solid fa-display"></i> Setup Software</button>
+                <button onclick="openLiveSetupModule()" class="px-5 py-3 bg-blue-600 hover:bg-blue-500 rounded-lg font-bold"><i class="fa-solid fa-network-wired"></i> Setup Live (Simulasi)</button>
                 <button onclick="startModule('live')" class="px-5 py-3 bg-slate-700 hover:bg-slate-600 rounded-lg font-bold"><i class="fa-solid fa-plus"></i> Rancang Baru (Setup Live)</button>
             </div>
         </main>
@@ -204,6 +207,65 @@
                 <div class="grid grid-cols-2 gap-x-3 gap-y-1" id="legend-list"></div>
             </div>
             <div id="readonly-banner" class="hidden absolute top-3 left-1/2 -translate-x-1/2 bg-amber-600 text-white text-xs font-bold px-4 py-2 rounded-full shadow z-40"><i class="fa-solid fa-eye"></i> Mode Tampilan (tanpa login)</div>
+        </main>
+    </div>
+
+    <!-- ============ PC BUILDER SCREEN ============ -->
+    <div id="pc-screen" class="screen flex bg-slate-900">
+        <aside class="w-80 bg-slate-800 border-r border-slate-700 flex flex-col z-20 shadow-xl flex-shrink-0">
+            <div class="p-4 border-b border-slate-700 bg-slate-900 flex items-center justify-between">
+                <button onclick="goHome()" class="text-slate-300 hover:text-white text-sm"><i class="fa-solid fa-arrow-left"></i> Beranda</button>
+                <span class="text-xs font-bold px-2 py-1 rounded bg-amber-600/30 text-amber-300"><i class="fa-solid fa-computer"></i> Perakitan PC</span>
+            </div>
+            <div class="p-3 border-b border-slate-700">
+                <div id="pc-validation" class="bg-slate-900 rounded-lg p-2"></div>
+            </div>
+            <div class="flex-grow overflow-y-auto px-4 pb-4 space-y-1" id="pc-catalog"></div>
+        </aside>
+        <main class="flex-grow p-6 overflow-y-auto">
+            <div class="max-w-3xl mx-auto">
+                <h2 class="text-2xl font-black mb-1"><i class="fa-solid fa-computer text-amber-400"></i> Rakitan PC Live Streaming</h2>
+                <p class="text-sm text-slate-400 mb-6">Susun komponen seperti di buildcores.com. Tanpa harga & link pembelian — fokus pada kompatibilitas.</p>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-slate-800 rounded-xl border border-slate-700 p-5">
+                        <h3 class="font-bold text-sm mb-3 text-blue-300"><i class="fa-solid fa-list"></i> Daftar Komponen</h3>
+                        <div id="pc-summary"></div>
+                        <button onclick="savePCBuild()" class="mt-4 w-full py-2 bg-green-600 hover:bg-green-500 rounded text-sm font-bold"><i class="fa-solid fa-floppy-disk"></i> Simpan Rakitan</button>
+                    </div>
+                    <div class="bg-slate-800 rounded-xl border border-slate-700 p-5">
+                        <h3 class="font-bold text-sm mb-3 text-purple-300"><i class="fa-solid fa-diagram-project"></i> Visualisasi</h3>
+                        <div id="pc-visual" class="space-y-2 text-xs"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- ============ SOFTWARE SETUP SCREEN ============ -->
+    <div id="software-screen" class="screen flex-col bg-slate-900 overflow-y-auto">
+        <header class="w-full bg-slate-800 border-b border-slate-700 px-6 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <button onclick="goHome()" class="text-slate-300 hover:text-white text-sm"><i class="fa-solid fa-arrow-left"></i> Beranda</button>
+                <h1 class="text-xl font-black"><i class="fa-solid fa-display text-emerald-400"></i> Setup Software</h1>
+            </div>
+            <span class="text-xs font-bold px-2 py-1 rounded bg-emerald-600/30 text-emerald-300">Ambil dari Rakitan Live</span>
+        </header>
+        <main class="flex-grow p-8 max-w-6xl mx-auto w-full">
+            <div id="sw-content"></div>
+        </main>
+    </div>
+
+    <!-- ============ LIVE SETUP SCREEN ============ -->
+    <div id="live-screen" class="screen flex-col bg-slate-900 overflow-y-auto">
+        <header class="w-full bg-slate-800 border-b border-slate-700 px-6 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <button onclick="goHome()" class="text-slate-300 hover:text-white text-sm"><i class="fa-solid fa-arrow-left"></i> Beranda</button>
+                <h1 class="text-xl font-black"><i class="fa-solid fa-network-wired text-blue-400"></i> Setup Live (Simulasi)</h1>
+            </div>
+            <span class="text-xs font-bold px-2 py-1 rounded bg-blue-600/30 text-blue-300">Mode Cisco-like</span>
+        </header>
+        <main class="flex-grow p-8 max-w-7xl mx-auto w-full">
+            <div id="live-content"></div>
         </main>
     </div>
 
@@ -384,6 +446,9 @@
     </div>
 
     <script src="equipment-data.js"></script>
+    <script src="pc-builder.js"></script>
+    <script src="software-setup.js"></script>
+    <script src="live-setup.js"></script>
     <script>
         const svgNS = "http://www.w3.org/2000/svg";
 

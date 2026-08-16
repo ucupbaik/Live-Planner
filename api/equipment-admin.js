@@ -131,10 +131,35 @@ export default async function handler(req, res) {
       const rows = parseCSV(raw);
       if (rows.length < 2) return res.status(400).json({ error: 'CSV tidak punya baris data' });
       const header = rows[0].map(h => h.trim().toLowerCase());
-      const idx = name => header.indexOf(name);
-      const iNo = idx('no'), iName = idx('name'), iBrand = idx('brand'), iCat = idx('category'),
-            iImg = idx('img'), iEmoji = idx('emoji'), iHas = idx('has_settings'),
-            iIn = idx('inputs'), iOut = idx('outputs'), iFunc = idx('func'), iPorts = idx('ports_raw');
+      // Alias mapping: header file user -> field internal
+      const ALIASES = {
+        no: ['no', 'nomor', 'no.', '#', 'number', 'urut'],
+        name: ['name', 'nama', 'name (merk + type)', 'name (merk+type)', 'alat', 'item', 'product', 'perangkat'],
+        brand: ['brand', 'merk', 'merek', 'merk (brand)', 'manufacturer', 'vendor'],
+        category: ['category', 'kategori', 'cat', 'tipe', 'type', 'type/model', 'jenis'],
+        img: ['img', 'image', 'gambar', 'foto', 'img (link cek google images)', 'link', 'url', 'photo'],
+        emoji: ['emoji', 'icon', 'ikon'],
+        has_settings: ['has_settings', 'has settings', 'pengaturan', 'settings', 'setting'],
+        inputs: ['inputs', 'input', 'masukan', 'port masuk', 'in'],
+        outputs: ['outputs', 'output', 'keluaran', 'port keluar', 'out'],
+        func: ['func', 'function', 'fungsi', 'deskripsi', 'keterangan', 'func (deskripsi/fungsi)', 'description', 'notes', 'spesifikasi'],
+        ports_raw: ['ports_raw', 'ports', 'port', 'ports raw', 'catatan port', 'port notes'],
+        subcategory: ['subcategory', 'brand (subkategori)', 'sub kategori', 'subcat']
+      };
+      const findIdx = (field) => {
+        const aliases = ALIASES[field] || [field];
+        for (const a of aliases) {
+          const i = header.indexOf(a);
+          if (i !== -1) return i;
+        }
+        return -1;
+      };
+      const iNo = findIdx('no'), iName = findIdx('name'), iBrand = findIdx('brand'), iCat = findIdx('category'),
+            iImg = findIdx('img'), iEmoji = findIdx('emoji'), iHas = findIdx('has_settings'),
+            iIn = findIdx('inputs'), iOut = findIdx('outputs'), iFunc = findIdx('func'), iPorts = findIdx('ports_raw');
+      // Fallback category sources (file user sering pakai kolom lain)
+      const iSub = findIdx('subcategory'); // 'Brand (Subkategori)'
+      const iTypeModel = header.indexOf('type/model'); // 'Type/Model'
 
       let count = 0;
       const batch = [];
@@ -144,7 +169,10 @@ export default async function handler(req, res) {
         if (!name) continue;
         const no = parseInt(r[iNo]) || (i);
         const brand = (r[iBrand] || '').trim();
-        const category = (r[iCat] || 'Lainnya').trim();
+        let category = (r[iCat] || '').trim();
+        if (!category && iSub !== -1) category = (r[iSub] || '').trim();
+        if (!category && iTypeModel !== -1) category = (r[iTypeModel] || '').trim();
+        if (!category) category = 'Lainnya';
         const img = (r[iImg] || '').trim();
         const emoji = (r[iEmoji] || '🔧').trim();
         const hasSettings = (r[iHas] || '').toString().trim() === '1' || /true/i.test(r[iHas] || '') ? 1 : 0;
