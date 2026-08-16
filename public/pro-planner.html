@@ -646,13 +646,18 @@
         }
         function renderModuleGrid() {
             const grid = document.getElementById('module-grid');
-            grid.innerHTML = Object.entries(MODULES).map(([key, m]) => `
-                <button onclick="startModule('${key}')" class="module-card text-left bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-lg">
+            const openFn = { pc:'openPCModule()', software:'openSoftwareModule()', live:'openLiveSetupModule()' };
+            grid.innerHTML = Object.entries(MODULES).map(([key, m]) => {
+                const act = openFn[key] || `startModule('${key}')`;
+                const sub = openFn[key] ? `buka modul ${m.name.toLowerCase()}` : `rancang & susun peralatan ${m.name.toLowerCase()}`;
+                return `
+                <button onclick="${act}" class="module-card text-left bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-lg hover:border-blue-500 transition">
                     <div class="w-14 h-14 rounded-xl bg-gradient-to-br ${m.color} flex items-center justify-center text-white text-2xl mb-4"><i class="${m.icon}"></i></div>
                     <h3 class="text-lg font-bold mb-1">${m.name}</h3>
-                    <p class="text-xs text-slate-400 mb-3">Rancang & susun peralatan ${m.name.toLowerCase()}.</p>
+                    <p class="text-xs text-slate-400 mb-3">${sub}.</p>
                     <span class="text-xs text-blue-400 font-bold"><i class="fa-solid fa-arrow-right"></i> Mulai</span>
-                </button>`).join('');
+                </button>`;
+            }).join('');
         }
         function goHome() { showScreen('home-screen'); }
 
