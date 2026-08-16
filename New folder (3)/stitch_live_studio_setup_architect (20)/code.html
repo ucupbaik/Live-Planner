@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Setup Software - Live Planner</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-tint": "#adc6ff",
+                        "surface-bright": "#2a3a4f",
+                        "on-surface": "#d3e4fe",
+                        "on-surface-variant": "#c1c6d7",
+                        "secondary-fixed-dim": "#bec6e0",
+                        "error-container": "#93000a",
+                        "tertiary-fixed-dim": "#2fd9f4",
+                        "on-tertiary-container": "#002f36",
+                        "on-error": "#690005",
+                        "on-secondary-fixed": "#131b2e",
+                        "on-secondary-fixed-variant": "#3f465c",
+                        "on-background": "#d3e4fe",
+                        "tertiary-fixed": "#a2eeff",
+                        "surface": "#031427",
+                        "on-secondary": "#283044",
+                        "surface-container-highest": "#26364a",
+                        "surface-container-low": "#0b1c30",
+                        "on-secondary-container": "#adb4ce",
+                        "secondary-fixed": "#dae2fd",
+                        "on-primary-fixed": "#001a41",
+                        "on-tertiary": "#00363e",
+                        "on-primary-container": "#00285c",
+                        "on-error-container": "#ffdad6",
+                        "on-tertiary-fixed": "#001f25",
+                        "inverse-primary": "#005bc1",
+                        "surface-container-high": "#1b2b3f",
+                        "primary-fixed": "#d8e2ff",
+                        "on-primary-fixed-variant": "#004493",
+                        "surface-variant": "#26364a",
+                        "surface-container-lowest": "#000f21",
+                        "inverse-on-surface": "#213145",
+                        "surface-container": "#102034",
+                        "primary": "#adc6ff",
+                        "secondary-container": "#3f465c",
+                        "background": "#031427",
+                        "error": "#ffb4ab",
+                        "primary-container": "#4b8eff",
+                        "outline-variant": "#414755",
+                        "primary-fixed-dim": "#adc6ff",
+                        "on-tertiary-fixed-variant": "#004e5a",
+                        "secondary": "#bec6e0",
+                        "outline": "#8b90a0",
+                        "tertiary-container": "#009fb4",
+                        "on-primary": "#002e69",
+                        "tertiary": "#2fd9f4",
+                        "surface-dim": "#031427",
+                        "inverse-surface": "#d3e4fe"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "margin-mobile": "16px",
+                        "container-max": "1440px",
+                        "unit": "4px",
+                        "gutter": "24px",
+                        "margin-desktop": "40px"
+                    },
+                    "fontFamily": {
+                        "headline-lg": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "display-lg": ["Inter"],
+                        "body-md": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "label-sm": ["JetBrains Mono"]
+                    },
+                    "fontSize": {
+                        "headline-lg": ["32px", { "lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "headline-md": ["20px", { "lineHeight": "1.4", "fontWeight": "600" }],
+                        "display-lg": ["48px", { "lineHeight": "1.1", "letterSpacing": "-0.04em", "fontWeight": "800" }],
+                        "body-md": ["16px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "headline-lg-mobile": ["24px", { "lineHeight": "1.2", "fontWeight": "700" }],
+                        "label-sm": ["12px", { "lineHeight": "1.0", "letterSpacing": "0.05em", "fontWeight": "500" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            background-color: theme('colors.background');
+            color: theme('colors.on-background');
+        }
+        
+        .rainbow-gradient {
+            background: linear-gradient(to right, theme('colors.primary'), theme('colors.tertiary'), theme('colors.secondary'));
+        }
+
+        .rainbow-ring {
+            background: linear-gradient(to right, theme('colors.primary'), theme('colors.tertiary'), theme('colors.secondary'));
+            padding: 2px;
+            border-radius: 50%;
+        }
+
+        .glass-panel {
+            background-color: theme('colors.surface-container-high/50');
+            backdrop-filter: blur(20px);
+            border: 1px solid theme('colors.outline-variant/30');
+        }
+
+        .terminal-bg {
+            background-color: #000f21; /* Darker terminal look */
+            border: 1px solid theme('colors.outline-variant/20');
+        }
+        
+        .glow-active {
+            box-shadow: 0 0 8px theme('colors.primary/50');
+            border-color: theme('colors.primary');
+        }
+    </style>
+</head>
+<body class="antialiased flex h-screen overflow-hidden">
+<!-- TopNavBar -->
+<header class="bg-surface/80 dark:bg-surface-dim/80 backdrop-blur-xl fixed top-0 w-full z-50 border-b border-outline-variant/30 shadow-sm flex justify-between items-center h-16 px-margin-desktop max-w-container-max mx-auto">
+<div class="flex items-center gap-8">
+<h1 class="font-headline-lg text-headline-lg bg-clip-text text-transparent bg-gradient-to-r from-primary via-tertiary to-secondary">Live Planner</h1>
+<div class="hidden md:flex gap-6">
+<a class="text-on-surface-variant dark:text-on-secondary-container hover:text-primary transition-colors font-label-sm text-label-sm" href="#">Dashboard</a>
+<a class="text-on-surface-variant dark:text-on-secondary-container hover:text-primary transition-colors font-label-sm text-label-sm" href="#">Inventory</a>
+<a class="text-on-surface-variant dark:text-on-secondary-container hover:text-primary transition-colors font-label-sm text-label-sm" href="#">Schedule</a>
+<a class="text-on-surface-variant dark:text-on-secondary-container hover:text-primary transition-colors font-label-sm text-label-sm" href="#">Team</a>
+<a class="text-on-surface-variant dark:text-on-secondary-container hover:text-primary transition-colors font-label-sm text-label-sm" href="#">Reports</a>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="text-on-surface-variant hover:text-primary transition-colors hover:bg-surface-bright/10 dark:hover:bg-surface-container-high/50 p-2 rounded-full Active: scale-95 transition-transform duration-150">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="text-on-surface-variant hover:text-primary transition-colors hover:bg-surface-bright/10 dark:hover:bg-surface-container-high/50 p-2 rounded-full Active: scale-95 transition-transform duration-150">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+</button>
+<div class="rainbow-ring">
+<img alt="User avatar with rainbow status ring" class="w-8 h-8 rounded-full object-cover" data-alt="User avatar with rainbow status ring, high-tech modern studio environment, detailed facial features, dramatic lighting, highly stylized." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB9L3WUkJ_ZeN-txKrZBr2RKpZ7NNPGK4s-fIEv6ZoO-UmPjS_rlxU-p1ZF5WTsU194-DyeiXebw5jzynqNHpimwTWYPYa5K_1xfnnQigoJME_UpvJ4RaEwuisuu-qqoYTvjvWkC4Zkbn-rhkd1A1UzvDBhxjPdMzxZwbQz2CZQJlkqNN8yi-Ab45RcHsZ8uxem_Wxmv8cxG0WGLqVATwl96BSGMk26GNWq67NaJGgeBHuN9UuzjeLo"/>
+</div>
+</div>
+</header>
+<!-- SideNavBar -->
+<aside class="bg-surface-container dark:bg-surface-container-low fixed left-0 top-16 h-[calc(100vh-64px)] w-60 border-r border-outline-variant/20 flex flex-col py-6 gap-2 z-40 hidden md:flex">
+<div class="px-4 mb-6">
+<div class="flex items-center gap-3 mb-4">
+<div class="w-10 h-10 rounded bg-surface-variant flex items-center justify-center overflow-hidden">
+<img alt="Studio Logo" class="w-full h-full object-cover" data-alt="Abstract geometric studio logo, sharp angles, glowing cyan and magenta accents, dark background, modern corporate creative design." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBvcaoKLMtEVkNymdZUGfkNbF58zNXm4fq01FjCC6JpAGNO1yZje-1WK-zxHe0H93fl914ON7Y1z61aXiqCDgogd9kMidePLgq_yf-84piUCpoalVlUfkPZ-lP-AfbLwusL-w1YaZPq3rJfnl_YwW6u9T43Qx4LWCR0aKSLHijiAwIHKdoMipDpljGwwdEa1eQtOfSPdiuEOiD9Vh1YQIWDSGPDQnNiQzZ5YoMuAzXLFnGyJqZD9_NT"/>
+</div>
+<div>
+<h2 class="font-headline-md text-headline-md font-bold text-on-surface">Creative Rail</h2>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Command Center</p>
+</div>
+</div>
+<button class="w-full rainbow-gradient text-on-primary font-label-sm text-label-sm py-2 px-4 rounded hover:brightness-110 transition-all flex items-center justify-center gap-2 shadow-[0_0_8px_rgba(47,217,244,0.3)]">
+<span class="material-symbols-outlined text-[18px]">add</span>
+                New Project
+            </button>
+</div>
+<nav class="flex-1 flex flex-col gap-1">
+<a class="text-on-surface-variant hover:bg-surface-variant/50 px-4 py-3 transition-all hover:translate-x-1 duration-200 flex items-center gap-3 font-body-md text-body-md" href="#">
+<span class="material-symbols-outlined text-tertiary dark:text-tertiary-fixed" data-icon="sensors">sensors</span>
+                Setup Live
+            </a>
+<a class="text-on-surface-variant hover:bg-surface-variant/50 px-4 py-3 transition-all hover:translate-x-1 duration-200 flex items-center gap-3 font-body-md text-body-md" href="#">
+<span class="material-symbols-outlined text-tertiary dark:text-tertiary-fixed" data-icon="mic_external_on">mic_external_on</span>
+                Setup Studio
+            </a>
+<a class="text-on-surface-variant hover:bg-surface-variant/50 px-4 py-3 transition-all hover:translate-x-1 duration-200 flex items-center gap-3 font-body-md text-body-md" href="#">
+<span class="material-symbols-outlined text-tertiary dark:text-tertiary-fixed" data-icon="fiber_manual_record">fiber_manual_record</span>
+                Setup Record
+            </a>
+<!-- Active State -->
+<a class="bg-gradient-to-r from-primary/20 to-transparent text-primary border-l-4 border-primary font-bold px-4 py-3 Active: scale-[0.98] flex items-center gap-3 font-body-md text-body-md" href="#">
+<span class="material-symbols-outlined text-tertiary dark:text-tertiary-fixed" data-icon="terminal">terminal</span>
+                Setup Software
+            </a>
+<a class="text-on-surface-variant hover:bg-surface-variant/50 px-4 py-3 transition-all hover:translate-x-1 duration-200 flex items-center gap-3 font-body-md text-body-md" href="#">
+<span class="material-symbols-outlined text-tertiary dark:text-tertiary-fixed" data-icon="memory">memory</span>
+                Rakit PC
+            </a>
+</nav>
+<div class="mt-auto px-2 flex flex-col gap-1">
+<a class="text-on-surface-variant hover:bg-surface-variant/50 px-4 py-3 transition-all hover:translate-x-1 duration-200 flex items-center gap-3 font-body-md text-body-md" href="#">
+<span class="material-symbols-outlined text-tertiary dark:text-tertiary-fixed" data-icon="help">help</span>
+                Support
+            </a>
+<a class="text-on-surface-variant hover:bg-surface-variant/50 px-4 py-3 transition-all hover:translate-x-1 duration-200 flex items-center gap-3 font-body-md text-body-md" href="#">
+<span class="material-symbols-outlined text-tertiary dark:text-tertiary-fixed" data-icon="archive">archive</span>
+                Archive
+            </a>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 ml-0 md:ml-60 mt-16 p-margin-mobile md:p-margin-desktop overflow-y-auto w-full max-w-container-max mx-auto h-[calc(100vh-64px)]">
+<!-- Header Section -->
+<div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-gutter gap-4">
+<div>
+<h2 class="font-display-lg text-display-lg text-on-surface">Software Configuration</h2>
+<p class="font-body-md text-body-md text-on-surface-variant mt-2">Manage installations, network topology, and software licenses for Live Planner environments.</p>
+</div>
+<button class="bg-surface-variant border border-tertiary text-tertiary hover:bg-tertiary/10 font-label-sm text-label-sm py-2 px-4 rounded flex items-center gap-2 transition-colors">
+<span class="material-symbols-outlined text-[18px]">download</span>
+                Import PC Specs
+            </button>
+</div>
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
+<!-- Left Column: Installation Checklist -->
+<div class="lg:col-span-4 flex flex-col gap-gutter">
+<div class="glass-panel rounded-xl p-6 flex-1 flex flex-col">
+<div class="flex items-center justify-between mb-6 pb-4 border-b border-outline-variant/30">
+<h3 class="font-headline-md text-headline-md text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary">check_box</span>
+                            Deployment Checklist
+                        </h3>
+<span class="font-label-sm text-label-sm bg-surface-container-highest px-2 py-1 rounded text-tertiary">3/8 Done</span>
+</div>
+<div class="flex flex-col gap-3 font-label-sm text-label-sm">
+<!-- Checklist Items -->
+<label class="flex items-center gap-3 p-3 rounded terminal-bg cursor-pointer hover:border-tertiary transition-colors">
+<input checked="" class="form-checkbox h-4 w-4 text-tertiary rounded bg-surface border-outline-variant focus:ring-tertiary focus:ring-offset-background" type="checkbox"/>
+<span class="text-on-surface line-through opacity-50">OBS Studio Core 29.1+</span>
+</label>
+<label class="flex items-center gap-3 p-3 rounded terminal-bg cursor-pointer hover:border-tertiary transition-colors glow-active">
+<input class="form-checkbox h-4 w-4 text-tertiary rounded bg-surface border-outline-variant focus:ring-tertiary focus:ring-offset-background" type="checkbox"/>
+<span class="text-on-surface">NDI Plugin Suite v5</span>
+</label>
+<label class="flex items-center gap-3 p-3 rounded terminal-bg cursor-pointer hover:border-tertiary transition-colors">
+<input class="form-checkbox h-4 w-4 text-tertiary rounded bg-surface border-outline-variant focus:ring-tertiary focus:ring-offset-background" type="checkbox"/>
+<span class="text-on-surface">Audio Routing (Voicemeeter)</span>
+</label>
+<label class="flex items-center gap-3 p-3 rounded terminal-bg cursor-pointer hover:border-tertiary transition-colors">
+<input class="form-checkbox h-4 w-4 text-tertiary rounded bg-surface border-outline-variant focus:ring-tertiary focus:ring-offset-background" type="checkbox"/>
+<span class="text-on-surface">DAW Integration (Ableton)</span>
+</label>
+</div>
+</div>
+</div>
+<!-- Middle/Right Column: Network Map & Licenses -->
+<div class="lg:col-span-8 flex flex-col gap-gutter">
+<!-- Network Node Map -->
+<div class="glass-panel rounded-xl p-6 h-64 flex flex-col relative overflow-hidden">
+<div class="flex items-center justify-between mb-4 z-10">
+<h3 class="font-headline-md text-headline-md text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">lan</span>
+                            NLE Environment Topology
+                        </h3>
+<div class="flex gap-2">
+<span class="w-3 h-3 rounded-full bg-emerald-500 shadow-[0_0_5px_#10b981]"></span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Live Nodes</span>
+</div>
+</div>
+<!-- Abstract representation of network map -->
+<div class="flex-1 bg-surface-container-lowest border border-outline-variant/20 rounded relative flex items-center justify-center overflow-hidden">
+<!-- Simulated nodes -->
+<div class="absolute left-10 top-10 w-12 h-12 rounded border-2 border-tertiary flex items-center justify-center bg-surface z-10">
+<span class="material-symbols-outlined text-tertiary">computer</span>
+</div>
+<div class="absolute right-20 top-20 w-12 h-12 rounded border-2 border-primary flex items-center justify-center bg-surface z-10 glow-active">
+<span class="material-symbols-outlined text-primary">dns</span>
+</div>
+<div class="absolute left-1/2 bottom-10 w-12 h-12 rounded border-2 border-secondary flex items-center justify-center bg-surface z-10">
+<span class="material-symbols-outlined text-secondary">videocam</span>
+</div>
+<!-- Simulated connecting lines using simple divs -->
+<div class="absolute left-16 top-16 w-1/2 h-px bg-tertiary/30 origin-top-left transform rotate-[15deg]"></div>
+<div class="absolute right-24 top-24 w-1/3 h-px bg-primary/30 origin-top-right transform -rotate-[45deg]"></div>
+</div>
+</div>
+<!-- License Vault -->
+<div class="glass-panel rounded-xl p-6 flex-1 flex flex-col">
+<h3 class="font-headline-md text-headline-md text-on-surface mb-6 flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary">vpn_key</span>
+                        License Vault
+                    </h3>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="border-b border-outline-variant/30 font-label-sm text-label-sm text-on-surface-variant">
+<th class="pb-3 font-medium">Software</th>
+<th class="pb-3 font-medium">Key / Node ID</th>
+<th class="pb-3 font-medium">Status</th>
+<th class="pb-3 font-medium text-right">Action</th>
+</tr>
+</thead>
+<tbody class="font-label-sm text-label-sm">
+<tr class="border-b border-surface-container hover:bg-surface-container-high/30 transition-colors">
+<td class="py-4 text-on-surface flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-primary"></div>
+                                        Adobe Creative Cloud
+                                    </td>
+<td class="py-4 text-on-surface-variant font-mono">XXXX-XXXX-1234</td>
+<td class="py-4"><span class="bg-emerald-500/20 text-emerald-400 px-2 py-1 rounded">Active</span></td>
+<td class="py-4 text-right">
+<button class="text-tertiary hover:text-primary transition-colors"><span class="material-symbols-outlined text-[18px]">content_copy</span></button>
+</td>
+</tr>
+<tr class="border-b border-surface-container hover:bg-surface-container-high/30 transition-colors">
+<td class="py-4 text-on-surface flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-secondary"></div>
+                                        vMix Pro
+                                    </td>
+<td class="py-4 text-on-surface-variant font-mono">NODE-8891-AB</td>
+<td class="py-4"><span class="bg-amber-500/20 text-amber-400 px-2 py-1 rounded">Expiring</span></td>
+<td class="py-4 text-right">
+<button class="text-tertiary hover:text-primary transition-colors"><span class="material-symbols-outlined text-[18px]">content_copy</span></button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-high/30 transition-colors">
+<td class="py-4 text-on-surface flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-tertiary"></div>
+                                        Dante Virtual Soundcard
+                                    </td>
+<td class="py-4 text-on-surface-variant font-mono">DVS-1102-XYZ</td>
+<td class="py-4"><span class="bg-emerald-500/20 text-emerald-400 px-2 py-1 rounded">Active</span></td>
+<td class="py-4 text-right">
+<button class="text-tertiary hover:text-primary transition-colors"><span class="material-symbols-outlined text-[18px]">content_copy</span></button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+</main>
+</body></html>

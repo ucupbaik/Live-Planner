@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Educational Audio Lab - Creative Command Center</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-tint": "#adc6ff",
+                        "surface-bright": "#2a3a4f",
+                        "on-surface": "#d3e4fe",
+                        "on-surface-variant": "#c1c6d7",
+                        "secondary-fixed-dim": "#bec6e0",
+                        "error-container": "#93000a",
+                        "tertiary-fixed-dim": "#2fd9f4",
+                        "on-tertiary-container": "#002f36",
+                        "on-error": "#690005",
+                        "on-secondary-fixed": "#131b2e",
+                        "on-secondary-fixed-variant": "#3f465c",
+                        "on-background": "#d3e4fe",
+                        "tertiary-fixed": "#a2eeff",
+                        "surface": "#031427",
+                        "on-secondary": "#283044",
+                        "surface-container-highest": "#26364a",
+                        "surface-container-low": "#0b1c30",
+                        "on-secondary-container": "#adb4ce",
+                        "secondary-fixed": "#dae2fd",
+                        "on-primary-fixed": "#001a41",
+                        "on-tertiary": "#00363e",
+                        "on-primary-container": "#00285c",
+                        "on-error-container": "#ffdad6",
+                        "on-tertiary-fixed": "#001f25",
+                        "inverse-primary": "#005bc1",
+                        "surface-container-high": "#1b2b3f",
+                        "primary-fixed": "#d8e2ff",
+                        "on-primary-fixed-variant": "#004493",
+                        "surface-variant": "#26364a",
+                        "surface-container-lowest": "#000f21",
+                        "inverse-on-surface": "#213145",
+                        "surface-container": "#102034",
+                        "primary": "#adc6ff",
+                        "secondary-container": "#3f465c",
+                        "background": "#031427",
+                        "error": "#ffb4ab",
+                        "primary-container": "#4b8eff",
+                        "outline-variant": "#414755",
+                        "primary-fixed-dim": "#adc6ff",
+                        "on-tertiary-fixed-variant": "#004e5a",
+                        "secondary": "#bec6e0",
+                        "outline": "#8b90a0",
+                        "tertiary-container": "#009fb4",
+                        "on-primary": "#002e69",
+                        "tertiary": "#2fd9f4",
+                        "surface-dim": "#031427",
+                        "inverse-surface": "#d3e4fe"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "margin-mobile": "16px",
+                        "container-max": "1440px",
+                        "unit": "4px",
+                        "gutter": "24px",
+                        "margin-desktop": "40px"
+                    },
+                    "fontFamily": {
+                        "headline-lg": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "display-lg": ["Inter"],
+                        "body-md": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "label-sm": ["JetBrains Mono"]
+                    },
+                    "fontSize": {
+                        "headline-lg": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "headline-md": ["20px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                        "display-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.04em", "fontWeight": "800"}],
+                        "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "headline-lg-mobile": ["24px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                        "label-sm": ["12px", {"lineHeight": "1.0", "letterSpacing": "0.05em", "fontWeight": "500"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .vu-meter-bar {
+            height: 100%;
+            background: linear-gradient(to top, #4b8eff 0%, #2fd9f4 60%, #ffb4ab 90%, #93000a 100%);
+            transition: height 0.1s ease-out;
+        }
+        .waveform-path {
+            stroke: #2fd9f4;
+            stroke-width: 2;
+            fill: none;
+            opacity: 0.8;
+        }
+        .waveform-path-2 {
+            stroke: #4b8eff;
+            stroke-width: 1.5;
+            fill: none;
+            opacity: 0.5;
+        }
+        .waveform-path-3 {
+            stroke: #ffb4ab;
+            stroke-width: 1;
+            fill: none;
+            opacity: 0.3;
+        }
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid #334155;
+        }
+        .rainbow-glow {
+            box-shadow: 0 0 15px rgba(47, 217, 244, 0.4);
+        }
+        .bg-rainbow {
+            background: linear-gradient(90deg, #4b8eff, #2fd9f4, #ffb4ab, #93000a);
+            background-size: 200% auto;
+            animation: gradient-shift 3s linear infinite;
+        }
+        @keyframes gradient-shift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .flow-line {
+            stroke-dasharray: 4;
+            animation: dash 1s linear infinite;
+        }
+        @keyframes dash {
+            to {
+                stroke-dashoffset: -8;
+            }
+        }
+        .knob-container {
+            position: relative;
+            width: 48px;
+            height: 48px;
+        }
+        .knob {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: conic-gradient(from 225deg, #475569 0deg, #1e293b 270deg, transparent 270deg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.5), 0 2px 4px rgba(255,255,255,0.05);
+            position: relative;
+            cursor: pointer;
+        }
+        .knob-indicator {
+            position: absolute;
+            width: 4px;
+            height: 12px;
+            background-color: #2fd9f4;
+            border-radius: 2px;
+            top: 4px;
+            transform-origin: center 20px;
+        }
+        .knob-ring {
+            position: absolute;
+            inset: -4px;
+            border-radius: 50%;
+            border: 2px solid #334155;
+            border-top-color: #2fd9f4;
+            border-right-color: #2fd9f4;
+            transform: rotate(-45deg);
+        }
+        .fader-track {
+            width: 8px;
+            height: 100px;
+            background: #0f172a;
+            border-radius: 4px;
+            border: 1px solid #334155;
+            position: relative;
+        }
+        .fader-cap {
+            width: 24px;
+            height: 12px;
+            background: #cbd5e1;
+            border-radius: 2px;
+            position: absolute;
+            left: -8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            cursor: pointer;
+        }
+        .fader-cap::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #ffb4ab;
+            transform: translateY(-50%);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md overflow-x-hidden min-h-screen">
+<!-- TopNavBar -->
+<header class="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-xl border-b border-outline-variant/30 shadow-sm flex justify-between items-center h-16 px-margin-desktop max-w-container-max mx-auto text-primary">
+<div class="flex items-center gap-6">
+<span class="font-headline-lg text-headline-lg bg-clip-text text-transparent bg-gradient-to-r from-primary via-tertiary to-secondary">Live Planner</span>
+<div class="hidden md:flex items-center bg-[#020617] rounded-full border border-outline-variant px-4 py-2 focus-within:border-tertiary focus-within:shadow-[0_0_8px_rgba(47,217,244,0.5)] transition-all">
+<span class="material-symbols-outlined text-on-surface-variant text-lg mr-2" data-icon="search">search</span>
+<input class="bg-transparent border-none text-on-surface font-label-sm text-label-sm focus:ring-0 placeholder:text-on-surface-variant w-48" placeholder="Search resources..." type="text"/>
+</div>
+</div>
+<nav class="hidden lg:flex items-center gap-8">
+<a class="font-label-sm text-label-sm text-on-surface-variant hover:text-primary transition-colors hover:bg-surface-bright/10 px-2 py-1 rounded" href="#">Dashboard</a>
+<a class="font-label-sm text-label-sm text-on-surface-variant hover:text-primary transition-colors hover:bg-surface-bright/10 px-2 py-1 rounded" href="#">Inventory</a>
+<a class="font-label-sm text-label-sm text-on-surface-variant hover:text-primary transition-colors hover:bg-surface-bright/10 px-2 py-1 rounded" href="#">Schedule</a>
+<a class="font-label-sm text-label-sm text-on-surface-variant hover:text-primary transition-colors hover:bg-surface-bright/10 px-2 py-1 rounded" href="#">Team</a>
+<a class="font-label-sm text-label-sm text-on-surface-variant hover:text-primary transition-colors hover:bg-surface-bright/10 px-2 py-1 rounded" href="#">Reports</a>
+</nav>
+<div class="flex items-center gap-4">
+<button class="text-on-surface-variant hover:text-primary transition-colors hover:bg-surface-bright/10 p-2 rounded-full">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="text-on-surface-variant hover:text-primary transition-colors hover:bg-surface-bright/10 p-2 rounded-full">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+</button>
+<div class="w-10 h-10 rounded-full bg-gradient-to-tr from-primary via-tertiary to-secondary p-[2px] rainbow-glow">
+<div class="w-full h-full bg-surface rounded-full overflow-hidden border-2 border-surface">
+<img class="w-full h-full object-cover" data-alt="A high-quality close-up photograph of a professional multi-track audio mixing console in a dimly lit, modern recording studio. The console is illuminated by the soft, cyan and blue glow of LED screens and VU meters. The lighting is moody and technological, emphasizing the intricate details of knobs and sliders. The overall aesthetic is sleek, corporate modern with a creative, audio-centric edge." src="https://lh3.googleusercontent.com/aida-public/AB6AXuApVnwhnJcpFsDzODxdJ9UHtsPicNuwpxS2fnoZlO_Gs7SrZzDrKGpbNFUHY5tuf21PJj1Fi6DRjlyTO_kIDHua02OtRjIbllaM7qWpuCfE2aSL2GvKtl-0iKOWz7HLsjFnzzlJw-Y_HBqupF2jT78GqbvDVHFo7uvlkYA9I3X10QxHDPHp0Kyal59n8v-iwj1kAw-m5urPuebmaEAEbShaUJYeOjF7qsbFzx_8ogG8sdNFEP1yr521"/>
+</div>
+</div>
+</div>
+</header>
+<!-- SideNavBar & Main Content Wrapper -->
+<div class="flex pt-16 h-screen w-full max-w-container-max mx-auto">
+<!-- SideNavBar -->
+<aside class="hidden md:flex flex-col bg-surface-container dark:bg-surface-container-low fixed left-0 top-16 h-[calc(100vh-64px)] w-60 border-r border-outline-variant/20 py-6 gap-2 text-tertiary z-40">
+<div class="px-6 mb-6 flex flex-col gap-1">
+<div class="w-12 h-12 rounded-xl bg-[#1E293B] border border-[#334155] flex items-center justify-center mb-2">
+<span class="material-symbols-outlined text-tertiary text-2xl" data-icon="album">album</span>
+</div>
+<h2 class="font-headline-md text-headline-md font-bold text-on-surface">Creative Rail</h2>
+<p class="font-body-md text-body-md text-on-surface-variant text-sm">Command Center</p>
+</div>
+<div class="px-4 mb-4">
+<button class="w-full bg-gradient-to-r from-primary to-tertiary text-surface-lowest font-headline-md text-headline-md text-sm py-2 px-4 rounded-lg hover:brightness-110 shadow-[0_0_10px_rgba(47,217,244,0.3)] transition-all font-bold">New Project</button>
+</div>
+<nav class="flex-1 flex flex-col gap-1 overflow-y-auto">
+<a class="flex items-center gap-3 text-on-surface-variant hover:bg-surface-variant/50 px-4 py-3 transition-all hover:translate-x-1 duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="sensors">sensors</span>
+<span class="font-label-sm text-label-sm">Setup Live</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant hover:bg-surface-variant/50 px-4 py-3 transition-all hover:translate-x-1 duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="mic_external_on">mic_external_on</span>
+<span class="font-label-sm text-label-sm">Setup Studio</span>
+</a>
+<a class="flex items-center gap-3 bg-gradient-to-r from-primary/20 to-transparent text-primary border-l-4 border-primary font-bold px-4 py-3 scale-[0.98]" href="#">
+<span class="material-symbols-outlined" data-icon="school">school</span>
+<span class="font-label-sm text-label-sm">Audio Lab</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant hover:bg-surface-variant/50 px-4 py-3 transition-all hover:translate-x-1 duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="terminal">terminal</span>
+<span class="font-label-sm text-label-sm">Setup Software</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant hover:bg-surface-variant/50 px-4 py-3 transition-all hover:translate-x-1 duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="memory">memory</span>
+<span class="font-label-sm text-label-sm">Rakit PC</span>
+</a>
+</nav>
+<div class="mt-auto flex flex-col gap-1 border-t border-outline-variant/20 pt-4">
+<a class="flex items-center gap-3 text-on-surface-variant hover:bg-surface-variant/50 px-4 py-3 transition-all hover:translate-x-1 duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+<span class="font-label-sm text-label-sm">Support</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant hover:bg-surface-variant/50 px-4 py-3 transition-all hover:translate-x-1 duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="archive">archive</span>
+<span class="font-label-sm text-label-sm">Archive</span>
+</a>
+</div>
+</aside>
+<!-- Main Canvas -->
+<main class="flex-1 md:ml-60 p-margin-mobile md:p-gutter overflow-y-auto">
+<header class="mb-8 flex justify-between items-end">
+<div>
+<h1 class="font-display-lg text-display-lg text-on-surface mb-2">Educational Audio Lab</h1>
+<p class="font-body-md text-body-md text-on-surface-variant">Learn professional audio routing, gain staging, and recording techniques.</p>
+</div>
+<div class="flex gap-4">
+<button class="bg-[#1E293B] border border-tertiary text-on-surface font-label-sm text-label-sm px-6 py-2 rounded-lg hover:bg-surface-variant transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-sm" data-icon="save">save</span> Save Progress
+                    </button>
+<button class="bg-rainbow text-slate-900 font-label-sm text-label-sm px-6 py-2 rounded-lg hover:brightness-110 shadow-[0_0_10px_rgba(47,217,244,0.3)] transition-all flex items-center gap-2 font-bold">
+<span class="material-symbols-outlined text-sm" data-icon="check_circle">check_circle</span> Complete Tutorial
+                    </button>
+</div>
+</header>
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
+<!-- Recording Guide Sidebar (Span 4) -->
+<div class="lg:col-span-4 bg-[#1E293B] border border-[#334155] rounded-xl p-6 flex flex-col relative h-fit">
+<div class="flex justify-between items-start mb-6">
+<h3 class="font-headline-md text-headline-md text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary" data-icon="menu_book">menu_book</span> 
+                            Recording Guide
+                        </h3>
+</div>
+<div class="flex-1 flex flex-col gap-6">
+<ul class="flex flex-col gap-5">
+<li class="flex gap-4">
+<div class="w-8 h-8 rounded-full bg-primary/20 text-primary border border-primary/30 flex items-center justify-center font-bold text-sm shrink-0 shadow-[0_0_10px_rgba(173,198,255,0.4)]">1</div>
+<div>
+<div class="font-bold text-primary mb-1">Connect Hardware</div>
+<div class="text-sm text-on-surface-variant">Ensure your microphone or instrument is properly connected to input 1 of your audio interface.</div>
+</div>
+</li>
+<li class="flex gap-4 opacity-50">
+<div class="w-8 h-8 rounded-full bg-surface-variant text-on-surface-variant border border-outline-variant flex items-center justify-center font-bold text-sm shrink-0">2</div>
+<div>
+<div class="font-bold text-on-surface mb-1">Set Preamp Gain</div>
+<div class="text-sm text-on-surface-variant">Gradually increase the input gain while speaking or playing. Aim for levels around -18dB to -12dB to leave headroom.</div>
+</div>
+</li>
+<li class="flex gap-4 opacity-50">
+<div class="w-8 h-8 rounded-full bg-surface-variant text-on-surface-variant border border-outline-variant flex items-center justify-center font-bold text-sm shrink-0">3</div>
+<div>
+<div class="font-bold text-on-surface mb-1">Arm the Track</div>
+<div class="text-sm text-on-surface-variant">In your chosen DAW, select the correct input channel and arm the track for recording. Check software meters.</div>
+</div>
+</li>
+<li class="flex gap-4 opacity-50">
+<div class="w-8 h-8 rounded-full bg-surface-variant text-on-surface-variant border border-outline-variant flex items-center justify-center font-bold text-sm shrink-0">4</div>
+<div>
+<div class="font-bold text-on-surface mb-1">Start Recording Test</div>
+<div class="text-sm text-on-surface-variant">Use the monitor below to ensure signal flows properly before capturing the final take.</div>
+</div>
+</li>
+</ul>
+</div>
+<!-- Detailed Signal Flow Diagram -->
+<div class="mt-8 pt-6 border-t border-outline-variant/30">
+<h4 class="font-label-sm text-label-sm text-on-surface-variant mb-4 uppercase tracking-wider flex justify-between items-center">
+<span>Signal Flow Status</span>
+<span class="flex items-center gap-1 text-tertiary"><span class="w-2 h-2 rounded-full bg-tertiary animate-pulse"></span> Active</span>
+</h4>
+<div class="bg-[#020617] rounded-lg border border-[#334155] p-5 flex flex-col gap-4 relative">
+<div class="flex items-center justify-between relative">
+<!-- Lines connecting nodes -->
+<svg class="absolute w-full h-full left-0 top-0 pointer-events-none" preserveaspectratio="none" viewbox="0 0 100 100">
+<line class="flow-line" stroke="#adc6ff" stroke-width="2" x1="15" x2="45" y1="50" y2="50"></line>
+<line class="flow-line" stroke="#2fd9f4" stroke-width="2" style="animation-delay: 0.5s;" x1="55" x2="85" y1="50" y2="50"></line>
+</svg>
+<!-- Node 1: Source -->
+<div class="flex flex-col items-center gap-2 z-10 w-20">
+<div class="w-12 h-12 rounded-xl bg-primary/20 border border-primary flex items-center justify-center shadow-[0_0_15px_rgba(173,198,255,0.4)] relative">
+<span class="material-symbols-outlined text-primary text-2xl" data-icon="mic">mic</span>
+<div class="absolute -right-1 -top-1 w-3 h-3 rounded-full bg-primary border-2 border-[#020617]"></div>
+</div>
+<span class="text-[11px] text-primary font-bold">Mic 1</span>
+<span class="text-[9px] text-on-surface-variant bg-surface-variant/50 px-2 py-0.5 rounded">-45 dBu</span>
+</div>
+<!-- Node 2: Interface -->
+<div class="flex flex-col items-center gap-2 z-10 w-20">
+<div class="w-12 h-12 rounded-xl bg-surface-variant border border-outline-variant flex items-center justify-center relative">
+<span class="material-symbols-outlined text-on-surface-variant text-2xl" data-icon="audio_interface">audio_interface</span>
+<div class="absolute -left-1 -top-1 w-3 h-3 rounded-full bg-tertiary border-2 border-[#020617]"></div>
+<div class="absolute -right-1 -bottom-1 w-3 h-3 rounded-full bg-tertiary border-2 border-[#020617]"></div>
+</div>
+<span class="text-[11px] text-on-surface font-bold">Interface</span>
+<div class="flex gap-1">
+<span class="text-[9px] text-on-surface-variant bg-surface-variant/50 px-1 py-0.5 rounded">48V On</span>
+<span class="text-[9px] text-tertiary bg-tertiary/20 px-1 py-0.5 rounded">+30 dB</span>
+</div>
+</div>
+<!-- Node 3: DAW -->
+<div class="flex flex-col items-center gap-2 z-10 w-20">
+<div class="w-12 h-12 rounded-xl bg-surface-variant border border-outline-variant flex items-center justify-center relative">
+<span class="material-symbols-outlined text-on-surface-variant text-2xl" data-icon="computer">computer</span>
+<div class="absolute -left-1 -bottom-1 w-3 h-3 rounded-full bg-tertiary border-2 border-[#020617]"></div>
+</div>
+<span class="text-[11px] text-on-surface font-bold">DAW In 1</span>
+<span class="text-[9px] text-on-surface-variant bg-surface-variant/50 px-2 py-0.5 rounded">-12 dBFS</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Main Lab Area (Span 8) -->
+<div class="lg:col-span-8 flex flex-col gap-gutter">
+<!-- Mic Input Monitor & Voice Assistant -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter">
+<div class="md:col-span-2 glass-panel rounded-xl p-6 flex flex-col relative overflow-hidden group">
+<div class="absolute inset-0 opacity-10 pointer-events-none" style="background-image: radial-gradient(circle at top right, #2fd9f4, transparent 50%);"></div>
+<div class="flex justify-between items-center mb-6 relative z-10">
+<h3 class="font-headline-md text-headline-md text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary" data-icon="graphic_eq">graphic_eq</span> 
+                            Mic Input Monitor Analyzer
+                        </h3>
+<button class="bg-rainbow text-slate-900 font-label-sm text-label-sm px-4 py-2 rounded-lg hover:brightness-110 shadow-[0_0_10px_rgba(47,217,244,0.3)] transition-all flex items-center gap-2 font-bold border-none">
+<span class="material-symbols-outlined text-sm" data-icon="mic">mic</span> Start Recording Test
+</button>
+</div>
+<div class="flex-1 bg-[#020617] rounded-lg border border-[#334155] p-4 flex gap-6 relative z-10">
+<!-- Input Channel VU -->
+<div class="flex flex-col items-center gap-2 w-24 shrink-0 border-r border-outline-variant/30 pr-6">
+<div class="w-full text-center font-label-sm text-label-sm text-on-surface-variant mb-2">INPUT 1</div>
+<!-- VU Meter -->
+<div class="w-8 h-32 bg-[#020617] rounded-sm border border-[#334155] overflow-hidden flex flex-col justify-end p-[2px]">
+<div class="vu-meter-bar w-full" style="height: 65%;"></div>
+</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant mt-1">-12dB</div>
+</div>
+<div class="flex-1 flex flex-col">
+<div class="flex justify-between items-center mb-2">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Multi-band Frequency Analysis</span>
+<div class="flex gap-2">
+<span class="text-tertiary text-xs flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-error animate-pulse"></div> Live</span>
+</div>
+</div>
+<div class="flex-1 relative flex flex-col items-center justify-center overflow-hidden bg-surface-container-low rounded border border-outline-variant/20 h-full min-h-[140px] p-2">
+<!-- Multi-band Waveform SVG -->
+<svg class="w-full h-full" preserveaspectratio="none" viewbox="0 0 500 100">
+<path class="waveform-path-3" d="M0,50 Q25,20 50,50 T100,50 T150,50 T200,50 T250,50 T300,50 T350,50 T400,50 T450,50 T500,50"></path>
+<path class="waveform-path-2" d="M0,50 Q12.5,30 25,50 T50,50 T75,50 T100,50 T125,50 T150,50 T175,50 T200,50 T225,50 T250,50 T275,50 T300,50 T325,50 T350,50 T375,50 T400,50 T425,50 T450,50 T475,50 T500,50"></path>
+<path class="waveform-path" d="M0,50 L10,30 L20,70 L30,40 L40,60 L50,20 L60,80 L70,30 L80,50 L90,10 L100,90 L110,40 L120,60 L130,20 L140,80 L150,50 L160,30 L170,70 L180,40 L190,60 L200,20 L210,80 L220,30 L230,50 L240,10 L250,90 L260,40 L270,60 L280,20 L290,80 L300,50 L310,30 L320,70 L330,40 L340,60 L350,20 L360,80 L370,30 L380,50 L390,10 L400,90 L410,40 L420,60 L430,20 L440,80 L450,50 L460,30 L470,70 L480,40 L490,60 L500,50"></path>
+</svg>
+<div class="w-full flex justify-between px-2 text-[10px] text-on-surface-variant font-label-sm opacity-50 mt-1">
+<span>20Hz</span>
+<span>100Hz</span>
+<span>1kHz</span>
+<span>10kHz</span>
+<span>20kHz</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Voice Assistant Widget -->
+<div class="glass-panel rounded-xl p-6 flex flex-col relative overflow-hidden">
+<div class="flex items-center gap-3 mb-4">
+<div class="w-10 h-10 rounded-full bg-tertiary/20 flex items-center justify-center border border-tertiary/50">
+<span class="material-symbols-outlined text-tertiary" data-icon="robot_2">robot_2</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface text-lg">Audio Assist</h3>
+</div>
+<div class="flex-1 bg-surface-container-low rounded-lg border border-outline-variant/30 p-4 relative">
+<div class="flex items-start gap-3">
+<div class="w-6 h-6 rounded-full bg-tertiary/20 flex items-center justify-center shrink-0 mt-1">
+<span class="material-symbols-outlined text-tertiary text-sm" data-icon="info">info</span>
+</div>
+<p class="text-sm text-on-surface-variant font-body-md">Levels look good! You're hovering around -12dB. If you start clipping, try reducing the preamp gain slightly.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Dynamic Gear Rack -->
+<div class="bg-[#1E293B] border border-[#334155] rounded-xl p-6 flex flex-col">
+<div class="flex justify-between items-center mb-6">
+<h3 class="font-headline-md text-headline-md text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary" data-icon="speaker_group">speaker_group</span> 
+                            Virtual Gear Rack Details
+                        </h3>
+<span class="bg-primary/10 text-primary text-xs px-2 py-1 rounded border border-primary/20">Swap to compare</span>
+</div>
+<div class="bg-[#020617] rounded-lg border border-[#334155] p-3 flex flex-col gap-3">
+<!-- Detailed Preamp Unit -->
+<div class="bg-[#1e293b] rounded-lg p-5 border border-outline-variant/30 relative group overflow-hidden shadow-lg">
+<div class="absolute left-0 top-0 bottom-0 w-2 bg-primary"></div>
+<div class="flex items-center justify-between ml-4">
+<div class="flex flex-col w-1/4">
+<span class="font-label-sm text-[10px] text-on-surface-variant uppercase tracking-widest mb-1">Preamp Module</span>
+<h4 class="font-bold text-on-surface text-lg">Neve 1073 (Sim)</h4>
+<div class="mt-4 flex gap-2">
+<button class="w-10 h-6 bg-error/20 text-error rounded border border-error/50 text-[10px] font-bold">48V</button>
+<button class="w-10 h-6 bg-surface-variant text-on-surface-variant rounded border border-outline-variant text-[10px] font-bold">Ø</button>
+</div>
+</div>
+<div class="flex gap-8 flex-1 justify-center">
+<!-- Line Input Knob -->
+<div class="flex flex-col items-center gap-2">
+<div class="knob-container">
+<div class="knob-ring"></div>
+<div class="knob" style="transform: rotate(-30deg);">
+<div class="knob-indicator"></div>
+</div>
+</div>
+<div class="text-center">
+<span class="text-[10px] text-on-surface-variant font-label-sm block">Mic Gain</span>
+<span class="text-xs text-primary font-bold">30 dB</span>
+</div>
+</div>
+<!-- Trim Knob -->
+<div class="flex flex-col items-center gap-2">
+<div class="knob-container">
+<div class="knob-ring" style="border-top-color: #bec6e0; border-right-color: #bec6e0;"></div>
+<div class="knob" style="transform: rotate(0deg);">
+<div class="knob-indicator" style="background-color: #bec6e0;"></div>
+</div>
+</div>
+<div class="text-center">
+<span class="text-[10px] text-on-surface-variant font-label-sm block">Trim</span>
+<span class="text-xs text-secondary font-bold">0 dB</span>
+</div>
+</div>
+<!-- Fader -->
+<div class="flex flex-col items-center gap-2 ml-4">
+<div class="fader-track">
+<div class="fader-cap" style="bottom: 70%;"></div>
+</div>
+<span class="text-[10px] text-on-surface-variant font-label-sm mt-1">Output</span>
+</div>
+</div>
+<div class="flex flex-col items-center justify-center border-l border-outline-variant/30 pl-6 h-full">
+<!-- Analog Style VU Meter -->
+<div class="w-20 h-12 bg-[#0f172a] rounded border-2 border-[#334155] relative overflow-hidden mb-2 shadow-inner">
+<div class="absolute bottom-[-10px] left-1/2 w-1 h-16 bg-error origin-bottom transition-transform duration-75" style="transform: rotate(15deg);"></div>
+<div class="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-white/10 to-transparent pointer-events-none"></div>
+</div>
+<button class="text-on-surface-variant hover:text-primary transition-colors p-2 bg-surface-container rounded-full border border-outline-variant/20">
+<span class="material-symbols-outlined" data-icon="swap_horiz">swap_horiz</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Detailed Compressor Unit -->
+<div class="bg-[#262626] rounded-lg p-5 border border-outline-variant/30 relative group overflow-hidden shadow-lg">
+<div class="absolute left-0 top-0 bottom-0 w-2 bg-secondary"></div>
+<div class="flex items-center justify-between ml-4">
+<div class="flex flex-col w-1/4">
+<span class="font-label-sm text-[10px] text-on-surface-variant uppercase tracking-widest mb-1">Optical Compressor</span>
+<h4 class="font-bold text-on-surface text-lg">LA-2A Opto (Sim)</h4>
+<div class="mt-4 flex gap-2">
+<button class="px-3 h-6 bg-tertiary/20 text-tertiary rounded border border-tertiary/50 text-[10px] font-bold">Limit</button>
+<button class="px-3 h-6 bg-surface-variant text-on-surface-variant rounded border border-outline-variant text-[10px] font-bold">Compress</button>
+</div>
+</div>
+<div class="flex gap-8 flex-1 justify-center">
+<!-- Peak Reduction Knob -->
+<div class="flex flex-col items-center gap-2">
+<div class="knob-container">
+<div class="knob-ring" style="border-top-color: #ffb4ab; border-right-color: #ffb4ab;"></div>
+<div class="knob" style="transform: rotate(45deg);">
+<div class="knob-indicator" style="background-color: #ffb4ab;"></div>
+</div>
+</div>
+<div class="text-center">
+<span class="text-[10px] text-on-surface-variant font-label-sm block">Peak Reduction</span>
+<span class="text-xs text-error font-bold">60</span>
+</div>
+</div>
+<!-- Gain Knob -->
+<div class="flex flex-col items-center gap-2">
+<div class="knob-container">
+<div class="knob-ring" style="border-top-color: #bec6e0; border-right-color: #bec6e0;"></div>
+<div class="knob" style="transform: rotate(20deg);">
+<div class="knob-indicator" style="background-color: #bec6e0;"></div>
+</div>
+</div>
+<div class="text-center">
+<span class="text-[10px] text-on-surface-variant font-label-sm block">Gain</span>
+<span class="text-xs text-secondary font-bold">40</span>
+</div>
+</div>
+</div>
+<div class="flex flex-col items-center justify-center border-l border-outline-variant/30 pl-6 h-full">
+<!-- Gain Reduction Meter -->
+<div class="w-24 h-12 bg-surface-container-highest border-2 border-[#475569] rounded flex items-center justify-center relative overflow-hidden mb-2">
+<div class="w-full h-[1px] bg-[#475569] absolute top-1/2"></div>
+<div class="absolute right-0 top-0 h-full bg-error/30 w-[30%]"></div>
+<span class="text-[10px] font-label-sm text-error/80 absolute top-1 right-1">-3dB</span>
+<svg class="w-full h-full absolute" preserveaspectratio="none" viewbox="0 0 100 100">
+<path d="M100,50 L70,80 L50,50 L30,50 L0,50" fill="none" stroke="#ffb4ab" stroke-width="2"></path>
+</svg>
+</div>
+<button class="text-on-surface-variant hover:text-secondary transition-colors p-2 bg-surface-container rounded-full border border-outline-variant/20">
+<span class="material-symbols-outlined" data-icon="swap_horiz">swap_horiz</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Tutorial Hub & Pro Tools Mix Bridge -->
+<div class="bg-[#1E293B] border border-[#334155] rounded-xl p-6 flex flex-col relative">
+<div class="flex justify-between items-center mb-6">
+<h3 class="font-headline-md text-headline-md text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-primary" data-icon="play_lesson">play_lesson</span> 
+                            Tutorial Hub &amp; Mix Overview
+                        </h3>
+<div class="flex items-center gap-3">
+<div class="w-32 h-2 bg-surface-container-low rounded-full overflow-hidden">
+<div class="h-full bg-primary" style="width: 33%;"></div>
+</div>
+<span class="text-xs text-on-surface-variant font-label-sm">1/3 Complete</span>
+</div>
+</div>
+<!-- Mix Bridge Overview -->
+<div class="bg-[#020617] rounded-lg border border-[#334155] p-4 mb-6">
+<h4 class="font-label-sm text-label-sm text-on-surface-variant mb-3 uppercase tracking-wider">Session Overview (PT Style)</h4>
+<div class="flex gap-2 overflow-x-auto pb-2">
+<!-- Track 1: Vox (Active) -->
+<div class="bg-surface-container border-2 border-tertiary rounded flex flex-col w-24 shrink-0 overflow-hidden">
+<div class="bg-tertiary/20 text-tertiary font-bold text-xs text-center py-1 border-b border-tertiary/30">Audio 1</div>
+<div class="p-2 flex flex-col gap-2">
+<div class="h-6 bg-surface-variant rounded border border-outline-variant/30 flex items-center justify-center text-[9px] text-on-surface-variant">In 1</div>
+<div class="h-6 bg-surface-variant rounded border border-outline-variant/30 flex items-center justify-center text-[9px] text-on-surface-variant">Out 1-2</div>
+<div class="flex gap-1 justify-center my-1">
+<button class="w-5 h-5 rounded bg-error/20 border border-error text-error text-[10px] font-bold flex items-center justify-center">R</button>
+<button class="w-5 h-5 rounded bg-surface-variant border border-outline-variant text-on-surface-variant text-[10px] font-bold flex items-center justify-center">S</button>
+<button class="w-5 h-5 rounded bg-surface-variant border border-outline-variant text-on-surface-variant text-[10px] font-bold flex items-center justify-center">M</button>
+</div>
+<div class="flex gap-2 h-20 px-1">
+<div class="w-2 bg-[#020617] rounded h-full relative overflow-hidden border border-outline-variant/30">
+<div class="absolute bottom-0 w-full bg-gradient-to-t from-primary to-error" style="height: 60%;"></div>
+</div>
+<div class="fader-track h-full flex-1 w-auto border-none bg-surface-variant/50">
+<div class="fader-cap" style="bottom: 70%; width: 20px; left: -2px;"></div>
+</div>
+</div>
+</div>
+<div class="bg-surface-variant text-center py-1 text-[10px] text-on-surface">VOX Ld</div>
+</div>
+<!-- Track 2: Gtr -->
+<div class="bg-surface-container border border-outline-variant/50 rounded flex flex-col w-24 shrink-0 overflow-hidden opacity-70">
+<div class="bg-surface-variant text-on-surface-variant font-bold text-xs text-center py-1 border-b border-outline-variant/30">Audio 2</div>
+<div class="p-2 flex flex-col gap-2">
+<div class="h-6 bg-surface-variant rounded border border-outline-variant/30 flex items-center justify-center text-[9px] text-on-surface-variant">In 2</div>
+<div class="h-6 bg-surface-variant rounded border border-outline-variant/30 flex items-center justify-center text-[9px] text-on-surface-variant">Out 1-2</div>
+<div class="flex gap-1 justify-center my-1">
+<button class="w-5 h-5 rounded bg-surface-variant border border-outline-variant text-on-surface-variant text-[10px] font-bold flex items-center justify-center">R</button>
+<button class="w-5 h-5 rounded bg-surface-variant border border-outline-variant text-on-surface-variant text-[10px] font-bold flex items-center justify-center">S</button>
+<button class="w-5 h-5 rounded bg-surface-variant border border-outline-variant text-on-surface-variant text-[10px] font-bold flex items-center justify-center">M</button>
+</div>
+<div class="flex gap-2 h-20 px-1">
+<div class="w-2 bg-[#020617] rounded h-full relative overflow-hidden border border-outline-variant/30"></div>
+<div class="fader-track h-full flex-1 w-auto border-none bg-surface-variant/50">
+<div class="fader-cap" style="bottom: 50%; width: 20px; left: -2px;"></div>
+</div>
+</div>
+</div>
+<div class="bg-surface-variant text-center py-1 text-[10px] text-on-surface">GTR Ac</div>
+</div>
+<!-- Master Track -->
+<div class="bg-surface-container border border-error/50 rounded flex flex-col w-24 shrink-0 overflow-hidden ml-auto">
+<div class="bg-error/20 text-error font-bold text-xs text-center py-1 border-b border-error/30">Master 1</div>
+<div class="p-2 flex flex-col gap-2 h-full">
+<div class="flex-1 flex justify-center mt-2">
+<div class="flex gap-1 h-32 px-1">
+<div class="w-3 bg-[#020617] rounded h-full relative overflow-hidden border border-outline-variant/30">
+<div class="absolute bottom-0 w-full bg-gradient-to-t from-primary to-error" style="height: 60%;"></div>
+</div>
+<div class="w-3 bg-[#020617] rounded h-full relative overflow-hidden border border-outline-variant/30">
+<div class="absolute bottom-0 w-full bg-gradient-to-t from-primary to-error" style="height: 62%;"></div>
+</div>
+<div class="fader-track h-full w-4 ml-1 border-none bg-surface-variant/50">
+<div class="fader-cap" style="bottom: 80%; width: 20px; left: -4px;"></div>
+</div>
+</div>
+</div>
+</div>
+<div class="bg-surface-variant text-center py-1 text-[10px] text-on-surface">Master Output</div>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+<div class="bg-surface-container rounded-lg p-4 border border-primary relative cursor-pointer group shadow-[0_0_15px_rgba(173,198,255,0.15)]">
+<div class="absolute -top-2 -right-2 w-6 h-6 bg-primary rounded-full flex items-center justify-center text-surface shadow-lg">
+<span class="material-symbols-outlined text-[14px]" data-icon="check">check</span>
+</div>
+<div class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-primary" data-icon="tune">tune</span>
+</div>
+<h4 class="font-bold text-on-surface mb-1">Intro to Gain Staging</h4>
+<p class="text-xs text-on-surface-variant">Learn how to set optimal levels for clean recordings.</p>
+<div class="mt-3 flex gap-1">
+<span class="bg-primary/20 text-primary text-[10px] px-2 py-0.5 rounded-full border border-primary/30 flex items-center gap-1"><span class="material-symbols-outlined text-[10px]" data-icon="military_tech">military_tech</span> Gain Master</span>
+</div>
+</div>
+<div class="bg-surface-container rounded-lg p-4 border border-outline-variant hover:border-tertiary transition-colors cursor-pointer group">
+<div class="w-10 h-10 rounded-full bg-secondary/20 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-secondary" data-icon="compress">compress</span>
+</div>
+<h4 class="font-bold text-on-surface mb-1">Compression 101</h4>
+<p class="text-xs text-on-surface-variant">Understand dynamics processing and peak control.</p>
+</div>
+<div class="bg-surface-container rounded-lg p-4 border border-outline-variant hover:border-tertiary transition-colors cursor-pointer group">
+<div class="w-10 h-10 rounded-full bg-tertiary/20 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-tertiary" data-icon="account_tree">account_tree</span>
+</div>
+<h4 class="font-bold text-on-surface mb-1">Multi-track Routing</h4>
+<p class="text-xs text-on-surface-variant">Master signal flow from interface to DAW channels.</p>
+</div>
+</div>
+</div>
+<!-- Software Integration -->
+<div class="bg-[#1E293B] border border-[#334155] rounded-xl p-6 flex flex-col">
+<h3 class="font-headline-md text-headline-md text-on-surface flex items-center gap-2 mb-6">
+<span class="material-symbols-outlined text-tertiary" data-icon="integration_instructions">integration_instructions</span> 
+                        Software Integration
+                    </h3>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div>
+<p class="text-sm text-on-surface-variant mb-4">Select your DAW to see specific routing instructions and auto-configure your interface settings.</p>
+<div class="flex gap-4 overflow-x-auto pb-2">
+<div class="flex flex-col items-center gap-2 min-w-[80px]">
+<div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#805ad5] to-[#4c1d95] flex items-center justify-center shadow-[0_0_15px_rgba(128,90,213,0.4)] hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer border-2 border-primary">
+<span class="text-white font-bold text-xl">PT</span>
+</div>
+<span class="font-label-sm text-[10px] text-primary font-bold">Pro Tools</span>
+</div>
+<div class="flex flex-col items-center gap-2 min-w-[80px] opacity-70 hover:opacity-100 transition-opacity">
+<div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#000000] to-[#333333] border border-gray-700 flex items-center justify-center shadow-lg hover:-translate-y-1 transition-all cursor-pointer">
+<span class="text-white font-bold text-xl">AL</span>
+</div>
+<span class="font-label-sm text-[10px] text-on-surface-variant">Ableton Live</span>
+</div>
+<div class="flex flex-col items-center gap-2 min-w-[80px] opacity-70 hover:opacity-100 transition-opacity">
+<div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#1e3a8a] to-[#1e40af] flex items-center justify-center shadow-lg hover:-translate-y-1 transition-all cursor-pointer">
+<span class="text-white font-bold text-xl">LP</span>
+</div>
+<span class="font-label-sm text-[10px] text-on-surface-variant">Logic Pro</span>
+</div>
+</div>
+</div>
+<div class="bg-[#020617] rounded-lg border border-[#334155] p-4 flex flex-col gap-3">
+<h4 class="font-bold text-on-surface text-sm border-b border-outline-variant/30 pb-2">Pro Tools Setup</h4>
+<ul class="text-xs text-on-surface-variant flex flex-col gap-2">
+<li class="flex items-start gap-2"><span class="material-symbols-outlined text-[14px] text-primary" data-icon="check_circle">check_circle</span> 1. Go to Setup &gt; Playback Engine and select your interface.</li>
+<li class="flex items-start gap-2"><span class="material-symbols-outlined text-[14px] text-primary" data-icon="check_circle">check_circle</span> 2. Open Setup &gt; I/O and click 'Default' on Input and Output tabs.</li>
+<li class="flex items-start gap-2"><span class="material-symbols-outlined text-[14px] text-primary" data-icon="check_circle">check_circle</span> 3. Create a new Audio Track (Cmd/Ctrl + Shift + N).</li>
+<li class="flex items-start gap-2"><span class="material-symbols-outlined text-[14px] text-primary" data-icon="check_circle">check_circle</span> 4. Set track input to Input 1.</li>
+</ul>
+<button class="w-full mt-2 bg-surface-variant text-on-surface hover:bg-surface-bright py-2 rounded text-xs font-bold transition-colors">Sync Settings Now</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

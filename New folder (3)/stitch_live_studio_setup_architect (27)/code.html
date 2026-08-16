@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Live Planner - Blueprint Planner</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-tint": "#adc6ff",
+                        "surface-bright": "#2a3a4f",
+                        "on-surface": "#d3e4fe",
+                        "on-surface-variant": "#c1c6d7",
+                        "secondary-fixed-dim": "#bec6e0",
+                        "error-container": "#93000a",
+                        "tertiary-fixed-dim": "#2fd9f4",
+                        "on-tertiary-container": "#002f36",
+                        "on-error": "#690005",
+                        "on-secondary-fixed": "#131b2e",
+                        "on-secondary-fixed-variant": "#3f465c",
+                        "on-background": "#d3e4fe",
+                        "tertiary-fixed": "#a2eeff",
+                        "surface": "#031427",
+                        "on-secondary": "#283044",
+                        "surface-container-highest": "#26364a",
+                        "surface-container-low": "#0b1c30",
+                        "on-secondary-container": "#adb4ce",
+                        "secondary-fixed": "#dae2fd",
+                        "on-primary-fixed": "#001a41",
+                        "on-tertiary": "#00363e",
+                        "on-primary-container": "#00285c",
+                        "on-error-container": "#ffdad6",
+                        "on-tertiary-fixed": "#001f25",
+                        "inverse-primary": "#005bc1",
+                        "surface-container-high": "#1b2b3f",
+                        "primary-fixed": "#d8e2ff",
+                        "on-primary-fixed-variant": "#004493",
+                        "surface-variant": "#26364a",
+                        "surface-container-lowest": "#000f21",
+                        "inverse-on-surface": "#213145",
+                        "surface-container": "#102034",
+                        "primary": "#adc6ff",
+                        "secondary-container": "#3f465c",
+                        "background": "#031427",
+                        "error": "#ffb4ab",
+                        "primary-container": "#4b8eff",
+                        "outline-variant": "#414755",
+                        "primary-fixed-dim": "#adc6ff",
+                        "on-tertiary-fixed-variant": "#004e5a",
+                        "secondary": "#bec6e0",
+                        "outline": "#8b90a0",
+                        "tertiary-container": "#009fb4",
+                        "on-primary": "#002e69",
+                        "tertiary": "#2fd9f4",
+                        "surface-dim": "#031427",
+                        "inverse-surface": "#d3e4fe"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "margin-mobile": "16px",
+                        "container-max": "1440px",
+                        "unit": "4px",
+                        "gutter": "24px",
+                        "margin-desktop": "40px"
+                    },
+                    "fontFamily": {
+                        "headline-lg": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "display-lg": ["Inter"],
+                        "body-md": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "label-sm": ["JetBrains Mono"]
+                    },
+                    "fontSize": {
+                        "headline-lg": ["32px", { "lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "headline-md": ["20px", { "lineHeight": "1.4", "fontWeight": "600" }],
+                        "display-lg": ["48px", { "lineHeight": "1.1", "letterSpacing": "-0.04em", "fontWeight": "800" }],
+                        "body-md": ["16px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "headline-lg-mobile": ["24px", { "lineHeight": "1.2", "fontWeight": "700" }],
+                        "label-sm": ["12px", { "lineHeight": "1.0", "letterSpacing": "0.05em", "fontWeight": "500" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            background-color: #0F172A;
+            color: #d3e4fe;
+        }
+        
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #031427; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #26364a; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #414755; 
+        }
+
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid #334155;
+        }
+        
+        .card-navy {
+            background-color: #1E293B;
+            border: 1px solid #334155;
+        }
+
+        .gradient-text {
+            background: linear-gradient(to right, #adc6ff, #2fd9f4, #bec6e0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .btn-primary-gradient {
+            background: linear-gradient(to right, #adc6ff, #2fd9f4);
+            color: #031427;
+            transition: all 0.2s ease;
+        }
+        .btn-primary-gradient:hover {
+            filter: brightness(1.1);
+            box-shadow: 0 0 12px rgba(47, 217, 244, 0.4);
+        }
+        
+        .btn-rainbow-gradient {
+            background: linear-gradient(to right, #adc6ff, #2fd9f4, #bec6e0, #adc6ff);
+            background-size: 200% auto;
+            color: #031427;
+            animation: rainbow 3s linear infinite;
+        }
+        .btn-rainbow-gradient:hover {
+            filter: brightness(1.1);
+            box-shadow: 0 0 15px rgba(47, 217, 244, 0.5);
+        }
+        
+        @keyframes rainbow {
+            to {
+                background-position: 200% center;
+            }
+        }
+        
+        .input-glow:focus-within {
+            border-color: #2fd9f4 !important;
+            box-shadow: 0 0 8px rgba(47, 217, 244, 0.3);
+        }
+
+        .rainbow-ring {
+            background: linear-gradient(45deg, #adc6ff, #2fd9f4, #bec6e0);
+            padding: 2px;
+            border-radius: 50%;
+        }
+        
+        .blueprint-grid {
+            background-size: 20px 20px;
+            background-image: 
+                linear-gradient(to right, rgba(47, 217, 244, 0.1) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(47, 217, 244, 0.1) 1px, transparent 1px);
+        }
+        
+        .material-foam {
+            background-image: radial-gradient(#8b90a0 1px, transparent 1px);
+            background-size: 4px 4px;
+        }
+        .material-wood {
+            background: repeating-linear-gradient(45deg, #414755, #414755 2px, #26364a 2px, #26364a 4px);
+        }
+        .material-diffuser {
+            background-image: linear-gradient(45deg, #131b2e 25%, transparent 25%), linear-gradient(-45deg, #131b2e 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #131b2e 75%), linear-gradient(-45deg, transparent 75%, #131b2e 75%);
+            background-size: 8px 8px;
+            background-position: 0 0, 0 4px, 4px -4px, -4px 0px;
+        }
+        .material-basotect {
+            background: radial-gradient(circle, #d3e4fe 1px, transparent 1px);
+            background-size: 3px 3px;
+        }
+        .material-qrd {
+            background: repeating-linear-gradient(90deg, #131b2e, #131b2e 4px, #26364a 4px, #26364a 8px, #3f465c 8px, #3f465c 12px);
+        }
+        .material-skyline {
+            background-image: linear-gradient(45deg, #26364a 25%, transparent 25%), linear-gradient(-45deg, #26364a 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #26364a 75%), linear-gradient(-45deg, transparent 75%, #26364a 75%);
+            background-size: 10px 10px;
+            background-position: 0 0, 0 5px, 5px -5px, -5px 0px;
+        }
+        .light-cone {
+            background: linear-gradient(to bottom, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0) 100%);
+            clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
+        }
+    </style>
+</head>
+<body class="font-body-md text-body-md antialiased overflow-hidden">
+<!-- TopNavBar -->
+<header class="bg-surface/80 dark:bg-surface-dim/80 backdrop-blur-xl fixed top-0 w-full z-50 border-b border-outline-variant/30 shadow-sm">
+<div class="flex justify-between items-center h-16 px-margin-desktop max-w-container-max mx-auto">
+<div class="flex items-center gap-8">
+<!-- Brand Logo -->
+<div class="font-headline-lg text-headline-lg bg-clip-text text-transparent bg-gradient-to-r from-primary via-tertiary to-secondary whitespace-nowrap hidden md:block">
+                    Live Planner
+                </div>
+<div class="font-headline-lg-mobile text-headline-lg-mobile bg-clip-text text-transparent bg-gradient-to-r from-primary via-tertiary to-secondary md:hidden">
+                    LP
+                </div>
+<!-- Navigation Links (Hidden on Mobile) -->
+<nav class="hidden md:flex gap-6 h-full items-center">
+<a class="text-on-surface-variant dark:text-on-secondary-container hover:text-primary transition-colors font-label-sm text-label-sm hover:bg-surface-bright/10 dark:hover:bg-surface-container-high/50 transition-all px-2 py-1 rounded" href="#">Dashboard</a>
+<a class="text-on-surface-variant dark:text-on-secondary-container hover:text-primary transition-colors font-label-sm text-label-sm hover:bg-surface-bright/10 dark:hover:bg-surface-container-high/50 transition-all px-2 py-1 rounded" href="#">Inventory</a>
+<a class="text-on-surface-variant dark:text-on-secondary-container hover:text-primary transition-colors font-label-sm text-label-sm hover:bg-surface-bright/10 dark:hover:bg-surface-container-high/50 transition-all px-2 py-1 rounded" href="#">Schedule</a>
+<a class="text-on-surface-variant dark:text-on-secondary-container hover:text-primary transition-colors font-label-sm text-label-sm hover:bg-surface-bright/10 dark:hover:bg-surface-container-high/50 transition-all px-2 py-1 rounded" href="#">Team</a>
+<a class="text-on-surface-variant dark:text-on-secondary-container hover:text-primary transition-colors font-label-sm text-label-sm hover:bg-surface-bright/10 dark:hover:bg-surface-container-high/50 transition-all px-2 py-1 rounded" href="#">Reports</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<!-- Search -->
+<div class="hidden lg:flex items-center bg-[#020617] border border-outline-variant/50 rounded px-3 py-1.5 input-glow w-64 transition-all">
+<span class="material-symbols-outlined text-outline text-[18px] mr-2">search</span>
+<input class="bg-transparent border-none outline-none text-on-surface font-label-sm text-label-sm w-full placeholder:text-outline-variant focus:ring-0 p-0 h-auto" placeholder="Search studio assets..." type="text"/>
+</div>
+<!-- Trailing Actions -->
+<button class="text-on-surface-variant hover:text-primary transition-colors p-2 rounded-full hover:bg-surface-bright/10 dark:hover:bg-surface-container-high/50">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="text-on-surface-variant hover:text-primary transition-colors p-2 rounded-full hover:bg-surface-bright/10 dark:hover:bg-surface-container-high/50 hidden sm:block">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<!-- Profile -->
+<div class="rainbow-ring ml-2">
+<img alt="User avatar with rainbow status ring" class="w-8 h-8 rounded-full border-2 border-[#0F172A] object-cover" data-alt="A futuristic, hyper-realistic digital avatar portrait of a creative professional. The subject has glowing neon accents and is framed by a highly saturated rainbow-colored status ring indicating they are 'live'. The background is deep navy blue with subtle technological grid lines. High contrast, clean corporate modern aesthetic with a creative edge." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCMkGcz0iLp0yxd-oe_RU5Rmhk2JsZbxkqONg7RNKgm5z25q2x7C2M8X9UeHB3kfzorfiPKRBK6AzTDquXQiimlRJwm4CZWFPYQ8yRXuuRTs7Hp1KRGkI5T-bWK5h40wZTinM4KyiKOK4SHviIiE0TIKP6ASTDVkHekIGsM7XiNDlDKfn1TPPB2pQVUSDS9IVsExvtcG0WG__cKvEV29fcpVVTF--XaNzIULE12XyC0ZUNwmyb1BjOE"/>
+</div>
+</div>
+</div>
+</header>
+<div class="flex h-screen pt-16">
+<!-- SideNavBar -->
+<aside class="bg-surface-container dark:bg-surface-container-low fixed left-0 top-16 h-[calc(100vh-64px)] w-60 border-r border-outline-variant/20 flex flex-col py-6 gap-2 z-40 hidden lg:flex transition-transform duration-300">
+<!-- Header -->
+<div class="px-6 mb-6 flex flex-col items-center">
+<div class="w-16 h-16 rounded-lg bg-surface-container-highest flex items-center justify-center mb-3 shadow-sm border border-outline-variant/30">
+<span class="material-symbols-outlined text-tertiary text-[32px]">architecture</span>
+</div>
+<h2 class="font-headline-md text-headline-md font-bold text-on-surface text-center">Creative Rail</h2>
+<p class="font-label-sm text-label-sm text-on-surface-variant text-center mt-1">Command Center</p>
+<button class="mt-6 w-full btn-primary-gradient font-label-sm text-label-sm font-bold py-2 px-4 rounded flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[16px]">add</span>
+                    New Project
+                </button>
+</div>
+<!-- Navigation Tabs -->
+<nav class="flex-1 overflow-y-auto mt-4 px-2 space-y-1">
+<a class="flex items-center gap-3 text-on-surface-variant hover:bg-surface-variant/50 px-4 py-3 transition-all rounded font-body-md text-body-md hover:translate-x-1 duration-200" href="#">
+<span class="material-symbols-outlined" data-weight="fill">sensors</span>
+<span>Setup Live</span>
+</a>
+<!-- Active Tab -->
+<a class="flex items-center gap-3 bg-gradient-to-r from-primary/20 to-transparent text-primary border-l-4 border-primary font-bold px-4 py-3 rounded-r font-body-md text-body-md scale-[0.98]" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">mic_external_on</span>
+<span>Studio Blueprint Planner</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant hover:bg-surface-variant/50 px-4 py-3 transition-all rounded font-body-md text-body-md hover:translate-x-1 duration-200" href="#">
+<span class="material-symbols-outlined" data-weight="fill">fiber_manual_record</span>
+<span>Setup Record</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant hover:bg-surface-variant/50 px-4 py-3 transition-all rounded font-body-md text-body-md hover:translate-x-1 duration-200" href="#">
+<span class="material-symbols-outlined" data-weight="fill">terminal</span>
+<span>Setup Software</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant hover:bg-surface-variant/50 px-4 py-3 transition-all rounded font-body-md text-body-md hover:translate-x-1 duration-200" href="#">
+<span class="material-symbols-outlined" data-weight="fill">memory</span>
+<span>Rakit PC</span>
+</a>
+</nav>
+<!-- Footer Tabs -->
+<div class="px-2 mt-auto pt-4 border-t border-outline-variant/20 space-y-1">
+<a class="flex items-center gap-3 text-on-surface-variant hover:bg-surface-variant/50 px-4 py-3 transition-all rounded font-label-sm text-label-sm" href="#">
+<span class="material-symbols-outlined text-[18px]">help</span>
+<span>Support</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant hover:bg-surface-variant/50 px-4 py-3 transition-all rounded font-label-sm text-label-sm" href="#">
+<span class="material-symbols-outlined text-[18px]">archive</span>
+<span>Archive</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="flex-1 lg:ml-60 h-full overflow-y-auto bg-[#0F172A] p-margin-mobile md:p-gutter lg:p-margin-desktop">
+<div class="max-w-container-max mx-auto h-full flex flex-col gap-gutter">
+<!-- Page Header -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-2">
+<div>
+<h1 class="font-display-lg text-display-lg text-on-surface mb-2">Studio Blueprint Planner</h1>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-2xl">Configure physical room parameters, acoustic treatments, and spatial layout for optimal live performance capture.</p>
+</div>
+<div class="flex gap-3">
+<button class="btn-rainbow-gradient px-4 py-2 rounded font-label-sm text-label-sm font-bold transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]">draw</span>
+                            Generate Blueprint
+                        </button>
+<button class="bg-surface-container-high border border-outline-variant/50 text-on-surface hover:bg-surface-bright/50 px-4 py-2 rounded font-label-sm text-label-sm flex items-center gap-2 transition-colors">
+<span class="material-symbols-outlined text-[16px]">save</span>
+                            Save Layout
+                        </button>
+</div>
+</div>
+<!-- Controls Bar -->
+<div class="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between bg-surface-container/50 p-4 rounded-xl border border-outline-variant/30">
+<div class="flex items-center gap-4 flex-wrap">
+<span class="font-label-sm text-label-sm text-outline-variant uppercase">Presets:</span>
+<button class="px-3 py-1.5 rounded bg-surface-container-high hover:bg-surface-bright/50 border border-outline-variant/30 text-label-sm font-label-sm transition-colors text-on-surface">Podcast Pod</button>
+<button class="px-3 py-1.5 rounded bg-primary/20 hover:bg-primary/30 border border-primary/50 text-label-sm font-label-sm transition-colors text-primary">Music Studio</button>
+<button class="px-3 py-1.5 rounded bg-surface-container-high hover:bg-surface-bright/50 border border-outline-variant/30 text-label-sm font-label-sm transition-colors text-on-surface">Streaming Corner</button>
+</div>
+<div class="flex items-center gap-3">
+<span class="font-label-sm text-label-sm text-outline-variant uppercase">Room Dimensions (m):</span>
+<div class="flex items-center bg-[#020617] border border-outline-variant/50 rounded px-2 py-1 input-glow">
+<span class="text-on-surface-variant text-label-sm mr-2">L</span>
+<input class="bg-transparent border-none outline-none text-on-surface font-label-sm text-label-sm w-12 p-0 h-auto focus:ring-0 text-center" type="number" value="5.2"/>
+</div>
+<span class="text-outline-variant text-label-sm">×</span>
+<div class="flex items-center bg-[#020617] border border-outline-variant/50 rounded px-2 py-1 input-glow">
+<span class="text-on-surface-variant text-label-sm mr-2">W</span>
+<input class="bg-transparent border-none outline-none text-on-surface font-label-sm text-label-sm w-12 p-0 h-auto focus:ring-0 text-center" type="number" value="4.8"/>
+</div>
+<span class="text-outline-variant text-label-sm">×</span>
+<div class="flex items-center bg-[#020617] border border-outline-variant/50 rounded px-2 py-1 input-glow">
+<span class="text-on-surface-variant text-label-sm mr-2">H</span>
+<input class="bg-transparent border-none outline-none text-on-surface font-label-sm text-label-sm w-12 p-0 h-auto focus:ring-0 text-center" type="number" value="2.8"/>
+</div>
+</div>
+</div>
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
+<!-- 2D/3D Blueprint Tool (Spans 8 cols on desktop) -->
+<div class="lg:col-span-8 flex flex-col gap-gutter">
+<div class="card-navy rounded-xl p-4 flex flex-col relative overflow-hidden h-[400px]">
+<div class="flex justify-between items-center mb-4 z-10">
+<h3 class="font-headline-md text-headline-md text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">architecture</span>
+                                Top-Down Blueprint
+                            </h3>
+<div class="flex gap-2">
+<button class="p-1.5 bg-surface-container border border-outline-variant/30 rounded hover:bg-surface-bright/50 text-on-surface-variant transition-colors">
+<span class="material-symbols-outlined text-[18px]">zoom_in</span>
+</button>
+<button class="p-1.5 bg-surface-container border border-outline-variant/30 rounded hover:bg-surface-bright/50 text-on-surface-variant transition-colors">
+<span class="material-symbols-outlined text-[18px]">zoom_out</span>
+</button>
+<button class="p-1.5 bg-surface-container border border-outline-variant/30 rounded hover:bg-surface-bright/50 text-on-surface-variant transition-colors ml-2">
+<span class="material-symbols-outlined text-[18px]">layers</span>
+</button>
+</div>
+</div>
+<!-- Blueprint Viewport Top-Down -->
+<div class="flex-1 bg-[#020617] rounded-lg border border-outline-variant/30 relative overflow-hidden group blueprint-grid">
+<!-- Floating Tools -->
+<button class="absolute top-4 left-4 glass-panel px-3 py-2 rounded flex items-center gap-2 z-20 hover:bg-surface-bright/50 transition-colors border-tertiary/50 text-tertiary shadow-lg">
+<span class="material-symbols-outlined text-[18px]">cable</span>
+<span class="font-label-sm text-label-sm font-bold">Draw Cable Path</span>
+</button>
+<!-- Heatmap Reflection Points -->
+<div class="absolute top-1/3 left-1/3 w-64 h-64 -translate-x-1/2 -translate-y-1/2 rounded-full bg-error/10 blur-3xl pointer-events-none z-0"></div>
+<div class="absolute bottom-1/4 left-1/4 w-48 h-48 -translate-x-1/2 -translate-y-1/2 rounded-full bg-tertiary/10 blur-2xl pointer-events-none z-0"></div>
+<!-- Outer Room Boundary -->
+<div class="absolute inset-8 border-2 border-primary/40 rounded bg-[#031427]/50 pointer-events-none"></div>
+<div class="absolute top-4 left-1/2 -translate-x-1/2 font-label-sm text-label-sm text-primary/60">5.2m</div>
+<div class="absolute left-2 top-1/2 -translate-y-1/2 -rotate-90 font-label-sm text-label-sm text-primary/60">4.8m</div>
+<!-- Cable Path Visualization -->
+<svg class="absolute inset-0 w-full h-full pointer-events-none z-10" style="opacity: 0.7;">
+<path d="M 33% 33% L 25% 75%" fill="none" stroke="#2fd9f4" stroke-dasharray="4 4" stroke-width="2"></path>
+<text fill="#2fd9f4" font-family="JetBrains Mono" font-size="10" x="28%" y="55%">2.4m</text>
+</svg>
+<!-- Draggable Studio Blocks -->
+<div class="absolute top-1/3 left-1/3 w-40 h-24 border-2 border-primary bg-primary/10 rounded flex flex-col items-center justify-center cursor-move hover:bg-primary/20 transition-colors group/block z-10 shadow-[0_0_15px_rgba(173,198,255,0.3)] shadow-black/50">
+<img alt="Desk 3D Icon" class="w-12 h-12 object-contain opacity-80" data-alt="A 3D rendering of a studio desk from top-down perspective." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA9egHbgJIZmSOJqGNcIhkO6CdyqmvNpNGJvqfM8JRaCgImBRBt_SiSzGnUVe7xBZulHqmXL4ufQAmaFkLxl4lbr6DeUTbzWbl04EcAb7HGWK4HARlOKdSgRBWw6l9uqPr7kHka5D_4un9VJ5pA8tEMBVfIp2ZcCRKIGcTKmqhrcnfLeP4ZshlKs7968fL51HYddYCZWIVb6g5KhsUtcVFxH4fMSGVyrFh1Cd4KfMpE2iwxNELQW9Rf"/>
+<span class="font-label-sm text-label-sm text-primary mt-1">Main Desk</span>
+</div>
+<div class="absolute top-1/2 right-1/3 w-16 h-16 border-2 border-tertiary bg-tertiary/10 rounded-full flex flex-col items-center justify-center cursor-move hover:bg-tertiary/20 transition-colors z-10 shadow-lg shadow-black/50">
+<img alt="Chair 3D Icon" class="w-10 h-10 object-contain opacity-80" data-alt="A 3D rendering of an ergonomic chair from top-down perspective." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBTWL68mKDoe4WER9mytvfUugMowCqZpCjxZjjdpFNHtbWw8v5-9WwB-eKpbEgEqlftYBX-wI0OnO_r06sRUAVXC-KAoEB-ROg90eMBmXRMDr4m95D3W8OXDdXcmleSGlx65UoyEo4mIlawAAfcExr0ZVh0c5cxa-wKut0xuw_cs4856UBKypErP2UaHvEveiMz7wksEo7OeMcXzm3qDYSREoxErH5fda4GgLzkBhZRyyeFQzQ0Lf2Q"/>
+</div>
+<div class="absolute bottom-1/4 left-1/4 w-8 h-8 border-2 border-error bg-error/10 rounded-full flex items-center justify-center cursor-move hover:bg-error/20 transition-colors z-10">
+<span class="material-symbols-outlined text-error text-[16px]">mic</span>
+</div>
+<!-- Acoustic Panels -->
+<div class="absolute top-8 left-16 w-32 h-4 border border-secondary bg-secondary/20 cursor-move"></div>
+<div class="absolute top-8 right-16 w-32 h-4 border border-secondary bg-secondary/20 cursor-move"></div>
+<div class="absolute bottom-8 left-1/2 -translate-x-1/2 w-48 h-4 border border-secondary bg-secondary/20 cursor-move"></div>
+<!-- Auto-Calculate Overlay Lines -->
+<div class="absolute top-1/4 left-[30%] w-[10%] h-px bg-error/50 border-t border-dashed border-error flex items-center justify-center pointer-events-none z-10">
+<span class="absolute -top-5 font-label-sm text-label-sm text-error/80 bg-[#020617] px-1">1.2m</span>
+</div>
+</div>
+</div>
+<!-- Elevation View Tool -->
+<div class="card-navy rounded-xl p-4 flex flex-col relative overflow-hidden h-[300px]">
+<div class="flex justify-between items-center mb-4 z-10">
+<h3 class="font-headline-md text-headline-md text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary">view_in_ar</span>
+                                Elevation (Side Profile)
+                            </h3>
+</div>
+<div class="flex-1 bg-[#020617] rounded-lg border border-outline-variant/30 relative overflow-hidden group blueprint-grid flex items-end justify-center pb-8">
+<!-- Room Height Boundary -->
+<div class="absolute inset-x-8 bottom-8 top-8 border-2 border-primary/40 rounded bg-[#031427]/50 pointer-events-none"></div>
+<div class="absolute left-2 top-1/2 -translate-y-1/2 -rotate-90 font-label-sm text-label-sm text-primary/60">2.8m (H)</div>
+<div class="absolute bottom-2 left-1/2 -translate-x-1/2 font-label-sm text-label-sm text-primary/60">5.2m (L)</div>
+<!-- Side Profile Objects -->
+<div class="absolute bottom-8 left-1/3 w-32 h-20 border border-primary bg-primary/20 flex items-center justify-center">
+<span class="font-label-sm text-label-sm text-primary">Desk</span>
+</div>
+<div class="absolute bottom-8 left-[45%] w-12 h-24 border border-tertiary bg-tertiary/20 flex items-center justify-center">
+<span class="font-label-sm text-[10px] text-tertiary">Chair</span>
+</div>
+<div class="absolute top-8 left-1/2 w-32 h-4 border border-secondary bg-secondary/20 flex items-center justify-center">
+<span class="font-label-sm text-[10px] text-secondary">Cloud</span>
+</div>
+<!-- Monitor & Ergo Lines -->
+<div class="absolute bottom-28 left-[38%] w-2 h-10 bg-on-surface"></div>
+<div class="absolute bottom-[140px] left-[38%] w-4 h-12 bg-on-surface transform rotate-12 origin-bottom"></div>
+<div class="absolute bottom-24 left-[47%] w-2 h-2 rounded-full bg-error z-20"></div> <!-- Eye Level -->
+<svg class="absolute inset-0 w-full h-full pointer-events-none z-10">
+<path d="M 47% 70% L 38% 60%" fill="none" stroke="#ffb4ab" stroke-dasharray="2 2" stroke-width="1"></path>
+<text fill="#ffb4ab" font-family="JetBrains Mono" font-size="10" x="42%" y="65%">0.7m</text>
+</svg>
+</div>
+</div>
+</div>
+<!-- Right Sidebar Tools (Spans 4 cols on desktop) -->
+<div class="lg:col-span-4 flex flex-col gap-gutter h-full">
+<!-- Ergonomics Check Card -->
+<div class="card-navy rounded-xl p-4 flex flex-col border-t-2 border-t-error">
+<h3 class="font-headline-md text-headline-md text-on-surface mb-3 flex items-center gap-2">
+<span class="material-symbols-outlined text-error">airline_seat_recline_normal</span>
+                                Ergonomics Check
+                            </h3>
+<div class="flex flex-col gap-3">
+<div class="flex justify-between items-center bg-[#020617] border border-outline-variant/50 rounded px-3 py-2">
+<span class="font-label-sm text-label-sm text-outline-variant">User Height:</span>
+<div class="flex items-center input-glow">
+<input class="bg-transparent border-none outline-none text-on-surface font-label-sm text-label-sm w-16 p-0 h-auto focus:ring-0 text-right" type="number" value="180"/>
+<span class="text-on-surface-variant text-label-sm ml-1">cm</span>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-2 mt-1">
+<div class="flex flex-col bg-surface-container-high rounded px-2 py-2 border border-outline-variant/30">
+<span class="text-[10px] text-outline-variant uppercase">Ideal Desk Ht</span>
+<span class="font-label-sm text-label-sm text-primary flex items-center justify-between">74 cm <span class="material-symbols-outlined text-[14px] text-primary">check_circle</span></span>
+</div>
+<div class="flex flex-col bg-surface-container-high rounded px-2 py-2 border border-outline-variant/30">
+<span class="text-[10px] text-outline-variant uppercase">Monitor Dist</span>
+<span class="font-label-sm text-label-sm text-error flex items-center justify-between">70 cm <span class="material-symbols-outlined text-[14px] text-error">warning</span></span>
+</div>
+</div>
+</div>
+</div>
+<!-- Lighting Rig Planner Card -->
+<div class="card-navy rounded-xl p-4 flex flex-col border-t-2 border-t-[#fcd34d]">
+<h3 class="font-headline-md text-headline-md text-on-surface mb-3 flex items-center gap-2">
+<span class="material-symbols-outlined text-[#fcd34d]">lightbulb</span>
+                                Lighting Rig Planner
+                            </h3>
+<div class="flex flex-col gap-2">
+<!-- DMX Light Item -->
+<div class="flex justify-between items-center bg-[#020617] border border-outline-variant/50 rounded px-3 py-2 cursor-pointer hover:border-[#fcd34d]/50 transition-colors">
+<div class="flex items-center gap-2">
+<div class="w-6 h-6 rounded bg-[#fcd34d]/20 flex items-center justify-center">
+<span class="material-symbols-outlined text-[#fcd34d] text-[14px]">tungsten</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface">Key Light 1 (DMX:001)</span>
+<span class="text-[10px] text-outline-variant">Beam: 45° | Int: 80%</span>
+</div>
+</div>
+<span class="font-label-sm text-label-sm text-[#fcd34d]">~450 Lux</span>
+</div>
+<!-- Visualizer Mini -->
+<div class="h-24 bg-[#020617] border border-outline-variant/30 rounded mt-2 relative overflow-hidden flex items-end justify-center">
+<div class="absolute top-2 w-4 h-4 bg-[#fcd34d] rounded-sm shadow-[0_0_10px_#fcd34d]"></div>
+<div class="w-32 h-full light-cone opacity-40"></div>
+<div class="w-16 h-4 bg-surface-container-highest rounded mb-2 z-10 border border-outline-variant"></div>
+</div>
+</div>
+</div>
+<!-- Acoustic Analysis Report -->
+<div class="card-navy rounded-xl p-4 flex flex-col relative border-t-2 border-t-secondary">
+<h3 class="font-headline-md text-headline-md text-on-surface mb-3 flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary">analytics</span>
+                                Acoustic Analysis
+                            </h3>
+<div class="flex flex-col gap-3">
+<div class="flex justify-between items-end">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-outline-variant">Estimated RT60</span>
+<span class="font-headline-md text-headline-md text-tertiary">0.45s</span>
+</div>
+<span class="font-label-sm text-label-sm text-primary bg-primary/10 px-2 py-1 rounded">Target: 0.3-0.5s</span>
+</div>
+<!-- RT60 Table -->
+<div class="border border-outline-variant/30 rounded-lg overflow-hidden bg-[#020617] mt-2">
+<div class="grid grid-cols-6 px-2 py-1 bg-surface-container-high border-b border-outline-variant/30 font-label-sm text-[10px] text-outline-variant">
+<div>Hz</div>
+<div class="text-center">125</div>
+<div class="text-center">250</div>
+<div class="text-center">500</div>
+<div class="text-center">1k</div>
+<div class="text-center">4k</div>
+</div>
+<div class="grid grid-cols-6 px-2 py-1.5 font-label-sm text-[11px] text-on-surface items-center">
+<div class="text-outline-variant">Sec</div>
+<div class="text-center text-error">0.62</div>
+<div class="text-center text-secondary">0.51</div>
+<div class="text-center text-primary">0.45</div>
+<div class="text-center text-tertiary">0.40</div>
+<div class="text-center text-tertiary">0.35</div>
+</div>
+</div>
+</div>
+<button class="mt-4 w-full btn-rainbow-gradient py-2 rounded font-label-sm text-label-sm font-bold transition-all shadow-lg flex justify-center items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">calculate</span>
+                                Run Simulation
+                            </button>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

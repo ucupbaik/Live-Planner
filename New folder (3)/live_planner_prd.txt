@@ -1,0 +1,34 @@
+# Live Planner Project Requirements
+
+## Core Concept
+A comprehensive web-based planner for live streamers and content creators to design their entire setup ecosystem.
+
+## Visual Identity
+- **Primary Color:** Blue (shades of blue for professional planning feel).
+- **CTA/Special Buttons:** Rainbow gradients (representing creativity).
+- **Theme:** Creative, technical but user-friendly.
+
+## Screen List & Functionality
+
+1. **Login Page**
+   - Clean interface with "Sign in with Google" (Google OAuth) as the primary action.
+   - Branding for "Live Planner".
+
+2. **Dashboard (Home)**
+   - Welcoming landing area with personalized greetings.
+   - General information about the web app and quick stats.
+   - Overview of recent projects.
+
+3. **Main Navigation & Setup Hub**
+   - Top navigation bar with account settings/profile.
+   - Central selection menu for the 5 specialized rooms:
+     - **Rakit PC (PC Builder):** Focus on internal PC components.
+     - **Setup Software:** Configuration and software installation planning.
+     - **Setup Live:** Streaming hardware, cameras, and lighting.
+     - **Setup Studio:** Room layout, furniture, and acoustics.
+     - **Setup Record:** Specific recording gear and audio chains.
+
+## Project Interconnectivity
+- Projects created in "Rakit PC" can be imported into "Setup Live" or "Setup Software".
+- Assets and configurations are shared across the ecosystem.
+- Each room has a unique UI tailored to its specific parts/category.

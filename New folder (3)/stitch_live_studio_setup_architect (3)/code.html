@@ -1,0 +1,475 @@
+<!DOCTYPE html><html class="dark" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Live Planner - Creative Command Center</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-surface": "#d3e4fe",
+                        "inverse-on-surface": "#213145",
+                        "surface-bright": "#2a3a4f",
+                        "on-secondary-fixed": "#131b2e",
+                        "on-primary-container": "#00285c",
+                        "surface-container-high": "#1b2b3f",
+                        "on-surface-variant": "#c1c6d7",
+                        "surface-dim": "#031427",
+                        "primary-fixed": "#d8e2ff",
+                        "on-primary-fixed-variant": "#004493",
+                        "on-tertiary": "#00363e",
+                        "tertiary-fixed": "#a2eeff",
+                        "background": "#031427",
+                        "outline": "#8b90a0",
+                        "on-secondary-fixed-variant": "#3f465c",
+                        "surface-container": "#102034",
+                        "tertiary-fixed-dim": "#2fd9f4",
+                        "primary-fixed-dim": "#adc6ff",
+                        "surface-container-low": "#0b1c30",
+                        "secondary": "#bec6e0",
+                        "on-error": "#690005",
+                        "secondary-container": "#3f465c",
+                        "on-tertiary-fixed-variant": "#004e5a",
+                        "on-background": "#d3e4fe",
+                        "primary-container": "#4b8eff",
+                        "primary": "#adc6ff",
+                        "on-secondary": "#283044",
+                        "error": "#ffb4ab",
+                        "secondary-fixed": "#dae2fd",
+                        "on-primary": "#002e69",
+                        "on-tertiary-fixed": "#001f25",
+                        "surface-variant": "#26364a",
+                        "on-secondary-container": "#adb4ce",
+                        "inverse-primary": "#005bc1",
+                        "secondary-fixed-dim": "#bec6e0",
+                        "on-tertiary-container": "#002f36",
+                        "surface-tint": "#adc6ff",
+                        "error-container": "#93000a",
+                        "tertiary-container": "#009fb4",
+                        "on-primary-fixed": "#001a41",
+                        "inverse-surface": "#d3e4fe",
+                        "surface": "#031427",
+                        "on-error-container": "#ffdad6",
+                        "surface-container-lowest": "#000f21",
+                        "surface-container-highest": "#26364a",
+                        "outline-variant": "#414755",
+                        "tertiary": "#2fd9f4"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "margin-mobile": "16px",
+                        "container-max": "1440px",
+                        "gutter": "24px",
+                        "margin-desktop": "40px",
+                        "unit": "4px"
+                    },
+                    "fontFamily": {
+                        "headline-lg": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "body-md": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "label-sm": ["JetBrains Mono"],
+                        "display-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-lg": ["32px", { "lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "headline-lg-mobile": ["24px", { "lineHeight": "1.2", "fontWeight": "700" }],
+                        "body-md": ["16px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "headline-md": ["20px", { "lineHeight": "1.4", "fontWeight": "600" }],
+                        "label-sm": ["12px", { "lineHeight": "1.0", "letterSpacing": "0.05em", "fontWeight": "500" }],
+                        "display-lg": ["48px", { "lineHeight": "1.1", "letterSpacing": "-0.04em", "fontWeight": "800" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .rainbow-gradient {
+            background-image: linear-gradient(to right, #adc6ff, #2fd9f4, #bec6e0);
+        }
+        .rainbow-text {
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            background-image: linear-gradient(to right, #adc6ff, #2fd9f4, #bec6e0);
+        }
+        .glass-panel {
+            background: rgba(3, 20, 39, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(65, 71, 85, 0.3);
+        }
+        .inner-glow {
+            box-shadow: inset 0 0 0 1px #adc6ff;
+        }
+        .btn-rainbow-glow:hover {
+            box-shadow: 0 0 15px rgba(47, 217, 244, 0.5);
+            filter: brightness(1.1);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background min-h-screen font-body-md">
+<!-- TopNavBar -->
+<header class="bg-surface/80 dark:bg-surface-dim/80 backdrop-blur-xl fixed top-0 w-full z-50 border-b border-outline-variant/30 shadow-sm flex justify-between items-center h-16 px-margin-desktop max-w-container-max mx-auto md:px-margin-desktop px-margin-mobile">
+<!-- Logo -->
+<div class="flex items-center gap-4">
+<span class="font-headline-lg text-headline-lg bg-clip-text text-transparent bg-gradient-to-r from-primary via-tertiary to-secondary hidden md:block">
+                Live Planner
+            </span>
+<span class="font-headline-lg-mobile text-headline-lg-mobile bg-clip-text text-transparent bg-gradient-to-r from-primary via-tertiary to-secondary md:hidden block">
+                Live Planner
+            </span>
+</div>
+<!-- Navigation Links (Desktop) -->
+<nav class="hidden md:flex gap-8 items-center h-full">
+<a class="text-primary dark:text-primary-fixed border-b-2 border-primary font-bold pb-1 font-label-sm text-label-sm uppercase scale-95 transition-transform duration-150 h-full flex items-center mt-1" href="#">Dashboard</a>
+<a class="text-on-surface-variant dark:text-on-secondary-container hover:text-primary transition-colors hover:bg-surface-bright/10 dark:hover:bg-surface-container-high/50 font-label-sm text-label-sm uppercase h-full flex items-center px-2 mt-1" href="#">Inventory</a>
+<a class="text-on-surface-variant dark:text-on-secondary-container hover:text-primary transition-colors hover:bg-surface-bright/10 dark:hover:bg-surface-container-high/50 font-label-sm text-label-sm uppercase h-full flex items-center px-2 mt-1" href="#">Schedule</a>
+<a class="text-on-surface-variant dark:text-on-secondary-container hover:text-primary transition-colors hover:bg-surface-bright/10 dark:hover:bg-surface-container-high/50 font-label-sm text-label-sm uppercase h-full flex items-center px-2 mt-1" href="#">Team</a>
+<a class="text-on-surface-variant dark:text-on-secondary-container hover:text-primary transition-colors hover:bg-surface-bright/10 dark:hover:bg-surface-container-high/50 font-label-sm text-label-sm uppercase h-full flex items-center px-2 mt-1" href="#">Reports</a>
+</nav>
+<!-- Trailing Actions -->
+<div class="flex items-center gap-4">
+<button class="text-on-surface-variant hover:text-primary transition-colors p-2 rounded-full hover:bg-surface-bright/10">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="text-on-surface-variant hover:text-primary transition-colors p-2 rounded-full hover:bg-surface-bright/10">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<div class="w-8 h-8 rounded-full p-[2px] rainbow-gradient cursor-pointer">
+<img alt="User avatar with rainbow status ring" class="w-full h-full rounded-full object-cover border-2 border-background" data-alt="A futuristic circular avatar graphic showing a stylized glowing ring with deep blue center on a dark background, representing an active online profile in a high tech creative command center interface, professional corporate modern style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCcpJRjIs5O8wPE_d59eXTgS-xt7aLQqoPYQYe15kKTGN0YOwewBQxKvZjk39txJbxLA3a2-oK-_5oijtD2VUk575FGbPvs3trNc0HNx4atSgcEqd44C0SfrmPJz5xlS9jX6VTSPkOnJKSpNgwbxGoWh7GFCVXvm7DRTxaHogzoBREwXThzAMGUqHB0v0rPtp3XVyI_R8VxEKQXbsr-6zPStz8O2XMZWAUbGoZAr8MnKlE2n2OjAQe8">
+</div>
+</div>
+</header>
+<!-- Main Layout Grid -->
+<div class="pt-16 flex min-h-screen">
+<!-- SideNavBar (Desktop) -->
+<aside class="bg-surface-container dark:bg-surface-container-low hidden md:flex flex-col py-6 gap-2 fixed left-0 top-16 h-[calc(100vh-64px)] w-60 border-r border-outline-variant/20">
+<!-- Header -->
+<div class="px-6 mb-8 flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-surface-bright flex items-center justify-center overflow-hidden">
+<img alt="Studio Logo" class="w-full h-full object-cover" data-alt="A sleek minimalist studio logo featuring an abstract geometric shape in cyan and silver tones against a deep navy blue background, representing a modern creative technology company, high resolution graphic design." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA8DyaQqEe0I3hBuz4AxKzgUx25TovntNL0uED-rgbX74Sez_lue-pP-Vy9vhy-Fa8NSaQTGfrFRnq-ZpCLvTaW2o-J6LMp6G0l1vHpbdjXN0mJ8WtNb4W6jFMekolhd5T1Jh-iiSwAU98dpF46adNbJT3-2jdNEKcw9mxazKyKSwzs3qKvjb2FocDvEDF-kkHyEu0DIYjRotr8MVerjGMwsaoV8kZiui-9TjQbDQPaCQ1Ag6Q84dll">
+</div>
+<div>
+<h2 class="font-headline-md text-headline-md font-bold text-on-surface">Creative Rail</h2>
+<p class="font-body-md text-body-md text-on-surface-variant text-sm">Command Center</p>
+</div>
+</div>
+<!-- CTA -->
+<div class="px-4 mb-4">
+<button class="w-full rainbow-gradient text-inverse-on-surface font-headline-md text-headline-md py-3 rounded-lg flex items-center justify-center gap-2 btn-rainbow-glow transition-all">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">add</span>
+                    New Project
+                </button>
+</div>
+<!-- Navigation Tabs -->
+<nav class="flex-1 flex flex-col gap-1">
+<a class="bg-gradient-to-r from-primary/20 to-transparent text-primary border-l-4 border-primary font-bold px-4 py-3 flex items-center gap-3 scale-[0.98]" href="#">
+<span class="material-symbols-outlined">sensors</span>
+<span class="font-headline-md text-headline-md text-sm">Setup Live</span>
+</a>
+<a class="text-on-surface-variant hover:bg-surface-variant/50 px-4 py-3 transition-all hover:translate-x-1 duration-200 flex items-center gap-3" href="#">
+<span class="material-symbols-outlined">mic_external_on</span>
+<span class="font-headline-md text-headline-md text-sm font-normal">Setup Studio</span>
+</a>
+<a class="text-on-surface-variant hover:bg-surface-variant/50 px-4 py-3 transition-all hover:translate-x-1 duration-200 flex items-center gap-3" href="#">
+<span class="material-symbols-outlined">fiber_manual_record</span>
+<span class="font-headline-md text-headline-md text-sm font-normal">Setup Record</span>
+</a>
+<a class="text-on-surface-variant hover:bg-surface-variant/50 px-4 py-3 transition-all hover:translate-x-1 duration-200 flex items-center gap-3" href="#">
+<span class="material-symbols-outlined">terminal</span>
+<span class="font-headline-md text-headline-md text-sm font-normal">Setup Software</span>
+</a>
+<a class="text-on-surface-variant hover:bg-surface-variant/50 px-4 py-3 transition-all hover:translate-x-1 duration-200 flex items-center gap-3" href="#">
+<span class="material-symbols-outlined">memory</span>
+<span class="font-headline-md text-headline-md text-sm font-normal">Rakit PC</span>
+</a>
+</nav>
+<!-- Footer Tabs -->
+<div class="mt-auto flex flex-col gap-1 border-t border-outline-variant/20 pt-4 px-4">
+<a class="text-on-surface-variant hover:bg-surface-variant/50 px-4 py-3 transition-all hover:translate-x-1 duration-200 flex items-center gap-3 rounded-lg" href="#">
+<span class="material-symbols-outlined">help</span>
+<span class="font-headline-md text-headline-md text-sm font-normal">Support</span>
+</a>
+<a class="text-on-surface-variant hover:bg-surface-variant/50 px-4 py-3 transition-all hover:translate-x-1 duration-200 flex items-center gap-3 rounded-lg" href="#">
+<span class="material-symbols-outlined">archive</span>
+<span class="font-headline-md text-headline-md text-sm font-normal">Archive</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 md:ml-60 p-margin-mobile md:p-margin-desktop max-w-container-max mx-auto w-full">
+<!-- Greeting Section -->
+<section class="mb-12 mt-8"><div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+    <div>
+        <h1 class="font-display-lg text-display-lg text-on-surface mb-2">Welcome back, <span class="rainbow-text">Alex!</span></h1>
+        <p class="font-body-md text-body-md text-on-surface-variant max-w-2xl">Your creative command center is primed. You have 3 projects requiring attention today.</p>
+    </div>
+    <button class="rainbow-gradient text-inverse-on-surface font-headline-md text-headline-md px-8 py-4 rounded-xl flex items-center justify-center gap-3 btn-rainbow-glow transition-all shadow-lg">
+        <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">add_circle</span>
+        Start New Project
+    </button>
+</div></section>
+<!-- Top Stats Bento Grid -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-gutter mb-12">
+<!-- Stat 1: Equipment Count -->
+<div class="bg-[#1E293B] border border-[#334155] rounded-xl p-6 relative overflow-hidden group hover:border-primary transition-colors duration-300">
+<div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+<span class="material-symbols-outlined text-6xl text-tertiary">inventory_2</span>
+</div>
+<p class="font-label-sm text-label-sm text-on-surface-variant mb-2 uppercase tracking-wider">Equipment Count</p>
+<div class="flex items-end gap-3">
+<h3 class="font-headline-lg text-headline-lg text-on-surface">1,248</h3>
+<span class="font-label-sm text-label-sm text-tertiary mb-2">+12 this week</span>
+</div>
+<div class="mt-4 w-full bg-surface-dim h-1.5 rounded-full overflow-hidden">
+<div class="bg-tertiary h-full w-[75%] rounded-full"></div>
+</div>
+</div>
+<!-- Stat 2: Total Budget -->
+<div class="bg-[#1E293B] border border-[#334155] rounded-xl p-6 relative overflow-hidden group hover:border-primary transition-colors duration-300">
+<div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+<span class="material-symbols-outlined text-6xl text-primary">account_balance_wallet</span>
+</div>
+<p class="font-label-sm text-label-sm text-on-surface-variant mb-2 uppercase tracking-wider">Total Budget Est.</p>
+<div class="flex items-end gap-3">
+<h3 class="font-headline-lg text-headline-lg text-on-surface">$45.2K</h3>
+<span class="font-label-sm text-label-sm text-error mb-2">-2% vs plan</span>
+</div>
+<div class="mt-4 flex gap-1">
+<div class="h-2 w-full rounded-full bg-surface-dim"><div class="h-full bg-primary rounded-full w-[60%]"></div></div>
+<div class="h-2 w-full rounded-full bg-surface-dim"><div class="h-full bg-tertiary rounded-full w-[30%]"></div></div>
+<div class="h-2 w-full rounded-full bg-surface-dim"><div class="h-full bg-secondary rounded-full w-[10%]"></div></div>
+</div>
+</div>
+<!-- Stat 3: Completion -->
+<div class="bg-gradient-to-br from-[#1E293B] to-surface-dim border border-[#334155] rounded-xl p-6 relative overflow-hidden inner-glow">
+<div class="absolute inset-0 opacity-20 pointer-events-none" style="background-image: radial-gradient(circle at 100% 0%, #adc6ff 0%, transparent 50%);"></div>
+<p class="font-label-sm text-label-sm text-primary mb-2 uppercase tracking-wider relative z-10">Global Project Health</p>
+<div class="flex items-center gap-6 mt-4 relative z-10">
+<div class="relative w-20 h-20 flex-shrink-0">
+<!-- Circular Progress SVG placeholder -->
+<svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+<path class="text-surface-dim" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-width="3"></path>
+<path class="text-tertiary" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-dasharray="82, 100" stroke-width="3"></path>
+</svg>
+<div class="absolute inset-0 flex items-center justify-center">
+<span class="font-headline-md text-headline-md text-on-surface">82%</span>
+</div>
+</div>
+<div>
+<p class="font-body-md text-body-md text-on-surface-variant">Overall completion across 5 active builds.</p>
+<a class="text-tertiary hover:text-primary transition-colors font-label-sm text-label-sm mt-2 inline-flex items-center gap-1 uppercase" href="#">
+                                View Details <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</a>
+</div>
+</div>
+</div>
+<div class="bg-[#1E293B] border border-[#334155] rounded-xl p-6 relative overflow-hidden group hover:border-primary transition-colors duration-300">
+    <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+        <span class="material-symbols-outlined text-6xl text-secondary">speed</span>
+    </div>
+    <p class="font-label-sm text-label-sm text-on-surface-variant mb-2 uppercase tracking-wider">System Uptime</p>
+    <div class="flex items-end gap-3">
+        <h3 class="font-headline-lg text-headline-lg text-on-surface">99.9%</h3>
+        <span class="font-label-sm text-label-sm text-primary mb-2">Stable</span>
+    </div>
+    <div class="mt-4 flex items-end gap-1 h-8">
+        <div class="w-full bg-primary/40 h-[40%] rounded-t-sm"></div>
+        <div class="w-full bg-primary/40 h-[60%] rounded-t-sm"></div>
+        <div class="w-full bg-primary/40 h-[45%] rounded-t-sm"></div>
+        <div class="w-full bg-primary/40 h-[80%] rounded-t-sm"></div>
+        <div class="w-full bg-primary h-full rounded-t-sm"></div>
+    </div>
+</div></section>
+<!-- Main Content Area: Recent Projects & Quick Inventory -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-gutter">
+<!-- Recent Projects List (Takes up 2 columns on desktop) -->
+<section class="lg:col-span-2 flex flex-col gap-6">
+<div class="flex justify-between items-center mb-2">
+<h2 class="font-headline-lg text-headline-lg text-on-surface">Recent Projects</h2>
+<button class="text-on-surface-variant hover:text-primary transition-colors font-label-sm text-label-sm uppercase flex items-center gap-1">
+                            View All <span class="material-symbols-outlined text-sm">chevron_right</span>
+</button>
+</div>
+<!-- Project Card 1 (Active) -->
+<div class="bg-[#1E293B] border border-[#334155] rounded-xl overflow-hidden relative group">
+<div class="absolute top-0 left-0 w-full h-1 rainbow-gradient"></div>
+<div class="p-6"><div class="flex justify-between items-start mb-4">
+    <div>
+        <div class="flex items-center gap-3 mb-1">
+            <h3 class="font-headline-md text-headline-md text-on-surface group-hover:text-primary transition-colors">Gamer Rig 2024</h3>
+            <span class="px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider bg-tertiary/20 text-tertiary border border-tertiary/30">Live</span>
+            <span class="px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider bg-primary/10 text-primary border border-primary/20">Priority</span>
+        </div>
+        <p class="font-body-md text-body-md text-on-surface-variant text-sm">High-end streaming and competitive gaming setup.</p>
+    </div>
+    <div class="flex -space-x-2">
+        <div class="w-8 h-8 rounded-full border-2 border-background bg-surface-bright flex items-center justify-center text-[10px] font-bold">JD</div>
+        <div class="w-8 h-8 rounded-full border-2 border-background bg-tertiary/20 text-tertiary flex items-center justify-center text-[10px] font-bold">AS</div>
+        <div class="w-8 h-8 rounded-full border-2 border-background bg-surface-dim flex items-center justify-center text-[10px] text-on-surface-variant">+2</div>
+    </div>
+</div>
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 p-4 bg-surface-dim/50 rounded-lg border border-outline-variant/10">
+    <div>
+        <p class="font-label-sm text-label-sm text-on-surface-variant/70 mb-1">CPU</p>
+        <p class="font-body-md text-body-md text-on-surface text-sm">Intel i9-14900K</p>
+    </div>
+    <div>
+        <p class="font-label-sm text-label-sm text-on-surface-variant/70 mb-1">GPU</p>
+        <p class="font-body-md text-body-md text-on-surface text-sm">RTX 4090</p>
+    </div>
+    <div>
+        <p class="font-label-sm text-label-sm text-on-surface-variant/70 mb-1">Deadline</p>
+        <p class="font-body-md text-body-md text-on-surface text-sm">Oct 24, 2024</p>
+    </div>
+    <div>
+        <p class="font-label-sm text-label-sm text-on-surface-variant/70 mb-1">Status</p>
+        <p class="font-body-md text-body-md text-primary text-sm flex items-center gap-1">
+            <span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">check_circle</span> Assembled
+        </p>
+    </div>
+</div>
+<div class="mt-6 flex justify-between items-center">
+    <div class="flex items-center gap-2 text-on-surface-variant text-sm">
+        <span class="material-symbols-outlined text-sm">history</span>
+        <span class="">Updated 2h ago</span>
+    </div>
+    <div class="flex gap-3">
+        <button class="px-4 py-2 rounded-lg border border-[#334155] text-on-surface-variant hover:text-on-surface hover:border-outline-variant transition-colors font-label-sm text-label-sm uppercase">Edit Specs</button>
+        <button class="px-6 py-2 rounded-lg rainbow-gradient text-inverse-on-surface font-headline-md text-headline-md text-sm btn-rainbow-glow transition-all flex items-center gap-2">
+            Resume Planning <span class="material-symbols-outlined text-sm">arrow_forward</span>
+        </button>
+    </div>
+</div></div>
+</div>
+<!-- Project Card 2 -->
+<div class="bg-[#1E293B] border border-[#334155] rounded-xl overflow-hidden relative group">
+<div class="p-6">
+<div class="flex justify-between items-start mb-4">
+<div>
+<div class="flex items-center gap-3 mb-1">
+<h3 class="font-headline-md text-headline-md text-on-surface group-hover:text-primary transition-colors">Podcast Studio V2</h3>
+<span class="px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider bg-surface-bright text-on-surface-variant border border-outline-variant/30">Draft</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant text-sm">Acoustic treatment and multi-cam setup refresh.</p>
+</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant bg-surface-dim px-3 py-1 rounded font-mono border border-outline-variant/30">
+                                    ID: PS-V2-09
+                                </div>
+</div>
+<!-- Spec Grid -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 p-4 bg-surface-dim/50 rounded-lg border border-outline-variant/10">
+<div>
+<p class="font-label-sm text-label-sm text-on-surface-variant/70 mb-1">Mics</p>
+<p class="font-body-md text-body-md text-on-surface text-sm">4x Shure SM7B</p>
+</div>
+<div>
+<p class="font-label-sm text-label-sm text-on-surface-variant/70 mb-1">Interface</p>
+<p class="font-body-md text-body-md text-on-surface text-sm">RodeCaster Pro II</p>
+</div>
+<div>
+<p class="font-label-sm text-label-sm text-on-surface-variant/70 mb-1">Cams</p>
+<p class="font-body-md text-body-md text-on-surface text-sm">3x Sony FX30</p>
+</div>
+<div>
+<p class="font-label-sm text-label-sm text-on-surface-variant/70 mb-1">Status</p>
+<p class="font-body-md text-body-md text-secondary text-sm flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">pending</span> Sourcing
+                                    </p>
+</div>
+</div>
+<div class="mt-6 flex justify-end gap-3">
+<button class="px-4 py-2 rounded-lg border border-primary text-primary hover:bg-primary/10 transition-colors font-label-sm text-label-sm uppercase flex items-center gap-2">
+                                    Continue <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Sidebar Content (Takes up 1 column on desktop) -->
+<section class="flex flex-col gap-6 mt-8 lg:mt-0">
+<h2 class="font-headline-lg text-headline-lg text-on-surface mb-2 border-b border-outline-variant/30 pb-4">Quick Inventory</h2>
+<div class="bg-[#1E293B] border border-[#334155] rounded-xl overflow-hidden flex flex-col h-full">
+<!-- Part List (Zebra Striping) -->
+<div class="flex-1 flex flex-col">
+<!-- Row 1 -->
+<div class="flex items-center justify-between p-4 hover:bg-surface-bright/20 hover:scale-[1.01] transition-transform cursor-pointer border-b border-outline-variant/10">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-surface-dim flex items-center justify-center text-tertiary">
+<span class="material-symbols-outlined text-lg">mic</span>
+</div>
+<div>
+<p class="font-body-md text-body-md text-on-surface text-sm font-semibold">Shure SM7B</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant/70">Audio Gear</p>
+</div>
+</div>
+<span class="font-label-sm text-label-sm bg-surface-dim px-2 py-1 rounded text-primary border border-primary/20">4 in stock</span>
+</div>
+<!-- Row 2 -->
+<div class="flex items-center justify-between p-4 bg-surface-dim/20 hover:bg-surface-bright/20 hover:scale-[1.01] transition-transform cursor-pointer border-b border-outline-variant/10">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-surface-dim flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-lg">videocam</span>
+</div>
+<div>
+<p class="font-body-md text-body-md text-on-surface text-sm font-semibold">Sony FX30</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant/70">Cameras</p>
+</div>
+</div>
+<span class="font-label-sm text-label-sm bg-surface-dim px-2 py-1 rounded text-primary border border-primary/20">3 in stock</span>
+</div>
+<!-- Row 3 -->
+<div class="flex items-center justify-between p-4 hover:bg-surface-bright/20 hover:scale-[1.01] transition-transform cursor-pointer border-b border-outline-variant/10">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-surface-dim flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined text-lg">memory</span>
+</div>
+<div>
+<p class="font-body-md text-body-md text-on-surface text-sm font-semibold">Corsair Vengeance</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant/70">PC Components</p>
+</div>
+</div>
+<span class="font-label-sm text-label-sm bg-surface-dim px-2 py-1 rounded text-primary border border-primary/20">12 in stock</span>
+</div>
+<!-- Row 4 -->
+<div class="flex items-center justify-between p-4 bg-surface-dim/20 hover:bg-surface-bright/20 hover:scale-[1.01] transition-transform cursor-pointer">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-surface-dim flex items-center justify-center text-tertiary">
+<span class="material-symbols-outlined text-lg">light</span>
+</div>
+<div>
+<p class="font-body-md text-body-md text-on-surface text-sm font-semibold">Aputure 120d</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant/70">Lighting</p>
+</div>
+</div>
+<span class="font-label-sm text-label-sm bg-error/10 px-2 py-1 rounded text-error border border-error/20">0 in stock</span>
+</div>
+</div>
+<div class="p-4 bg-surface-dim/50 border-t border-outline-variant/20">
+<button class="w-full py-2 rounded-lg text-tertiary hover:bg-tertiary/10 transition-colors font-label-sm text-label-sm uppercase flex items-center justify-center gap-2">
+                                Search Full Inventory <span class="material-symbols-outlined text-sm">search</span>
+</button>
+</div>
+</div>
+</section>
+</div>
+<!-- Bottom padding for mobile if needed, desktop mostly fine -->
+<div class="h-20 md:h-8"></div>
+</main>
+</div>
+
+
+</body></html>

@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Educational Audio Lab - Creative Command Center</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-tint": "#adc6ff",
+                        "surface-bright": "#2a3a4f",
+                        "on-surface": "#d3e4fe",
+                        "on-surface-variant": "#c1c6d7",
+                        "secondary-fixed-dim": "#bec6e0",
+                        "error-container": "#93000a",
+                        "tertiary-fixed-dim": "#2fd9f4",
+                        "on-tertiary-container": "#002f36",
+                        "on-error": "#690005",
+                        "on-secondary-fixed": "#131b2e",
+                        "on-secondary-fixed-variant": "#3f465c",
+                        "on-background": "#d3e4fe",
+                        "tertiary-fixed": "#a2eeff",
+                        "surface": "#031427",
+                        "on-secondary": "#283044",
+                        "surface-container-highest": "#26364a",
+                        "surface-container-low": "#0b1c30",
+                        "on-secondary-container": "#adb4ce",
+                        "secondary-fixed": "#dae2fd",
+                        "on-primary-fixed": "#001a41",
+                        "on-tertiary": "#00363e",
+                        "on-primary-container": "#00285c",
+                        "on-error-container": "#ffdad6",
+                        "on-tertiary-fixed": "#001f25",
+                        "inverse-primary": "#005bc1",
+                        "surface-container-high": "#1b2b3f",
+                        "primary-fixed": "#d8e2ff",
+                        "on-primary-fixed-variant": "#004493",
+                        "surface-variant": "#26364a",
+                        "surface-container-lowest": "#000f21",
+                        "inverse-on-surface": "#213145",
+                        "surface-container": "#102034",
+                        "primary": "#adc6ff",
+                        "secondary-container": "#3f465c",
+                        "background": "#031427",
+                        "error": "#ffb4ab",
+                        "primary-container": "#4b8eff",
+                        "outline-variant": "#414755",
+                        "primary-fixed-dim": "#adc6ff",
+                        "on-tertiary-fixed-variant": "#004e5a",
+                        "secondary": "#bec6e0",
+                        "outline": "#8b90a0",
+                        "tertiary-container": "#009fb4",
+                        "on-primary": "#002e69",
+                        "tertiary": "#2fd9f4",
+                        "surface-dim": "#031427",
+                        "inverse-surface": "#d3e4fe"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "margin-mobile": "16px",
+                        "container-max": "1440px",
+                        "unit": "4px",
+                        "gutter": "24px",
+                        "margin-desktop": "40px"
+                    },
+                    "fontFamily": {
+                        "headline-lg": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "display-lg": ["Inter"],
+                        "body-md": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "label-sm": ["JetBrains Mono"]
+                    },
+                    "fontSize": {
+                        "headline-lg": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "headline-md": ["20px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                        "display-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.04em", "fontWeight": "800"}],
+                        "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "headline-lg-mobile": ["24px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                        "label-sm": ["12px", {"lineHeight": "1.0", "letterSpacing": "0.05em", "fontWeight": "500"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .vu-meter-bar {
+            height: 100%;
+            background: linear-gradient(to top, #4b8eff 0%, #2fd9f4 60%, #ffb4ab 90%, #93000a 100%);
+            transition: height 0.1s ease-out;
+        }
+        .waveform-path {
+            stroke: #2fd9f4;
+            stroke-width: 2;
+            fill: none;
+            opacity: 0.8;
+        }
+        .waveform-path-2 {
+            stroke: #4b8eff;
+            stroke-width: 1.5;
+            fill: none;
+            opacity: 0.5;
+        }
+        .waveform-path-3 {
+            stroke: #ffb4ab;
+            stroke-width: 1;
+            fill: none;
+            opacity: 0.3;
+        }
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid #334155;
+        }
+        .rainbow-glow {
+            box-shadow: 0 0 15px rgba(47, 217, 244, 0.4);
+        }
+        .bg-rainbow {
+            background: linear-gradient(90deg, #4b8eff, #2fd9f4, #ffb4ab, #93000a);
+            background-size: 200% auto;
+            animation: gradient-shift 3s linear infinite;
+        }
+        @keyframes gradient-shift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .flow-line {
+            stroke-dasharray: 4;
+            animation: dash 1s linear infinite;
+        }
+        @keyframes dash {
+            to {
+                stroke-dashoffset: -8;
+            }
+        }
+        .knob-container {
+            position: relative;
+            width: 48px;
+            height: 48px;
+        }
+        .knob {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: conic-gradient(from 225deg, #475569 0deg, #1e293b 270deg, transparent 270deg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.5), 0 2px 4px rgba(255,255,255,0.05);
+            position: relative;
+            cursor: pointer;
+        }
+        .knob-indicator {
+            position: absolute;
+            width: 4px;
+            height: 12px;
+            background-color: #2fd9f4;
+            border-radius: 2px;
+            top: 4px;
+            transform-origin: center 20px;
+        }
+        .knob-ring {
+            position: absolute;
+            inset: -4px;
+            border-radius: 50%;
+            border: 2px solid #334155;
+            border-top-color: #2fd9f4;
+            border-right-color: #2fd9f4;
+            transform: rotate(-45deg);
+        }
+        .fader-track {
+            width: 8px;
+            height: 100px;
+            background: #0f172a;
+            border-radius: 4px;
+            border: 1px solid #334155;
+            position: relative;
+        }
+        .fader-cap {
+            width: 24px;
+            height: 12px;
+            background: #cbd5e1;
+            border-radius: 2px;
+            position: absolute;
+            left: -8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            cursor: pointer;
+        }
+        .fader-cap::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #ffb4ab;
+            transform: translateY(-50%);
+        }
+        .spectrogram-bg {
+            background: linear-gradient(0deg, #000 0%, #00f 25%, #0ff 50%, #ff0 75%, #f00 100%);
+            opacity: 0.8;
+            mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+            -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+        }
+        .patch-point {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #020617;
+            border: 2px solid #334155;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.8);
+            position: relative;
+        }
+        .patch-point::after {
+            content: '';
+            position: absolute;
+            inset: 2px;
+            border-radius: 50%;
+            background: #1e293b;
+        }
+        .patch-cable {
+            position: absolute;
+            height: 4px;
+            background: #ffb4ab;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.5), inset 0 1px 1px rgba(255,255,255,0.3);
+            border-radius: 2px;
+            z-index: 10;
+            pointer-events: none;
+        }
+        /* Matrix Patchbay Styles */
+        .matrix-grid {
+            display: grid;
+            grid-template-columns: auto repeat(8, 1fr);
+            gap: 4px;
+        }
+        .matrix-cell {
+            aspect-ratio: 1;
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+        .matrix-cell:hover {
+            background: #1e293b;
+            border-color: #2fd9f4;
+        }
+        .matrix-cell.active {
+            background: rgba(47, 217, 244, 0.2);
+            border-color: #2fd9f4;
+            box-shadow: inset 0 0 8px rgba(47, 217, 244, 0.4);
+        }
+        .matrix-cell.active::after {
+            content: '';
+            position: absolute;
+            inset: 4px;
+            border-radius: 50%;
+            background: #2fd9f4;
+        }
+        .matrix-label-row {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 8px;
+            font-size: 10px;
+            color: #c1c6d7;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .matrix-label-col {
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            transform: rotate(180deg);
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-bottom: 8px;
+            font-size: 10px;
+            color: #c1c6d7;
+            font-family: 'JetBrains Mono', monospace;
+            height: 80px;
+        }
+        .toggle-switch {
+            width: 24px;
+            height: 48px;
+            background: #020617;
+            border-radius: 4px;
+            border: 2px solid #334155;
+            position: relative;
+            cursor: pointer;
+        }
+        .toggle-bat {
+            width: 16px;
+            height: 20px;
+            background: linear-gradient(to bottom, #cbd5e1, #94a3b8);
+            border-radius: 2px;
+            position: absolute;
+            left: 2px;
+            top: 2px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.5);
+            transition: top 0.1s;
+        }
+        .toggle-switch.up .toggle-bat {
+            top: 2px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.5);
+        }
+        .toggle-switch.down .toggle-bat {
+            top: 22px;
+            box-shadow: 0 -4px 6px rgba(0,0,0,0.5);
+        }
+        
+        /* Realistic Faceplate Textures */
+        .faceplate-neve {
+            background: linear-gradient(to bottom, #1a2333, #0f172a);
+            box-shadow: inset 0 2px 0 rgba(255,255,255,0.1), inset 0 -2px 0 rgba(0,0,0,0.5);
+        }
+        .faceplate-la2a {
+            background: linear-gradient(to bottom, #262626, #171717);
+            box-shadow: inset 0 2px 0 rgba(255,255,255,0.1), inset 0 -2px 0 rgba(0,0,0,0.8);
+        }
+        .screw {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #94a3b8;
+            box-shadow: inset -1px -1px 2px rgba(0,0,0,0.5), inset 1px 1px 2px rgba(255,255,255,0.5);
+            position: absolute;
+        }
+        .screw::after {
+            content: '';
+            position: absolute;
+            inset: 1px;
+            border-radius: 50%;
+            border-top: 1px solid rgba(0,0,0,0.5);
+            transform: rotate(45deg);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md overflow-x-hidden min-h-screen">
+<!-- TopNavBar -->
+<header class="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-xl border-b border-outline-variant/30 shadow-sm flex justify-between items-center h-16 px-margin-desktop max-w-container-max mx-auto text-primary">
+<div class="flex items-center gap-6">
+<span class="font-headline-lg text-headline-lg bg-clip-text text-transparent bg-gradient-to-r from-primary via-tertiary to-secondary">Live Planner</span>
+<div class="hidden md:flex items-center bg-[#020617] rounded-full border border-outline-variant px-4 py-2 focus-within:border-tertiary focus-within:shadow-[0_0_8px_rgba(47,217,244,0.5)] transition-all">
+<span class="material-symbols-outlined text-on-surface-variant text-lg mr-2" data-icon="search">search</span>
+<input class="bg-transparent border-none text-on-surface font-label-sm text-label-sm focus:ring-0 placeholder:text-on-surface-variant w-48" placeholder="Search resources..." type="text"/>
+</div>
+</div>
+<nav class="hidden lg:flex items-center gap-8">
+<a class="font-label-sm text-label-sm text-on-surface-variant hover:text-primary transition-colors hover:bg-surface-bright/10 px-2 py-1 rounded" href="#">Dashboard</a>
+<a class="font-label-sm text-label-sm text-on-surface-variant hover:text-primary transition-colors hover:bg-surface-bright/10 px-2 py-1 rounded" href="#">Inventory</a>
+<a class="font-label-sm text-label-sm text-on-surface-variant hover:text-primary transition-colors hover:bg-surface-bright/10 px-2 py-1 rounded" href="#">Schedule</a>
+<a class="font-label-sm text-label-sm text-on-surface-variant hover:text-primary transition-colors hover:bg-surface-bright/10 px-2 py-1 rounded" href="#">Team</a>
+<a class="font-label-sm text-label-sm text-on-surface-variant hover:text-primary transition-colors hover:bg-surface-bright/10 px-2 py-1 rounded" href="#">Reports</a>
+</nav>
+<div class="flex items-center gap-4">
+<button class="text-on-surface-variant hover:text-primary transition-colors hover:bg-surface-bright/10 p-2 rounded-full">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="text-on-surface-variant hover:text-primary transition-colors hover:bg-surface-bright/10 p-2 rounded-full">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+</button>
+<div class="w-10 h-10 rounded-full bg-gradient-to-tr from-primary via-tertiary to-secondary p-[2px] rainbow-glow">
+<div class="w-full h-full bg-surface rounded-full overflow-hidden border-2 border-surface">
+<img class="w-full h-full object-cover" data-alt="A high-quality close-up photograph of a professional multi-track audio mixing console in a dimly lit, modern recording studio. The console is illuminated by the soft, cyan and blue glow of LED screens and VU meters. The lighting is moody and technological, emphasizing the intricate details of knobs and sliders. The overall aesthetic is sleek, corporate modern with a creative, audio-centric edge." src="https://lh3.googleusercontent.com/aida-public/AB6AXuApVnwhnJcpFsDzODxdJ9UHtsPicNuwpxS2fnoZlO_Gs7SrZzDrKGpbNFUHY5tuf21PJj1Fi6DRjlyTO_kIDHua02OtRjIbllaM7qWpuCfE2aSL2GvKtl-0iKOWz7HLsjFnzzlJw-Y_HBqupF2jT78GqbvDVHFo7uvlkYA9I3X10QxHDPHp0Kyal59n8v-iwj1kAw-m5urPuebmaEAEbShaUJYeOjF7qsbFzx_8ogG8sdNFEP1yr521"/>
+</div>
+</div>
+</div>
+</header>
+<!-- SideNavBar & Main Content Wrapper -->
+<div class="flex pt-16 h-screen w-full max-w-container-max mx-auto">
+<!-- SideNavBar -->
+<aside class="hidden md:flex flex-col bg-surface-container dark:bg-surface-container-low fixed left-0 top-16 h-[calc(100vh-64px)] w-60 border-r border-outline-variant/20 py-6 gap-2 text-tertiary z-40">
+<div class="px-6 mb-6 flex flex-col gap-1">
+<div class="w-12 h-12 rounded-xl bg-[#1E293B] border border-[#334155] flex items-center justify-center mb-2">
+<span class="material-symbols-outlined text-tertiary text-2xl" data-icon="album">album</span>
+</div>
+<h2 class="font-headline-md text-headline-md font-bold text-on-surface">Creative Rail</h2>
+<p class="font-body-md text-body-md text-on-surface-variant text-sm">Command Center</p>
+</div>
+<div class="px-4 mb-4">
+<button class="w-full bg-gradient-to-r from-primary to-tertiary text-surface-lowest font-headline-md text-headline-md text-sm py-2 px-4 rounded-lg hover:brightness-110 shadow-[0_0_10px_rgba(47,217,244,0.3)] transition-all font-bold">New Project</button>
+</div>
+<nav class="flex-1 flex flex-col gap-1 overflow-y-auto">
+<a class="flex items-center gap-3 text-on-surface-variant hover:bg-surface-variant/50 px-4 py-3 transition-all hover:translate-x-1 duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="sensors">sensors</span>
+<span class="font-label-sm text-label-sm">Setup Live</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant hover:bg-surface-variant/50 px-4 py-3 transition-all hover:translate-x-1 duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="mic_external_on">mic_external_on</span>
+<span class="font-label-sm text-label-sm">Setup Studio</span>
+</a>
+<a class="flex items-center gap-3 bg-gradient-to-r from-primary/20 to-transparent text-primary border-l-4 border-primary font-bold px-4 py-3 scale-[0.98]" href="#">
+<span class="material-symbols-outlined" data-icon="school">school</span>
+<span class="font-label-sm text-label-sm">Mastering Lab</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant hover:bg-surface-variant/50 px-4 py-3 transition-all hover:translate-x-1 duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="terminal">terminal</span>
+<span class="font-label-sm text-label-sm">Setup Software</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant hover:bg-surface-variant/50 px-4 py-3 transition-all hover:translate-x-1 duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="memory">memory</span>
+<span class="font-label-sm text-label-sm">Rakit PC</span>
+</a>
+</nav>
+<div class="mt-auto flex flex-col gap-1 border-t border-outline-variant/20 pt-4">
+<a class="flex items-center gap-3 text-on-surface-variant hover:bg-surface-variant/50 px-4 py-3 transition-all hover:translate-x-1 duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+<span class="font-label-sm text-label-sm">Support</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant hover:bg-surface-variant/50 px-4 py-3 transition-all hover:translate-x-1 duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="archive">archive</span>
+<span class="font-label-sm text-label-sm">Archive</span>
+</a>
+</div>
+</aside>
+<!-- Main Canvas -->
+<main class="flex-1 md:ml-60 p-margin-mobile md:p-gutter overflow-y-auto">
+<header class="mb-8 flex justify-between items-end">
+<div>
+<h1 class="font-display-lg text-display-lg text-on-surface mb-2">Mastering &amp; Signal Chain Lab</h1>
+<p class="font-body-md text-body-md text-on-surface-variant">Advanced signal routing, precision outboard processing, and critical listening.</p>
+</div>
+<div class="flex gap-4">
+<button class="bg-[#1E293B] border border-tertiary text-on-surface font-label-sm text-label-sm px-6 py-2 rounded-lg hover:bg-surface-variant transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-sm" data-icon="save">save</span> Save Progress
+                    </button>
+<button class="bg-rainbow text-slate-900 font-label-sm text-label-sm px-6 py-2 rounded-lg hover:brightness-110 shadow-[0_0_10px_rgba(47,217,244,0.3)] transition-all flex items-center gap-2 font-bold">
+<span class="material-symbols-outlined text-sm" data-icon="check_circle">check_circle</span> Complete Module
+                    </button>
+</div>
+</header>
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
+<!-- Recording Guide Sidebar (Span 4) -->
+<div class="lg:col-span-4 bg-[#1E293B] border border-[#334155] rounded-xl p-6 flex flex-col relative h-fit">
+<div class="flex justify-between items-start mb-6">
+<h3 class="font-headline-md text-headline-md text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary" data-icon="menu_book">menu_book</span> 
+                            Session Manager
+                        </h3>
+</div>
+<div class="flex-1 flex flex-col gap-6">
+<div class="bg-[#020617] rounded-lg border border-[#334155] p-4 flex flex-col gap-4">
+<div class="flex justify-between items-center border-b border-outline-variant/30 pb-3">
+<span class="font-label-sm text-on-surface-variant">Mastering Setup</span>
+<button class="bg-rainbow text-slate-900 px-3 py-1 rounded text-xs font-bold hover:brightness-110 transition-all flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]" data-icon="album">album</span> Print Master
+</button>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div class="flex flex-col gap-1">
+<span class="text-[10px] text-on-surface-variant font-label-sm uppercase">Sample Rate</span>
+<div class="flex items-center gap-2 bg-surface-variant/50 rounded p-2 border border-outline-variant/30">
+<span class="material-symbols-outlined text-on-surface text-sm" data-icon="waves">waves</span>
+<select class="bg-transparent border-none text-on-surface text-sm font-bold p-0 focus:ring-0 cursor-pointer w-full">
+<option value="44.1">44.1 kHz</option>
+<option value="48">48.0 kHz</option>
+<option selected="" value="96">96.0 kHz</option>
+<option value="192">192.0 kHz</option>
+</select>
+</div>
+</div>
+<div class="flex flex-col gap-1">
+<span class="text-[10px] text-on-surface-variant font-label-sm uppercase">Bit Depth</span>
+<div class="flex items-center gap-2 bg-surface-variant/50 rounded p-2 border border-outline-variant/30">
+<span class="material-symbols-outlined text-on-surface text-sm" data-icon="data_object">data_object</span>
+<select class="bg-transparent border-none text-on-surface text-sm font-bold p-0 focus:ring-0 cursor-pointer w-full">
+<option value="16">16-bit</option>
+<option value="24">24-bit</option>
+<option selected="" value="32f">32-bit Float</option>
+</select>
+</div>
+</div>
+<div class="flex flex-col gap-1">
+<span class="text-[10px] text-on-surface-variant font-label-sm uppercase">Buffer Size</span>
+<div class="flex items-center gap-2 bg-surface-variant/50 rounded p-2 border border-outline-variant/30">
+<span class="material-symbols-outlined text-on-surface text-sm" data-icon="memory">memory</span>
+<select class="bg-transparent border-none text-on-surface text-sm font-bold p-0 focus:ring-0 cursor-pointer w-full">
+<option value="64">64 Spls</option>
+<option value="128">128 Spls</option>
+<option value="256">256 Spls</option>
+<option value="512">512 Spls</option>
+<option selected="" value="1024">1024 Spls</option>
+<option value="2048">2048 Spls</option>
+</select>
+</div>
+</div>
+<div class="flex flex-col gap-1">
+<span class="text-[10px] text-on-surface-variant font-label-sm uppercase">Dither</span>
+<div class="flex items-center gap-2 bg-surface-variant/50 rounded p-2 border border-outline-variant/30 cursor-pointer hover:bg-surface-variant transition-colors group">
+<div class="w-6 h-6 rounded bg-surface-variant text-on-surface flex items-center justify-center border border-outline-variant">
+<span class="material-symbols-outlined text-[14px]" data-icon="blur_on">blur_on</span>
+</div>
+<span class="font-bold text-on-surface text-sm group-hover:text-tertiary transition-colors">POW-r 3</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Clocking & Jitter Monitor -->
+<div class="bg-[#020617] rounded-lg border border-[#334155] p-4 flex flex-col gap-3">
+<div class="flex justify-between items-center border-b border-outline-variant/30 pb-2">
+<span class="font-label-sm text-[10px] text-on-surface-variant uppercase">Clocking &amp; Jitter Status</span>
+<div class="flex gap-1">
+<span class="w-2 h-2 rounded-full bg-tertiary animate-pulse"></span>
+</div>
+</div>
+<div class="flex flex-col gap-2">
+<div class="flex justify-between items-center">
+<span class="text-xs text-on-surface">Word Clock Source</span>
+<span class="text-xs font-bold text-tertiary">Internal (Oven)</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="text-xs text-on-surface">Estimated Jitter</span>
+<span class="text-xs font-bold text-primary">&lt; 10 ps</span>
+</div>
+<div class="h-2 w-full bg-surface-container rounded-full overflow-hidden mt-1">
+<div class="h-full bg-gradient-to-r from-primary to-tertiary w-[5%]"></div>
+</div>
+</div>
+</div>
+<ul class="flex flex-col gap-5 mt-2">
+<li class="flex gap-4">
+<div class="w-8 h-8 rounded-full bg-primary/20 text-primary border border-primary/30 flex items-center justify-center font-bold text-sm shrink-0 shadow-[0_0_10px_rgba(173,198,255,0.4)]">1</div>
+<div>
+<div class="font-bold text-primary mb-1">Establish Matrix Route</div>
+<div class="text-sm text-on-surface-variant">Configure the insert matrix to route DAW outputs through analog outboard gear and back.</div>
+</div>
+</li>
+<li class="flex gap-4 opacity-50">
+<div class="w-8 h-8 rounded-full bg-surface-variant text-on-surface-variant border border-outline-variant flex items-center justify-center font-bold text-sm shrink-0">2</div>
+<div>
+<div class="font-bold text-on-surface mb-1">Analog Gain Staging</div>
+<div class="text-sm text-on-surface-variant">Calibrate outboard levels ensuring unity gain through the chain. Watch for converter clipping.</div>
+</div>
+</li>
+<li class="flex gap-4 opacity-50">
+<div class="w-8 h-8 rounded-full bg-surface-variant text-on-surface-variant border border-outline-variant flex items-center justify-center font-bold text-sm shrink-0">3</div>
+<div>
+<div class="font-bold text-on-surface mb-1">A/B Comparison</div>
+<div class="text-sm text-on-surface-variant">Toggle inserts in the matrix to compare processed signal against the dry source level-matched.</div>
+</div>
+</li>
+</ul>
+</div>
+<!-- Detailed Signal Flow Diagram -->
+<div class="mt-8 pt-6 border-t border-outline-variant/30">
+<h4 class="font-label-sm text-label-sm text-on-surface-variant mb-4 uppercase tracking-wider flex justify-between items-center">
+<span>Mastering Chain Flow</span>
+<span class="flex items-center gap-1 text-tertiary"><span class="w-2 h-2 rounded-full bg-tertiary animate-pulse"></span> Locked</span>
+</h4>
+<div class="bg-[#020617] rounded-lg border border-[#334155] p-5 flex flex-col gap-4 relative">
+<div class="flex items-center justify-between relative">
+<!-- Lines connecting nodes -->
+<svg class="absolute w-full h-full left-0 top-0 pointer-events-none" preserveaspectratio="none" viewbox="0 0 100 100">
+<line class="flow-line" stroke="#adc6ff" stroke-width="2" x1="15" x2="30" y1="50" y2="50"></line>
+<line class="flow-line" stroke="#2fd9f4" stroke-width="2" style="animation-delay: 0.2s;" x1="40" x2="55" y1="50" y2="50"></line>
+<line class="flow-line" stroke="#ffb4ab" stroke-width="2" style="animation-delay: 0.4s;" x1="65" x2="80" y1="50" y2="50"></line>
+</svg>
+<!-- Node 1: DAW Out -->
+<div class="flex flex-col items-center gap-2 z-10 w-16">
+<div class="w-10 h-10 rounded-xl bg-surface-variant border border-outline-variant flex items-center justify-center shadow-[0_0_15px_rgba(173,198,255,0.2)] relative">
+<span class="material-symbols-outlined text-on-surface-variant text-xl" data-icon="computer">computer</span>
+</div>
+<span class="text-[9px] text-on-surface font-bold text-center">DAW L/R</span>
+</div>
+<!-- Node 2: D/A Converter -->
+<div class="flex flex-col items-center gap-2 z-10 w-16">
+<div class="w-10 h-10 rounded-xl bg-surface-variant border border-outline-variant flex items-center justify-center relative">
+<span class="text-xs font-bold text-on-surface">D/A</span>
+</div>
+<span class="text-[9px] text-on-surface font-bold text-center">Lavry</span>
+</div>
+<!-- Node 3: Outboard -->
+<div class="flex flex-col items-center gap-2 z-10 w-16">
+<div class="w-10 h-10 rounded-xl bg-primary/20 border border-primary flex items-center justify-center relative shadow-[0_0_15px_rgba(47,217,244,0.3)]">
+<span class="material-symbols-outlined text-primary text-xl" data-icon="speaker_group">speaker_group</span>
+<div class="absolute -right-1 -top-1 w-2 h-2 rounded-full bg-primary border border-[#020617]"></div>
+</div>
+<span class="text-[9px] text-primary font-bold text-center">Insert Matrix</span>
+</div>
+<!-- Node 4: A/D Converter -->
+<div class="flex flex-col items-center gap-2 z-10 w-16">
+<div class="w-10 h-10 rounded-xl bg-surface-variant border border-outline-variant flex items-center justify-center relative">
+<span class="text-xs font-bold text-on-surface">A/D</span>
+</div>
+<span class="text-[9px] text-on-surface font-bold text-center">Cranesong</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Main Lab Area (Span 8) -->
+<div class="lg:col-span-8 flex flex-col gap-gutter">
+<!-- Virtual Patchbay (Matrix Style) -->
+<div class="bg-[#1E293B] border border-[#334155] rounded-xl p-6 flex flex-col relative overflow-hidden h-[400px]">
+<div class="flex justify-between items-center mb-6">
+<h3 class="font-headline-md text-headline-md text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary" data-icon="grid_on">grid_on</span> 
+                            Analog Insert Routing Matrix
+                        </h3>
+<div class="flex gap-2">
+<button class="text-xs text-on-surface-variant hover:text-primary transition-colors flex items-center gap-1 bg-surface-variant/50 px-3 py-1.5 rounded border border-outline-variant/30">
+<span class="material-symbols-outlined text-[14px]" data-icon="front_loader">front_loader</span> Front Panel
+</button>
+<button class="text-xs text-primary bg-primary/10 transition-colors flex items-center gap-1 px-3 py-1.5 rounded border border-primary/30">
+<span class="material-symbols-outlined text-[14px]" data-icon="cable">cable</span> Rear Connections
+</button>
+<button class="text-xs text-error hover:text-error-container transition-colors flex items-center gap-1 bg-error/10 px-3 py-1.5 rounded border border-error/30 ml-4">
+<span class="material-symbols-outlined text-[14px]" data-icon="clear_all">clear_all</span> Reset All
+</button>
+</div>
+</div>
+<div class="bg-[#020617] rounded-lg border border-[#334155] p-6 relative flex-1 overflow-auto flex items-center justify-center">
+<div class="matrix-grid w-full max-w-[600px]">
+<!-- Top row: Labels -->
+<div class="matrix-cell border-none bg-transparent"></div>
+<div class="matrix-label-col">DAW Out 1/2</div>
+<div class="matrix-label-col">DAW Out 3/4</div>
+<div class="matrix-label-col">Neve MBP L/R</div>
+<div class="matrix-label-col">Massive P L/R</div>
+<div class="matrix-label-col">SSL Bus L/R</div>
+<div class="matrix-label-col">API 2500 L/R</div>
+<div class="matrix-label-col">Bax EQ L/R</div>
+<div class="matrix-label-col">Monitor In</div>
+<!-- Row 1 -->
+<div class="matrix-label-row">DAW In 1/2</div>
+<div class="matrix-cell"></div><div class="matrix-cell"></div><div class="matrix-cell active"></div><div class="matrix-cell"></div><div class="matrix-cell"></div><div class="matrix-cell"></div><div class="matrix-cell"></div><div class="matrix-cell"></div>
+<!-- Row 2 -->
+<div class="matrix-label-row">DAW In 3/4</div>
+<div class="matrix-cell"></div><div class="matrix-cell"></div><div class="matrix-cell"></div><div class="matrix-cell"></div><div class="matrix-cell"></div><div class="matrix-cell"></div><div class="matrix-cell"></div><div class="matrix-cell"></div>
+<!-- Row 3 -->
+<div class="matrix-label-row">Neve MBP In</div>
+<div class="matrix-cell active"></div><div class="matrix-cell"></div><div class="matrix-cell"></div><div class="matrix-cell"></div><div class="matrix-cell"></div><div class="matrix-cell"></div><div class="matrix-cell"></div><div class="matrix-cell"></div>
+<!-- Row 4 -->
+<div class="matrix-label-row">Massive P In</div>
+<div class="matrix-cell"></div><div class="matrix-cell"></div><div class="matrix-cell"></div><div class="matrix-cell"></div><div class="matrix-cell active"></div><div class="matrix-cell"></div><div class="matrix-cell"></div><div class="matrix-cell"></div>
+<!-- Row 5 -->
+<div class="matrix-label-row">SSL Bus In</div>
+<div class="matrix-cell"></div><div class="matrix-cell"></div><div class="matrix-cell"></div><div class="matrix-cell"></div><div class="matrix-cell"></div><div class="matrix-cell"></div><div class="matrix-cell active"></div><div class="matrix-cell"></div>
+<!-- Row 6 -->
+<div class="matrix-label-row">API 2500 In</div>
+<div class="matrix-cell"></div><div class="matrix-cell"></div><div class="matrix-cell"></div><div class="matrix-cell active"></div><div class="matrix-cell"></div><div class="matrix-cell"></div><div class="matrix-cell"></div><div class="matrix-cell"></div>
+<!-- Row 7 -->
+<div class="matrix-label-row">Bax EQ In</div>
+<div class="matrix-cell"></div><div class="matrix-cell"></div><div class="matrix-cell"></div><div class="matrix-cell"></div><div class="matrix-cell"></div><div class="matrix-cell active"></div><div class="matrix-cell"></div><div class="matrix-cell"></div>
+<!-- Row 8 -->
+<div class="matrix-label-row">Monitor Out</div>
+<div class="matrix-cell"></div><div class="matrix-cell"></div><div class="matrix-cell"></div><div class="matrix-cell"></div><div class="matrix-cell"></div><div class="matrix-cell"></div><div class="matrix-cell"></div><div class="matrix-cell active"></div>
+</div>
+</div>
+</div>
+<!-- Dynamic Gear Rack -->
+<div class="bg-[#1E293B] border border-[#334155] rounded-xl p-6 flex flex-col">
+<div class="flex justify-between items-center mb-6">
+<h3 class="font-headline-md text-headline-md text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary" data-icon="speaker_group">speaker_group</span> 
+                            Analog Outboard Rack
+                        </h3>
+<span class="bg-primary/10 text-primary text-xs px-2 py-1 rounded border border-primary/20">Stereo Linked</span>
+</div>
+<div class="bg-[#020617] rounded-lg border border-[#334155] p-3 flex flex-col gap-3">
+<!-- Realistic Mastering EQ Unit (Massive Passive Style) -->
+<div class="faceplate-neve rounded p-4 border-2 border-[#334155] relative group overflow-hidden shadow-2xl flex items-center h-48">
+<!-- Rack Screws -->
+<div class="screw top-2 left-2"></div><div class="screw bottom-2 left-2"></div>
+<div class="screw top-2 right-2"></div><div class="screw bottom-2 right-2"></div>
+<div class="flex items-center justify-between w-full px-6 z-10">
+<div class="flex flex-col w-1/5 items-center justify-center h-full border-r border-[#334155]/50 pr-4">
+<h4 class="font-bold text-on-surface text-xl tracking-widest uppercase mb-1 drop-shadow-md text-center">Massive<br/>Passive</h4>
+<span class="font-label-sm text-[8px] text-on-surface-variant uppercase tracking-widest text-center">Stereo Tube EQ</span>
+<div class="toggle-switch up mt-4 mx-auto" title="Power / Bypass">
+<div class="toggle-bat"></div>
+</div>
+<span class="font-label-sm text-[8px] text-on-surface-variant uppercase mt-1">IN / BYP</span>
+</div>
+<div class="flex gap-4 flex-1 justify-around items-center px-4">
+<!-- Band 1 -->
+<div class="flex flex-col items-center gap-3">
+<div class="text-center mb-1"><span class="text-[9px] text-[#8b90a0] font-label-sm uppercase tracking-widest block">Low</span></div>
+<div class="knob-container" style="width: 44px; height: 44px;">
+<div class="knob-ring" style="border-top-color: #4b8eff; border-right-color: #4b8eff;"></div>
+<div class="knob" style="transform: rotate(-45deg); background: linear-gradient(135deg, #475569, #1e293b); box-shadow: inset 0 2px 4px rgba(255,255,255,0.1), 0 4px 6px rgba(0,0,0,0.6);">
+<div class="knob-indicator" style="background-color: #fff; height: 12px; top: 4px; transform-origin: center 18px;"></div>
+</div>
+</div>
+<div class="flex gap-2">
+<div class="toggle-switch up" style="transform: scale(0.6);" title="Boost/Cut">
+<div class="toggle-bat"></div>
+</div>
+</div>
+<div class="knob-container mt-1" style="width: 36px; height: 36px;">
+<div class="knob" style="transform: rotate(30deg); background: linear-gradient(135deg, #1e293b, #0f172a);">
+<div class="knob-indicator" style="background-color: #fff; height: 10px; top: 4px; transform-origin: center 14px;"></div>
+</div>
+</div>
+</div>
+<!-- Band 2 -->
+<div class="flex flex-col items-center gap-3">
+<div class="text-center mb-1"><span class="text-[9px] text-[#8b90a0] font-label-sm uppercase tracking-widest block">Low Mid</span></div>
+<div class="knob-container" style="width: 44px; height: 44px;">
+<div class="knob-ring" style="border-top-color: #2fd9f4; border-right-color: #2fd9f4;"></div>
+<div class="knob" style="transform: rotate(15deg); background: linear-gradient(135deg, #475569, #1e293b); box-shadow: inset 0 2px 4px rgba(255,255,255,0.1), 0 4px 6px rgba(0,0,0,0.6);">
+<div class="knob-indicator" style="background-color: #fff; height: 12px; top: 4px; transform-origin: center 18px;"></div>
+</div>
+</div>
+<div class="flex gap-2">
+<div class="toggle-switch up" style="transform: scale(0.6);">
+<div class="toggle-bat"></div>
+</div>
+</div>
+<div class="knob-container mt-1" style="width: 36px; height: 36px;">
+<div class="knob" style="transform: rotate(-10deg); background: linear-gradient(135deg, #1e293b, #0f172a);">
+<div class="knob-indicator" style="background-color: #fff; height: 10px; top: 4px; transform-origin: center 14px;"></div>
+</div>
+</div>
+</div>
+<!-- Band 3 -->
+<div class="flex flex-col items-center gap-3">
+<div class="text-center mb-1"><span class="text-[9px] text-[#8b90a0] font-label-sm uppercase tracking-widest block">Hi Mid</span></div>
+<div class="knob-container" style="width: 44px; height: 44px;">
+<div class="knob-ring" style="border-top-color: #ffb4ab; border-right-color: #ffb4ab;"></div>
+<div class="knob" style="transform: rotate(-20deg); background: linear-gradient(135deg, #475569, #1e293b); box-shadow: inset 0 2px 4px rgba(255,255,255,0.1), 0 4px 6px rgba(0,0,0,0.6);">
+<div class="knob-indicator" style="background-color: #fff; height: 12px; top: 4px; transform-origin: center 18px;"></div>
+</div>
+</div>
+<div class="flex gap-2">
+<div class="toggle-switch down" style="transform: scale(0.6);">
+<div class="toggle-bat"></div>
+</div>
+</div>
+<div class="knob-container mt-1" style="width: 36px; height: 36px;">
+<div class="knob" style="transform: rotate(45deg); background: linear-gradient(135deg, #1e293b, #0f172a);">
+<div class="knob-indicator" style="background-color: #fff; height: 10px; top: 4px; transform-origin: center 14px;"></div>
+</div>
+</div>
+</div>
+<!-- Band 4 -->
+<div class="flex flex-col items-center gap-3">
+<div class="text-center mb-1"><span class="text-[9px] text-[#8b90a0] font-label-sm uppercase tracking-widest block">High</span></div>
+<div class="knob-container" style="width: 44px; height: 44px;">
+<div class="knob-ring" style="border-top-color: #93000a; border-right-color: #93000a;"></div>
+<div class="knob" style="transform: rotate(60deg); background: linear-gradient(135deg, #475569, #1e293b); box-shadow: inset 0 2px 4px rgba(255,255,255,0.1), 0 4px 6px rgba(0,0,0,0.6);">
+<div class="knob-indicator" style="background-color: #fff; height: 12px; top: 4px; transform-origin: center 18px;"></div>
+</div>
+</div>
+<div class="flex gap-2">
+<div class="toggle-switch up" style="transform: scale(0.6);">
+<div class="toggle-bat"></div>
+</div>
+</div>
+<div class="knob-container mt-1" style="width: 36px; height: 36px;">
+<div class="knob" style="transform: rotate(15deg); background: linear-gradient(135deg, #1e293b, #0f172a);">
+<div class="knob-indicator" style="background-color: #fff; height: 10px; top: 4px; transform-origin: center 14px;"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Output Trim / Meters -->
+<div class="flex flex-col items-center justify-center border-l border-[#334155]/50 pl-4 w-1/5 h-full">
+<div class="flex flex-col items-center gap-1 mb-2">
+<span class="font-label-sm text-[8px] text-on-surface-variant uppercase tracking-widest text-center block">Gain L/R</span>
+<div class="knob-container" style="width: 40px; height: 40px;">
+<div class="knob" style="transform: rotate(0deg); background: linear-gradient(135deg, #475569, #1e293b);">
+<div class="knob-indicator" style="background-color: #fff; height: 10px; top: 4px; transform-origin: center 16px;"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Realistic Mastering Compressor Unit (API 2500 Style) -->
+<div class="faceplate-la2a rounded p-4 border-2 border-[#171717] relative group overflow-hidden shadow-2xl flex items-center h-40 mt-2">
+<!-- Rack Screws -->
+<div class="screw top-2 left-2"></div><div class="screw bottom-2 left-2"></div>
+<div class="screw top-2 right-2"></div><div class="screw bottom-2 right-2"></div>
+<div class="flex items-center justify-between w-full px-6 z-10">
+<div class="flex flex-col w-1/4 items-center justify-center h-full border-r border-[#333]/50 pr-4">
+<h4 class="font-bold text-on-surface text-lg tracking-wider mb-1 text-center">API 2500</h4>
+<span class="font-label-sm text-[8px] text-on-surface-variant uppercase tracking-widest text-center block">Stereo Bus Comp</span>
+<div class="flex gap-4 mt-3">
+<div class="flex flex-col items-center gap-1">
+<div class="toggle-switch up" style="transform: scale(0.7);">
+<div class="toggle-bat"></div>
+</div>
+<span class="font-label-sm text-[8px] text-[#8b90a0]">IN</span>
+</div>
+</div>
+</div>
+<div class="flex gap-6 flex-1 justify-center items-center px-4">
+<!-- Threshold Knob -->
+<div class="flex flex-col items-center gap-2">
+<div class="text-center mb-1"><span class="text-[9px] text-[#8b90a0] font-label-sm uppercase tracking-widest block">Thresh</span></div>
+<div class="knob-container" style="width: 50px; height: 50px;">
+<div class="knob-ring" style="border-top-color: #ffb4ab; border-right-color: #ffb4ab; border-width: 2px;"></div>
+<div class="knob" style="transform: rotate(-10deg); background: radial-gradient(circle, #2a2a2a, #000); border: 1px solid #444;">
+<div class="knob-indicator" style="background-color: #ffb4ab; height: 14px; top: 4px; transform-origin: center 21px;"></div>
+</div>
+</div>
+</div>
+<!-- Attack Knob (Stepped) -->
+<div class="flex flex-col items-center gap-2">
+<div class="text-center mb-1"><span class="text-[9px] text-[#8b90a0] font-label-sm uppercase tracking-widest block">Attack</span></div>
+<div class="knob-container" style="width: 40px; height: 40px;">
+<div class="knob" style="transform: rotate(30deg); background: radial-gradient(circle, #333, #111); border: 1px solid #555;">
+<div class="knob-indicator" style="background-color: #fff; height: 10px; top: 4px; transform-origin: center 16px;"></div>
+</div>
+</div>
+</div>
+<!-- Ratio Knob (Stepped) -->
+<div class="flex flex-col items-center gap-2">
+<div class="text-center mb-1"><span class="text-[9px] text-[#8b90a0] font-label-sm uppercase tracking-widest block">Ratio</span></div>
+<div class="knob-container" style="width: 40px; height: 40px;">
+<div class="knob" style="transform: rotate(-45deg); background: radial-gradient(circle, #333, #111); border: 1px solid #555;">
+<div class="knob-indicator" style="background-color: #fff; height: 10px; top: 4px; transform-origin: center 16px;"></div>
+</div>
+</div>
+</div>
+<!-- Release Knob -->
+<div class="flex flex-col items-center gap-2">
+<div class="text-center mb-1"><span class="text-[9px] text-[#8b90a0] font-label-sm uppercase tracking-widest block">Release</span></div>
+<div class="knob-container" style="width: 50px; height: 50px;">
+<div class="knob" style="transform: rotate(15deg); background: radial-gradient(circle, #2a2a2a, #000); border: 1px solid #444;">
+<div class="knob-indicator" style="background-color: #fff; height: 14px; top: 4px; transform-origin: center 21px;"></div>
+</div>
+</div>
+</div>
+</div>
+<div class="flex flex-col items-center justify-center border-l border-[#333]/50 pl-6 h-full">
+<!-- Analog Style VU Meter for Gain Reduction -->
+<div class="w-32 h-20 bg-[#f5f5dc] rounded border-[6px] border-[#222] relative overflow-hidden mb-1 shadow-inner flex items-end justify-center pb-2">
+<svg class="absolute inset-0 w-full h-full opacity-80" preserveaspectratio="none" viewbox="0 0 100 50">
+<path d="M 10 40 A 40 30 0 0 1 90 40" fill="none" stroke="#000" stroke-width="0.5"></path>
+<text fill="#000" font-family="sans-serif" font-size="8" text-anchor="middle" x="50" y="25">VU</text>
+<line stroke="#000" stroke-width="0.5" x1="50" x2="50" y1="35" y2="40"></line>
+</svg>
+<div class="absolute bottom-[-5px] left-1/2 w-[1.5px] h-24 bg-[#111] origin-bottom transition-transform duration-75 shadow-[1px_0_2px_rgba(0,0,0,0.3)]" style="transform: rotate(-25deg);"></div>
+<div class="absolute top-1 left-1/2 -translate-x-1/2 w-4 h-2 bg-[#ffeedd] rounded-full blur-[2px] opacity-50"></div>
+</div>
+<span class="font-label-sm text-[8px] text-on-surface-variant uppercase tracking-widest">Gain Reduction</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Room Correction & Monitor Section -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-gutter">
+<!-- Room Correction EQ -->
+<div class="bg-[#1E293B] border border-[#334155] rounded-xl p-6 flex flex-col relative overflow-hidden">
+<div class="flex justify-between items-center mb-6">
+<h3 class="font-headline-md text-headline-md text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary" data-icon="equalizer">equalizer</span> 
+                                    Room Correction Calibration
+                                </h3>
+<button class="bg-surface-variant/50 text-on-surface-variant text-xs px-3 py-1.5 rounded border border-outline-variant/30 hover:text-primary transition-colors">Bypass Monitor EQ</button>
+</div>
+<div class="bg-surface-container-low rounded-lg border border-outline-variant/30 p-4 relative flex-1 min-h-[200px]">
+<div class="absolute inset-0 p-4">
+<svg class="w-full h-full" preserveaspectratio="none" viewbox="0 0 500 200">
+<!-- Grid -->
+<line stroke="#334155" stroke-dasharray="2" stroke-width="1" x1="0" x2="500" y1="50" y2="50"></line>
+<line stroke="#334155" stroke-width="1" x1="0" x2="500" y1="100" y2="100"></line>
+<line stroke="#334155" stroke-dasharray="2" stroke-width="1" x1="0" x2="500" y1="150" y2="150"></line>
+<!-- Frequency Lines -->
+<line stroke="#334155" stroke-dasharray="2" stroke-width="1" x1="100" x2="100" y1="0" y2="200"></line>
+<line stroke="#334155" stroke-dasharray="2" stroke-width="1" x1="250" x2="250" y1="0" y2="200"></line>
+<line stroke="#334155" stroke-dasharray="2" stroke-width="1" x1="400" x2="400" y1="0" y2="200"></line>
+<!-- Measured Room Response (Background) -->
+<path d="M0,120 Q50,80 100,140 T200,90 T300,130 T400,100 T500,110" fill="none" opacity="0.4" stroke="#4b8eff" stroke-width="1.5"></path>
+<!-- Applied Correction Curve -->
+<path d="M0,80 Q50,120 100,60 T200,110 T300,70 T400,100 T500,90" fill="none" stroke="#2fd9f4" stroke-width="2"></path>
+<!-- Resulting Flat Response -->
+<path d="M0,100 L500,100" fill="none" opacity="0.8" stroke="#ffb4ab" stroke-dasharray="4" stroke-width="2"></path>
+</svg>
+</div>
+<div class="absolute bottom-2 left-0 w-full flex justify-between px-4 text-[10px] text-on-surface-variant font-label-sm">
+<span>20Hz</span>
+<span>100Hz</span>
+<span>1kHz</span>
+<span>10kHz</span>
+</div>
+</div>
+</div>
+<!-- Tutorial Hub & Pro Tools Mix Bridge -->
+<div class="bg-[#1E293B] border border-[#334155] rounded-xl p-6 flex flex-col relative">
+<div class="flex justify-between items-center mb-6">
+<h3 class="font-headline-md text-headline-md text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-primary" data-icon="play_lesson">play_lesson</span> 
+                            Mastering Workflow Guides
+                        </h3>
+<div class="flex items-center gap-3">
+<div class="w-32 h-2 bg-surface-container-low rounded-full overflow-hidden">
+<div class="h-full bg-primary" style="width: 33%;"></div>
+</div>
+<span class="text-xs text-on-surface-variant font-label-sm">1/3 Complete</span>
+</div>
+</div>
+<div class="grid grid-cols-1 gap-4 flex-1">
+<div class="bg-surface-container rounded-lg p-4 border border-primary relative cursor-pointer group shadow-[0_0_15px_rgba(173,198,255,0.15)] flex items-center gap-4">
+<div class="absolute -top-2 -right-2 w-6 h-6 bg-primary rounded-full flex items-center justify-center text-surface shadow-lg">
+<span class="material-symbols-outlined text-[14px]" data-icon="check">check</span>
+</div>
+<div class="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center group-hover:scale-110 transition-transform shrink-0">
+<span class="material-symbols-outlined text-primary" data-icon="cable">cable</span>
+</div>
+<div>
+<h4 class="font-bold text-on-surface mb-1">Analog Insert Routing</h4>
+<p class="text-xs text-on-surface-variant">Configure D/A -&gt; Outboard -&gt; A/D roundtrips.</p>
+<div class="mt-2 flex gap-1">
+<span class="bg-primary/20 text-primary text-[10px] px-2 py-0.5 rounded-full border border-primary/30 flex items-center gap-1"><span class="material-symbols-outlined text-[10px]" data-icon="military_tech">military_tech</span> Routing Expert</span>
+</div>
+</div>
+</div>
+<div class="bg-surface-container rounded-lg p-4 border border-outline-variant hover:border-tertiary transition-colors cursor-pointer group flex items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-secondary/20 flex items-center justify-center group-hover:scale-110 transition-transform shrink-0">
+<span class="material-symbols-outlined text-secondary" data-icon="equalizer">equalizer</span>
+</div>
+<div>
+<h4 class="font-bold text-on-surface mb-1">M/S Equalization</h4>
+<p class="text-xs text-on-surface-variant">Techniques for processing Mid and Side signals independently.</p>
+</div>
+</div>
+<div class="bg-surface-container rounded-lg p-4 border border-outline-variant hover:border-tertiary transition-colors cursor-pointer group flex items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-tertiary/20 flex items-center justify-center group-hover:scale-110 transition-transform shrink-0">
+<span class="material-symbols-outlined text-tertiary" data-icon="compress">compress</span>
+</div>
+<div>
+<h4 class="font-bold text-on-surface mb-1">Loudness &amp; Limiting</h4>
+<p class="text-xs text-on-surface-variant">Achieving commercial levels while preserving dynamics (LUFS targets).</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div></main>
+</div>
+</body></html>

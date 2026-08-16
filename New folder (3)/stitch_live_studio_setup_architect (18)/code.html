@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Live Planner - Setup Studio</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-tint": "#adc6ff",
+                        "surface-bright": "#2a3a4f",
+                        "on-surface": "#d3e4fe",
+                        "on-surface-variant": "#c1c6d7",
+                        "secondary-fixed-dim": "#bec6e0",
+                        "error-container": "#93000a",
+                        "tertiary-fixed-dim": "#2fd9f4",
+                        "on-tertiary-container": "#002f36",
+                        "on-error": "#690005",
+                        "on-secondary-fixed": "#131b2e",
+                        "on-secondary-fixed-variant": "#3f465c",
+                        "on-background": "#d3e4fe",
+                        "tertiary-fixed": "#a2eeff",
+                        "surface": "#031427",
+                        "on-secondary": "#283044",
+                        "surface-container-highest": "#26364a",
+                        "surface-container-low": "#0b1c30",
+                        "on-secondary-container": "#adb4ce",
+                        "secondary-fixed": "#dae2fd",
+                        "on-primary-fixed": "#001a41",
+                        "on-tertiary": "#00363e",
+                        "on-primary-container": "#00285c",
+                        "on-error-container": "#ffdad6",
+                        "on-tertiary-fixed": "#001f25",
+                        "inverse-primary": "#005bc1",
+                        "surface-container-high": "#1b2b3f",
+                        "primary-fixed": "#d8e2ff",
+                        "on-primary-fixed-variant": "#004493",
+                        "surface-variant": "#26364a",
+                        "surface-container-lowest": "#000f21",
+                        "inverse-on-surface": "#213145",
+                        "surface-container": "#102034",
+                        "primary": "#adc6ff",
+                        "secondary-container": "#3f465c",
+                        "background": "#031427",
+                        "error": "#ffb4ab",
+                        "primary-container": "#4b8eff",
+                        "outline-variant": "#414755",
+                        "primary-fixed-dim": "#adc6ff",
+                        "on-tertiary-fixed-variant": "#004e5a",
+                        "secondary": "#bec6e0",
+                        "outline": "#8b90a0",
+                        "tertiary-container": "#009fb4",
+                        "on-primary": "#002e69",
+                        "tertiary": "#2fd9f4",
+                        "surface-dim": "#031427",
+                        "inverse-surface": "#d3e4fe"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "margin-mobile": "16px",
+                        "container-max": "1440px",
+                        "unit": "4px",
+                        "gutter": "24px",
+                        "margin-desktop": "40px"
+                    },
+                    "fontFamily": {
+                        "headline-lg": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "display-lg": ["Inter"],
+                        "body-md": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "label-sm": ["JetBrains Mono"]
+                    },
+                    "fontSize": {
+                        "headline-lg": ["32px", { "lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "headline-md": ["20px", { "lineHeight": "1.4", "fontWeight": "600" }],
+                        "display-lg": ["48px", { "lineHeight": "1.1", "letterSpacing": "-0.04em", "fontWeight": "800" }],
+                        "body-md": ["16px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "headline-lg-mobile": ["24px", { "lineHeight": "1.2", "fontWeight": "700" }],
+                        "label-sm": ["12px", { "lineHeight": "1.0", "letterSpacing": "0.05em", "fontWeight": "500" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            background-color: #0F172A; /* Base surface - Design System */
+            color: #d3e4fe;
+        }
+        
+        /* Custom Scrollbar for sleek UI */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #031427; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #26364a; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #414755; 
+        }
+
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.6); /* Semi-transparent Navy */
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid #334155;
+        }
+        
+        .card-navy {
+            background-color: #1E293B;
+            border: 1px solid #334155;
+        }
+
+        .gradient-text {
+            background: linear-gradient(to right, #adc6ff, #2fd9f4, #bec6e0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .btn-primary-gradient {
+            background: linear-gradient(to right, #adc6ff, #2fd9f4);
+            color: #031427;
+            transition: all 0.2s ease;
+        }
+        .btn-primary-gradient:hover {
+            filter: brightness(1.1);
+            box-shadow: 0 0 12px rgba(47, 217, 244, 0.4);
+        }
+        
+        .input-glow:focus-within {
+            border-color: #2fd9f4 !important;
+            box-shadow: 0 0 8px rgba(47, 217, 244, 0.3);
+        }
+
+        .rainbow-ring {
+            background: linear-gradient(45deg, #adc6ff, #2fd9f4, #bec6e0);
+            padding: 2px;
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body class="font-body-md text-body-md antialiased overflow-hidden">
+<!-- TopNavBar -->
+<header class="bg-surface/80 dark:bg-surface-dim/80 backdrop-blur-xl fixed top-0 w-full z-50 border-b border-outline-variant/30 shadow-sm">
+<div class="flex justify-between items-center h-16 px-margin-desktop max-w-container-max mx-auto">
+<div class="flex items-center gap-8">
+<!-- Brand Logo -->
+<div class="font-headline-lg text-headline-lg bg-clip-text text-transparent bg-gradient-to-r from-primary via-tertiary to-secondary whitespace-nowrap hidden md:block">
+                    Live Planner
+                </div>
+<div class="font-headline-lg-mobile text-headline-lg-mobile bg-clip-text text-transparent bg-gradient-to-r from-primary via-tertiary to-secondary md:hidden">
+                    LP
+                </div>
+<!-- Navigation Links (Hidden on Mobile) -->
+<nav class="hidden md:flex gap-6 h-full items-center">
+<a class="text-on-surface-variant dark:text-on-secondary-container hover:text-primary transition-colors font-label-sm text-label-sm hover:bg-surface-bright/10 dark:hover:bg-surface-container-high/50 transition-all px-2 py-1 rounded" href="#">Dashboard</a>
+<a class="text-on-surface-variant dark:text-on-secondary-container hover:text-primary transition-colors font-label-sm text-label-sm hover:bg-surface-bright/10 dark:hover:bg-surface-container-high/50 transition-all px-2 py-1 rounded" href="#">Inventory</a>
+<a class="text-on-surface-variant dark:text-on-secondary-container hover:text-primary transition-colors font-label-sm text-label-sm hover:bg-surface-bright/10 dark:hover:bg-surface-container-high/50 transition-all px-2 py-1 rounded" href="#">Schedule</a>
+<a class="text-on-surface-variant dark:text-on-secondary-container hover:text-primary transition-colors font-label-sm text-label-sm hover:bg-surface-bright/10 dark:hover:bg-surface-container-high/50 transition-all px-2 py-1 rounded" href="#">Team</a>
+<a class="text-on-surface-variant dark:text-on-secondary-container hover:text-primary transition-colors font-label-sm text-label-sm hover:bg-surface-bright/10 dark:hover:bg-surface-container-high/50 transition-all px-2 py-1 rounded" href="#">Reports</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<!-- Search (Left of actions per JSON logic, though UI layout typical on right) -->
+<div class="hidden lg:flex items-center bg-[#020617] border border-outline-variant/50 rounded px-3 py-1.5 input-glow w-64 transition-all">
+<span class="material-symbols-outlined text-outline text-[18px] mr-2">search</span>
+<input class="bg-transparent border-none outline-none text-on-surface font-label-sm text-label-sm w-full placeholder:text-outline-variant focus:ring-0 p-0 h-auto" placeholder="Search studio assets..." type="text"/>
+</div>
+<!-- Trailing Actions -->
+<button class="text-on-surface-variant hover:text-primary transition-colors p-2 rounded-full hover:bg-surface-bright/10 dark:hover:bg-surface-container-high/50">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="text-on-surface-variant hover:text-primary transition-colors p-2 rounded-full hover:bg-surface-bright/10 dark:hover:bg-surface-container-high/50 hidden sm:block">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<!-- Profile -->
+<div class="rainbow-ring ml-2">
+<img alt="User avatar with rainbow status ring" class="w-8 h-8 rounded-full border-2 border-[#0F172A] object-cover" data-alt="A futuristic, hyper-realistic digital avatar portrait of a creative professional. The subject has glowing neon accents and is framed by a highly saturated rainbow-colored status ring indicating they are 'live'. The background is deep navy blue with subtle technological grid lines. High contrast, clean corporate modern aesthetic with a creative edge." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCMkGcz0iLp0yxd-oe_RU5Rmhk2JsZbxkqONg7RNKgm5z25q2x7C2M8X9UeHB3kfzorfiPKRBK6AzTDquXQiimlRJwm4CZWFPYQ8yRXuuRTs7Hp1KRGkI5T-bWK5h40wZTinM4KyiKOK4SHviIiE0TIKP6ASTDVkHekIGsM7XiNDlDKfn1TPPB2pQVUSDS9IVsExvtcG0WG__cKvEV29fcpVVTF--XaNzIULE12XyC0ZUNwmyb1BjOE"/>
+</div>
+</div>
+</div>
+</header>
+<div class="flex h-screen pt-16">
+<!-- SideNavBar -->
+<aside class="bg-surface-container dark:bg-surface-container-low fixed left-0 top-16 h-[calc(100vh-64px)] w-60 border-r border-outline-variant/20 flex flex-col py-6 gap-2 z-40 hidden lg:flex transition-transform duration-300">
+<!-- Header -->
+<div class="px-6 mb-6 flex flex-col items-center">
+<div class="w-16 h-16 rounded-lg bg-surface-container-highest flex items-center justify-center mb-3 shadow-sm border border-outline-variant/30">
+<span class="material-symbols-outlined text-tertiary text-[32px]">architecture</span>
+</div>
+<h2 class="font-headline-md text-headline-md font-bold text-on-surface text-center">Creative Rail</h2>
+<p class="font-label-sm text-label-sm text-on-surface-variant text-center mt-1">Command Center</p>
+<button class="mt-6 w-full btn-primary-gradient font-label-sm text-label-sm font-bold py-2 px-4 rounded flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[16px]">add</span>
+                    New Project
+                </button>
+</div>
+<!-- Navigation Tabs -->
+<nav class="flex-1 overflow-y-auto mt-4 px-2 space-y-1">
+<a class="flex items-center gap-3 text-on-surface-variant hover:bg-surface-variant/50 px-4 py-3 transition-all rounded font-body-md text-body-md hover:translate-x-1 duration-200" href="#">
+<span class="material-symbols-outlined" data-weight="fill">sensors</span>
+<span>Setup Live</span>
+</a>
+<!-- Active Tab -->
+<a class="flex items-center gap-3 bg-gradient-to-r from-primary/20 to-transparent text-primary border-l-4 border-primary font-bold px-4 py-3 rounded-r font-body-md text-body-md scale-[0.98]" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">mic_external_on</span>
+<span>Setup Studio</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant hover:bg-surface-variant/50 px-4 py-3 transition-all rounded font-body-md text-body-md hover:translate-x-1 duration-200" href="#">
+<span class="material-symbols-outlined" data-weight="fill">fiber_manual_record</span>
+<span>Setup Record</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant hover:bg-surface-variant/50 px-4 py-3 transition-all rounded font-body-md text-body-md hover:translate-x-1 duration-200" href="#">
+<span class="material-symbols-outlined" data-weight="fill">terminal</span>
+<span>Setup Software</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant hover:bg-surface-variant/50 px-4 py-3 transition-all rounded font-body-md text-body-md hover:translate-x-1 duration-200" href="#">
+<span class="material-symbols-outlined" data-weight="fill">memory</span>
+<span>Rakit PC</span>
+</a>
+</nav>
+<!-- Footer Tabs -->
+<div class="px-2 mt-auto pt-4 border-t border-outline-variant/20 space-y-1">
+<a class="flex items-center gap-3 text-on-surface-variant hover:bg-surface-variant/50 px-4 py-3 transition-all rounded font-label-sm text-label-sm" href="#">
+<span class="material-symbols-outlined text-[18px]">help</span>
+<span>Support</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant hover:bg-surface-variant/50 px-4 py-3 transition-all rounded font-label-sm text-label-sm" href="#">
+<span class="material-symbols-outlined text-[18px]">archive</span>
+<span>Archive</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="flex-1 lg:ml-60 h-full overflow-y-auto bg-[#0F172A] p-margin-mobile md:p-gutter lg:p-margin-desktop">
+<div class="max-w-container-max mx-auto h-full flex flex-col gap-gutter">
+<!-- Page Header -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-2">
+<div>
+<h1 class="font-display-lg text-display-lg text-on-surface mb-2">Studio Environment</h1>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-2xl">Configure physical room parameters, acoustic treatments, and spatial layout for optimal live performance capture.</p>
+</div>
+<div class="flex gap-3">
+<button class="bg-surface-container-high border border-tertiary text-tertiary hover:bg-tertiary/10 px-4 py-2 rounded font-label-sm text-label-sm transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]">download</span>
+                            Export Specs
+                        </button>
+<button class="btn-primary-gradient px-4 py-2 rounded font-label-sm text-label-sm font-bold flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]">save</span>
+                            Save Layout
+                        </button>
+</div>
+</div>
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
+<!-- 3D Floor Plan Tool (Spans 8 cols on desktop) -->
+<div class="lg:col-span-8 card-navy rounded-xl p-4 flex flex-col relative overflow-hidden min-h-[500px]">
+<div class="flex justify-between items-center mb-4 z-10">
+<h3 class="font-headline-md text-headline-md text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">view_in_ar</span>
+                                Spatial Layout Viewer
+                            </h3>
+<div class="flex gap-2">
+<button class="p-1.5 bg-surface-container border border-outline-variant/30 rounded hover:bg-surface-bright/50 text-on-surface-variant transition-colors">
+<span class="material-symbols-outlined text-[18px]">zoom_in</span>
+</button>
+<button class="p-1.5 bg-surface-container border border-outline-variant/30 rounded hover:bg-surface-bright/50 text-on-surface-variant transition-colors">
+<span class="material-symbols-outlined text-[18px]">zoom_out</span>
+</button>
+<button class="p-1.5 bg-surface-container border border-outline-variant/30 rounded hover:bg-surface-bright/50 text-on-surface-variant transition-colors ml-2">
+<span class="material-symbols-outlined text-[18px]">layers</span>
+</button>
+</div>
+</div>
+<!-- 3D Viewport Placeholder -->
+<div class="flex-1 bg-[#020617] rounded-lg border border-outline-variant/30 relative overflow-hidden group">
+<!-- Background Grid Pattern to simulate floor -->
+<div class="absolute inset-0 opacity-20" style="background-image: radial-gradient(#2fd9f4 1px, transparent 1px); background-size: 40px 40px;"></div>
+<!-- Placeholder Image for 3D render -->
+<div class="absolute inset-0 flex items-center justify-center p-4">
+<img alt="Studio Floor Plan Isometric Render" class="w-full h-full object-contain opacity-80 mix-blend-screen" data-alt="A clean, architectural wireframe render of a modern recording studio floor plan viewed from a top-down isometric angle. The layout includes outlines of a mixing desk, vocal booth, acoustic panels, and minimalist seating. The aesthetic is highly technical, using deep navy blues and glowing cyan and blue lines to indicate structural elements, reflecting a high-density, high-tech command center vibe." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDBiJBXHsv4_k9BFliRuBWJPdaT5snWz4kS-YeoQFHalzYsQeJ3AXc4OJMdAVybRZpMrYj0KzXFXytguPZ_CIAuqe0pdQFLsx0XYCTgVmyKD8P5IIP4LxD6FPsZZ9INjTcLBWYJRpIH0Yc2tFBZNucQBIyj9v4VRByJFxIBOoxi8D4lSD1fb_EP3i_BkqHBiEcbcgQmxfj63F5ZdbrOp-crbvJe8DN4Nc3fUhfwdJdDM8JjpA4gmHCt"/>
+</div>
+<!-- Interactive overlay elements (simulated) -->
+<div class="absolute top-1/4 left-1/4 w-32 h-20 border border-primary/50 bg-primary/10 rounded flex items-center justify-center cursor-move hover:border-primary transition-colors">
+<span class="font-label-sm text-label-sm text-primary">Main Desk</span>
+</div>
+<div class="absolute top-1/2 right-1/4 w-16 h-16 border border-tertiary/50 bg-tertiary/10 rounded-full flex items-center justify-center cursor-move hover:border-tertiary transition-colors">
+<span class="font-label-sm text-label-sm text-tertiary">Chair A</span>
+</div>
+<!-- Status HUD -->
+<div class="absolute bottom-4 left-4 glass-panel px-3 py-2 rounded flex gap-4">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-outline-variant uppercase">Room Size</span>
+<span class="font-label-sm text-label-sm text-on-surface">5.2m x 4.8m</span>
+</div>
+<div class="w-px bg-outline-variant/30"></div>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-outline-variant uppercase">Vol</span>
+<span class="font-label-sm text-label-sm text-on-surface">69.9 m³</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Acoustic Treatment & Furniture (Spans 4 cols on desktop) -->
+<div class="lg:col-span-4 flex flex-col gap-gutter">
+<!-- Acoustic Status Card -->
+<div class="card-navy rounded-xl p-4 flex flex-col relative border-t-2 border-t-tertiary">
+<div class="absolute top-4 right-4 font-label-sm text-label-sm bg-tertiary/10 text-tertiary px-2 py-1 rounded border border-tertiary/30">
+                                ACTIVE MAP
+                            </div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-1 flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary">waves</span>
+                                Acoustic Map
+                            </h3>
+<p class="font-label-sm text-label-sm text-on-surface-variant mb-4">Treatment placement and reflection analysis.</p>
+<!-- Part List Style (Zebra Striping) -->
+<div class="flex flex-col gap-1 border border-outline-variant/30 rounded-lg overflow-hidden bg-[#020617]">
+<!-- Header Row -->
+<div class="grid grid-cols-4 px-3 py-2 bg-surface-container-high border-b border-outline-variant/30 font-label-sm text-label-sm text-outline-variant uppercase">
+<div class="col-span-2">Element</div>
+<div>Type</div>
+<div class="text-right">Qty</div>
+</div>
+<!-- Rows -->
+<div class="grid grid-cols-4 px-3 py-2 bg-transparent hover:bg-surface-bright/10 hover:scale-[1.01] transition-transform border-b border-outline-variant/10 cursor-pointer">
+<div class="col-span-2 font-body-md text-body-md text-on-surface flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-primary"></div>
+                                        Corner Traps
+                                    </div>
+<div class="font-label-sm text-label-sm text-on-surface-variant flex items-center">Bass</div>
+<div class="font-label-sm text-label-sm text-on-surface text-right flex items-center justify-end">4</div>
+</div>
+<div class="grid grid-cols-4 px-3 py-2 bg-surface/30 hover:bg-surface-bright/10 hover:scale-[1.01] transition-transform border-b border-outline-variant/10 cursor-pointer">
+<div class="col-span-2 font-body-md text-body-md text-on-surface flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-tertiary"></div>
+                                        Wall Panels
+                                    </div>
+<div class="font-label-sm text-label-sm text-on-surface-variant flex items-center">Mid/High</div>
+<div class="font-label-sm text-label-sm text-on-surface text-right flex items-center justify-end">8</div>
+</div>
+<div class="grid grid-cols-4 px-3 py-2 bg-transparent hover:bg-surface-bright/10 hover:scale-[1.01] transition-transform cursor-pointer">
+<div class="col-span-2 font-body-md text-body-md text-on-surface flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-secondary"></div>
+                                        Ceiling Cloud
+                                    </div>
+<div class="font-label-sm text-label-sm text-on-surface-variant flex items-center">Diffusor</div>
+<div class="font-label-sm text-label-sm text-on-surface text-right flex items-center justify-end">2</div>
+</div>
+</div>
+<button class="mt-4 w-full bg-transparent border border-outline-variant/50 text-primary hover:border-primary hover:bg-primary/5 py-2 rounded font-label-sm text-label-sm transition-all">
+                                Run Audio Analysis
+                            </button>
+</div>
+<!-- Furniture Catalog Card -->
+<div class="card-navy rounded-xl p-4 flex-1 flex flex-col">
+<h3 class="font-headline-md text-headline-md text-on-surface mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary">chair</span>
+                                Environment Assets
+                            </h3>
+<div class="flex-1 overflow-y-auto pr-2 space-y-3">
+<!-- Asset Item -->
+<div class="flex gap-3 p-3 rounded-lg bg-[#020617] border border-outline-variant/30 hover:border-secondary/50 transition-colors group cursor-grab">
+<div class="w-16 h-16 rounded bg-surface-container-high flex-shrink-0 flex items-center justify-center overflow-hidden">
+<img alt="Studio Desk" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" data-alt="A small, high-quality product render of a sleek, ergonomic studio desk designed for music production. Dark wood finish with integrated rack mounts and glowing LED accents beneath the main tier, shot against a solid deep navy background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA9egHbgJIZmSOJqGNcIhkO6CdyqmvNpNGJvqfM8JRaCgImBRBt_SiSzGnUVe7xBZulHqmXL4ufQAmaFkLxl4lbr6DeUTbzWbl04EcAb7HGWK4HARlOKdSgRBWw6l9uqPr7kHka5D_4un9VJ5pA8tEMBVfIp2ZcCRKIGcTKmqhrcnfLeP4ZshlKs7968fL51HYddYCZWIVb6g5KhsUtcVFxH4fMSGVyrFh1Cd4KfMpE2iwxNELQW9Rf"/>
+</div>
+<div class="flex flex-col justify-center flex-1">
+<div class="font-body-md text-body-md text-on-surface font-semibold">Command Desk MkII</div>
+<div class="flex justify-between items-center mt-1">
+<span class="font-label-sm text-label-sm text-outline-variant">Workstation</span>
+<span class="font-label-sm text-label-sm text-secondary bg-secondary/10 px-1.5 py-0.5 rounded">In Room</span>
+</div>
+</div>
+</div>
+<!-- Asset Item -->
+<div class="flex gap-3 p-3 rounded-lg bg-[#020617] border border-outline-variant/30 hover:border-secondary/50 transition-colors group cursor-grab">
+<div class="w-16 h-16 rounded bg-surface-container-high flex-shrink-0 flex items-center justify-center overflow-hidden">
+<img alt="Ergo Chair" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" data-alt="A small, high-quality product render of a premium ergonomic office chair suitable for long hours of studio work. Mesh back, dark grey and black materials with subtle cyan trim. Shot against a solid deep navy background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBTWL68mKDoe4WER9mytvfUugMowCqZpCjxZjjdpFNHtbWw8v5-9WwB-eKpbEgEqlftYBX-wI0OnO_r06sRUAVXC-KAoEB-ROg90eMBmXRMDr4m95D3W8OXDdXcmleSGlx65UoyEo4mIlawAAfcExr0ZVh0c5cxa-wKut0xuw_cs4856UBKypErP2UaHvEveiMz7wksEo7OeMcXzm3qDYSREoxErH5fda4GgLzkBhZRyyeFQzQ0Lf2Q"/>
+</div>
+<div class="flex flex-col justify-center flex-1">
+<div class="font-body-md text-body-md text-on-surface font-semibold">ErgoPro Chair</div>
+<div class="flex justify-between items-center mt-1">
+<span class="font-label-sm text-label-sm text-outline-variant">Seating</span>
+<span class="font-label-sm text-label-sm text-secondary bg-secondary/10 px-1.5 py-0.5 rounded">In Room</span>
+</div>
+</div>
+</div>
+<!-- Asset Item (Not in room) -->
+<div class="flex gap-3 p-3 rounded-lg bg-[#020617] border border-outline-variant/30 hover:border-outline-variant transition-colors group cursor-grab opacity-60 hover:opacity-100">
+<div class="w-16 h-16 rounded bg-surface-container-high flex-shrink-0 flex items-center justify-center">
+<span class="material-symbols-outlined text-outline-variant text-[24px]">speaker</span>
+</div>
+<div class="flex flex-col justify-center flex-1">
+<div class="font-body-md text-body-md text-on-surface font-semibold">Monitor Stands</div>
+<div class="flex justify-between items-center mt-1">
+<span class="font-label-sm text-label-sm text-outline-variant">Support</span>
+<span class="font-label-sm text-label-sm text-outline-variant bg-surface-container-highest px-1.5 py-0.5 rounded flex items-center gap-1"><span class="material-symbols-outlined text-[12px]">add</span> Add</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

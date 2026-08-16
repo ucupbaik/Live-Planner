@@ -1,1290 +1,435 @@
 <!DOCTYPE html>
-<html lang="id">
+<html class="dark" lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Live Event Planner</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-    <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; overflow: hidden; }
-        .no-select { user-select: none; -webkit-user-select: none; }
-
-        #canvas-area {
-            background-color: #0f172a;
-            background-image:
-                linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
-            background-size: 40px 40px;
-            cursor: grab;
-        }
-        #canvas-area.panning { cursor: grabbing; }
-
-        #zoom-wrapper {
-            position: absolute; top: 0; left: 0;
-            width: 4000px; height: 3000px; transform-origin: 0 0;
-        }
-
-        .device-node {
-            position: absolute; background: #1e293b; border: 1px solid #334155;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5); width: 230px;
-            cursor: grab; border-radius: 10px; z-index: 10; transition: border-color 0.2s;
-        }
-        .device-node:active { cursor: grabbing; }
-        .device-node:hover { border-color: #475569; }
-        .device-node .handle { cursor: inherit; }
-        .device-node button, .device-node .port { cursor: pointer; }
-
-        .port {
-            width: 14px; height: 14px; border-radius: 50%; background: #cbd5e1;
-            border: 3px solid #0f172a; cursor: crosshair; position: absolute; transition: all 0.2s; z-index: 20;
-        }
-        .port:hover { transform: scale(1.4); background: #3b82f6; }
-        .port.active { background: #eab308; box-shadow: 0 0 12px #eab308; border-color: #fff; }
-
-        .port-in { left: -7px; }
-        .port-out { right: -7px; }
-
-        .device-image {
-            width: 100%; height: 76px; display: flex; align-items: center; justify-content: center;
-            background: #0f172a; border-top: 1px solid #334155; border-bottom: 1px solid #334155;
-            position: relative; overflow: hidden;
-        }
-        .device-image img { max-width: 100%; max-height: 100%; object-fit: contain; padding: 6px; pointer-events: none; }
-        .device-image .fallback-emoji { display: none; width: 100%; height: 100%; align-items: center; justify-content: center; font-size: 28px; }
-
-        .icon-btn { opacity: 0.8; transition: opacity 0.15s, transform 0.15s; width: 26px; height: 26px; display: inline-flex; align-items: center; justify-content: center; border-radius: 6px; font-size: 15px; }
-        .icon-btn:hover { opacity: 1; transform: scale(1.18); background: rgba(255,255,255,0.08); }
-
-        .notes-dot { width: 7px; height: 7px; border-radius: 50%; background: #eab308; display: inline-block; margin-left: 4px; }
-
-        #toast { position: fixed; top: 20px; right: 20px; padding: 12px 24px; border-radius: 8px; font-weight: bold; transform: translateX(150%); transition: transform 0.3s; z-index: 99999; max-width: 340px; }
-        .toast-error { background: #ef4444; color: white; }
-        .toast-success { background: #10b981; color: white; }
-        #toast.show { transform: translateX(0); }
-
-        .modal-overlay { display: none; }
-        .modal-overlay.active { display: flex; }
-
-        #zoom-controls, #legend-panel { z-index: 30; }
-
-        details > summary { list-style: none; }
-        details > summary::-webkit-details-marker { display: none; }
-        details > summary .chevron { transition: transform 0.15s; }
-        details[open] > summary .chevron { transform: rotate(90deg); }
-
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #1e293b; }
-        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
-
-        .screen { position: absolute; inset: 0; display: none; }
-        .screen.active { display: flex; }
-
-        .module-card { transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s; }
-        .module-card:hover { transform: translateY(-4px); box-shadow: 0 18px 30px -10px rgba(0,0,0,.6); border-color: #3b82f6; }
-
-        .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-    </style>
-</head>
-<body class="bg-slate-900 text-slate-200 h-screen">
-
-    <div id="toast" class="toast-error shadow-lg">Pesan</div>
-
-    <!-- ============ LOGIN SCREEN ============ -->
-    <div id="login-screen" class="screen active flex-col items-center justify-center bg-slate-900">
-        <div class="w-full max-w-md bg-slate-800 border border-slate-700 rounded-2xl shadow-2xl p-8">
-            <div class="text-center mb-6">
-                <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 text-white text-3xl mb-3"><i class="fa-solid fa-satellite-dish"></i></div>
-                <h1 class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">Live Event Planner</h1>
-                <p class="text-xs text-slate-400 mt-1">Masuk untuk merancang & menyimpan arsitektur siaran Anda</p>
-            </div>
-
-            <button onclick="startGoogle()" class="w-full py-3 mb-4 bg-white hover:bg-slate-100 text-slate-800 rounded-lg font-bold flex items-center justify-center gap-2 shadow">
-                <i class="fa-brands fa-google text-red-500"></i> Lanjut dengan Google
-            </button>
-
-            <div class="flex items-center gap-3 my-4">
-                <div class="h-px bg-slate-700 flex-grow"></div>
-                <span class="text-[11px] text-slate-500 uppercase">atau email</span>
-                <div class="h-px bg-slate-700 flex-grow"></div>
-            </div>
-
-            <div id="login-box">
-                <input id="auth-email" type="email" placeholder="Email" class="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-sm mb-3 text-white focus:outline-none focus:border-blue-500">
-                <input id="auth-pass" type="password" placeholder="Password" class="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-sm mb-3 text-white focus:outline-none focus:border-blue-500" onkeydown="if(event.key==='Enter')doLogin()">
-                <button onclick="doLogin()" class="w-full py-3 bg-blue-600 hover:bg-blue-500 rounded-lg font-bold text-white shadow"><i class="fa-solid fa-right-to-bracket"></i> Masuk</button>
-                <p class="text-center text-xs text-slate-400 mt-3">Belum punya akun? <button onclick="toggleAuthMode()" class="text-blue-400 font-bold hover:underline">Daftar di sini</button></p>
-            </div>
-
-            <div id="register-box" class="hidden">
-                <input id="reg-name" type="text" placeholder="Nama Lengkap" class="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-sm mb-3 text-white focus:outline-none focus:border-blue-500">
-                <input id="reg-email" type="email" placeholder="Email" class="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-sm mb-3 text-white focus:outline-none focus:border-blue-500">
-                <input id="reg-pass" type="password" placeholder="Password (min 6 karakter)" class="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-sm mb-3 text-white focus:outline-none focus:border-blue-500" onkeydown="if(event.key==='Enter')doRegister()">
-                <button onclick="doRegister()" class="w-full py-3 bg-green-600 hover:bg-green-500 rounded-lg font-bold text-white shadow"><i class="fa-solid fa-user-plus"></i> Daftar & Masuk</button>
-                <p class="text-center text-xs text-slate-400 mt-3">Sudah punya akun? <button onclick="toggleAuthMode()" class="text-blue-400 font-bold hover:underline">Masuk di sini</button></p>
-            </div>
-            <p class="text-[10px] text-slate-500 mt-4 text-center">Login email diverifikasi & aman. Admin dapat membuat template untuk semua pengguna.</p>
-        </div>
-    </div>
-
-    <!-- ============ HOME / MODULE SELECTOR ============ -->
-    <div id="home-screen" class="screen flex-col bg-slate-900 overflow-y-auto">
-        <header class="w-full bg-slate-800 border-b border-slate-700 px-6 py-4 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-xl"><i class="fa-solid fa-satellite-dish"></i></div>
-                <div>
-                    <h1 class="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500 leading-none">Live Event Planner</h1>
-                    <p class="text-[11px] text-slate-400">Pilih modul untuk memulai</p>
-                </div>
-            </div>
-            <div class="flex items-center gap-3">
-                <button onclick="openGallery()" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm font-bold"><i class="fa-solid fa-layer-group"></i> Template & Galeri</button>
-                <button id="btn-equip-admin" onclick="openEquipAdmin()" class="hidden px-4 py-2 bg-amber-600 hover:bg-amber-500 rounded-lg text-sm font-bold"><i class="fa-solid fa-boxes-stacked"></i> Kelola Alat</button>
-                <div id="user-chip" class="flex items-center gap-2 text-sm"></div>
-                <button onclick="doLogout()" class="px-3 py-2 bg-slate-700 hover:bg-red-600 rounded-lg text-sm"><i class="fa-solid fa-right-from-bracket"></i></button>
-            </div>
-        </header>
-
-        <main class="flex-grow p-8 max-w-6xl mx-auto w-full">
-            <h2 class="text-2xl font-bold mb-1">Pilih Jenis Setup</h2>
-            <p class="text-slate-400 text-sm mb-6">Setiap modul saling terhubung & dapat disimpan sebagai template bersama.</p>
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5" id="module-grid"></div>
-
-            <div class="mt-10 flex gap-4 flex-wrap">
-                <button onclick="openGallery()" class="px-5 py-3 bg-purple-600 hover:bg-purple-500 rounded-lg font-bold"><i class="fa-solid fa-layer-group"></i> Buka Template / Galeri</button>
-                <button onclick="openPCModule()" class="px-5 py-3 bg-amber-600 hover:bg-amber-500 rounded-lg font-bold"><i class="fa-solid fa-computer"></i> Perakitan PC</button>
-                <button onclick="openSoftwareModule()" class="px-5 py-3 bg-emerald-600 hover:bg-emerald-500 rounded-lg font-bold"><i class="fa-solid fa-display"></i> Setup Software</button>
-                <button onclick="openLiveSetupModule()" class="px-5 py-3 bg-blue-600 hover:bg-blue-500 rounded-lg font-bold"><i class="fa-solid fa-network-wired"></i> Setup Live (Simulasi)</button>
-                <button onclick="startModule('live')" class="px-5 py-3 bg-slate-700 hover:bg-slate-600 rounded-lg font-bold"><i class="fa-solid fa-plus"></i> Rancang Baru (Setup Live)</button>
-            </div>
-        </main>
-    </div>
-
-    <!-- ============ BUILDER SCREEN ============ -->
-    <div id="builder-screen" class="screen">
-        <aside class="w-80 bg-slate-800 border-r border-slate-700 flex flex-col z-20 shadow-xl flex-shrink-0">
-            <div class="p-4 border-b border-slate-700 bg-slate-900 flex items-center justify-between">
-                <button onclick="goHome()" class="text-slate-300 hover:text-white text-sm"><i class="fa-solid fa-arrow-left"></i> Beranda</button>
-                <span id="builder-module-badge" class="text-xs font-bold px-2 py-1 rounded bg-blue-600/30 text-blue-300"></span>
-            </div>
-
-            <div id="builder-actions" class="grid grid-cols-2 gap-2 p-4 border-b border-slate-700">
-                <button onclick="saveProject()" class="py-2 bg-green-600 hover:bg-green-500 rounded text-sm font-bold flex justify-center items-center gap-1 shadow"><i class="fa-solid fa-floppy-disk"></i> Simpan</button>
-                <button onclick="publishTemplate()" class="py-2 bg-purple-600 hover:bg-purple-500 rounded text-sm font-bold flex justify-center items-center gap-1 shadow"><i class="fa-solid fa-cloud-arrow-up"></i> Template</button>
-                <button onclick="copyShareLink()" class="py-2 bg-teal-600 hover:bg-teal-500 rounded text-sm font-bold flex justify-center items-center gap-1 shadow"><i class="fa-solid fa-link"></i> Bagikan</button>
-                <button onclick="importBuild()" class="py-2 bg-indigo-600 hover:bg-indigo-500 rounded text-sm font-bold flex justify-center items-center gap-1 shadow"><i class="fa-solid fa-puzzle-piece"></i> Impor</button>
-                <button onclick="clearCanvas()" class="py-2 bg-red-700 hover:bg-red-600 rounded text-sm font-bold flex justify-center items-center gap-1 shadow col-span-2"><i class="fa-solid fa-trash-can"></i> Bersihkan Kanvas</button>
-                <button onclick="autoWire()" class="col-span-2 py-2 bg-amber-600 hover:bg-amber-500 rounded text-sm font-bold flex justify-center items-center gap-1 shadow"><i class="fa-solid fa-link"></i> Rangkai Otomatis</button>
-                <button onclick="openSummary()" class="col-span-2 py-2 bg-teal-700 hover:bg-teal-600 rounded text-sm font-bold flex justify-center items-center gap-1 shadow"><i class="fa-solid fa-print"></i> Ringkasan Cetak</button>
-                <button onclick="openImageGen()" class="col-span-2 py-2 bg-indigo-700 hover:bg-indigo-600 rounded text-sm font-bold flex justify-center items-center gap-1 shadow"><i class="fa-solid fa-image"></i> Generate dari Gambar</button>
-                <button onclick="openGuide()" class="col-span-2 py-2 bg-slate-700 hover:bg-slate-600 rounded text-sm font-bold flex justify-center items-center gap-1 shadow"><i class="fa-solid fa-book"></i> Panduan</button>
-                <button onclick="clearSelection()" class="col-span-2 py-1.5 bg-slate-600 hover:bg-slate-500 rounded text-xs font-bold flex justify-center items-center gap-1 shadow"><i class="fa-solid fa-xmark"></i> Bersihkan Pilihan</button>
-            </div>
-
-            <div id="selection-bar" class="p-2 border-t border-slate-700 text-xs text-center font-semibold bg-slate-900 text-slate-400">0 alat dipilih</div>
-
-            <div class="p-4 pb-2">
-                <input id="search-input" type="text" placeholder="Cari alat..." oninput="renderCatalog(this.value)" class="w-full bg-slate-900 border border-slate-600 rounded-lg p-2 text-sm text-white focus:outline-none focus:border-blue-500">
-            </div>
-            <div class="flex-grow overflow-y-auto px-4 pb-4 space-y-1" id="device-catalog"></div>
-            <div id="stats-bar" class="p-3 border-t border-slate-700 bg-slate-900 text-xs text-slate-400 text-center font-semibold">0 Alat • 0 Koneksi</div>
-        </aside>
-
-        <main id="canvas-area" class="flex-grow relative overflow-hidden">
-            <div id="zoom-wrapper">
-                <svg id="cables-layer" class="absolute top-0 left-0 w-full h-full pointer-events-none z-0"></svg>
-                <div id="devices-layer" class="absolute top-0 left-0 w-full h-full z-10"></div>
-            </div>
-            <div id="zoom-controls" class="absolute bottom-5 right-5 bg-slate-800/90 border border-slate-600 rounded-lg shadow-xl flex items-center gap-1 p-1 backdrop-blur">
-                <button onclick="zoomOut()" class="w-10 h-10 flex items-center justify-center hover:bg-slate-700 rounded text-lg"><i class="fa-solid fa-magnifying-glass-minus"></i></button>
-                <span id="zoom-label" class="text-sm w-14 text-center select-none">100%</span>
-                <button onclick="zoomIn()" class="w-10 h-10 flex items-center justify-center hover:bg-slate-700 rounded text-lg"><i class="fa-solid fa-magnifying-glass-plus"></i></button>
-                <button onclick="zoomReset()" class="w-10 h-10 flex items-center justify-center hover:bg-slate-700 rounded text-base ml-1" title="Reset"><i class="fa-solid fa-expand"></i></button>
-            </div>
-            <div id="legend-panel" class="absolute bottom-5 left-5 bg-slate-800/90 border border-slate-600 rounded-lg shadow-xl p-3 text-xs backdrop-blur">
-                <p class="font-bold mb-2 text-slate-300">Jenis Kabel</p>
-                <div class="grid grid-cols-2 gap-x-3 gap-y-1" id="legend-list"></div>
-            </div>
-            <div id="readonly-banner" class="hidden absolute top-3 left-1/2 -translate-x-1/2 bg-amber-600 text-white text-xs font-bold px-4 py-2 rounded-full shadow z-40"><i class="fa-solid fa-eye"></i> Mode Tampilan (tanpa login)</div>
-        </main>
-    </div>
-
-    <!-- ============ PC BUILDER SCREEN ============ -->
-    <div id="pc-screen" class="screen flex bg-slate-900">
-        <aside class="w-80 bg-slate-800 border-r border-slate-700 flex flex-col z-20 shadow-xl flex-shrink-0">
-            <div class="p-4 border-b border-slate-700 bg-slate-900 flex items-center justify-between">
-                <button onclick="goHome()" class="text-slate-300 hover:text-white text-sm"><i class="fa-solid fa-arrow-left"></i> Beranda</button>
-                <span class="text-xs font-bold px-2 py-1 rounded bg-amber-600/30 text-amber-300"><i class="fa-solid fa-computer"></i> Perakitan PC</span>
-            </div>
-            <div class="p-3 border-b border-slate-700">
-                <div id="pc-validation" class="bg-slate-900 rounded-lg p-2"></div>
-            </div>
-            <div class="flex-grow overflow-y-auto px-4 pb-4 space-y-1" id="pc-catalog"></div>
-        </aside>
-        <main class="flex-grow p-6 overflow-y-auto">
-            <div class="max-w-3xl mx-auto">
-                <h2 class="text-2xl font-black mb-1"><i class="fa-solid fa-computer text-amber-400"></i> Rakitan PC Live Streaming</h2>
-                <p class="text-sm text-slate-400 mb-6">Susun komponen seperti di buildcores.com. Tanpa harga & link pembelian — fokus pada kompatibilitas.</p>
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div class="bg-slate-800 rounded-xl border border-slate-700 p-5">
-                        <h3 class="font-bold text-sm mb-3 text-blue-300"><i class="fa-solid fa-list"></i> Daftar Komponen</h3>
-                        <div id="pc-summary"></div>
-                        <button onclick="savePCBuild()" class="mt-4 w-full py-2 bg-green-600 hover:bg-green-500 rounded text-sm font-bold"><i class="fa-solid fa-floppy-disk"></i> Simpan Rakitan</button>
-                    </div>
-                    <div class="bg-slate-800 rounded-xl border border-slate-700 p-5">
-                        <h3 class="font-bold text-sm mb-3 text-purple-300"><i class="fa-solid fa-diagram-project"></i> Visualisasi</h3>
-                        <div id="pc-visual" class="space-y-2 text-xs"></div>
-                    </div>
-                </div>
-            </div>
-        </main>
-    </div>
-
-    <!-- ============ SOFTWARE SETUP SCREEN ============ -->
-    <div id="software-screen" class="screen flex-col bg-slate-900 overflow-y-auto">
-        <header class="w-full bg-slate-800 border-b border-slate-700 px-6 py-4 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <button onclick="goHome()" class="text-slate-300 hover:text-white text-sm"><i class="fa-solid fa-arrow-left"></i> Beranda</button>
-                <h1 class="text-xl font-black"><i class="fa-solid fa-display text-emerald-400"></i> Setup Software</h1>
-            </div>
-            <span class="text-xs font-bold px-2 py-1 rounded bg-emerald-600/30 text-emerald-300">Ambil dari Rakitan Live</span>
-        </header>
-        <main class="flex-grow p-8 max-w-6xl mx-auto w-full">
-            <div id="sw-content"></div>
-        </main>
-    </div>
-
-    <!-- ============ LIVE SETUP SCREEN ============ -->
-    <div id="live-screen" class="screen flex-col bg-slate-900 overflow-y-auto">
-        <header class="w-full bg-slate-800 border-b border-slate-700 px-6 py-4 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <button onclick="goHome()" class="text-slate-300 hover:text-white text-sm"><i class="fa-solid fa-arrow-left"></i> Beranda</button>
-                <h1 class="text-xl font-black"><i class="fa-solid fa-network-wired text-blue-400"></i> Setup Live (Simulasi)</h1>
-            </div>
-            <span class="text-xs font-bold px-2 py-1 rounded bg-blue-600/30 text-blue-300">Mode Cisco-like</span>
-        </header>
-        <main class="flex-grow p-8 max-w-7xl mx-auto w-full">
-            <div id="live-content"></div>
-        </main>
-    </div>
-
-    <!-- ============ GALLERY SCREEN ============ -->
-    <div id="gallery-screen" class="screen flex-col bg-slate-900 overflow-y-auto">
-        <header class="w-full bg-slate-800 border-b border-slate-700 px-6 py-4 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <button onclick="goHome()" class="text-slate-300 hover:text-white"><i class="fa-solid fa-arrow-left"></i></button>
-                <h1 class="text-xl font-black"><i class="fa-solid fa-layer-group text-purple-400"></i> Template & Galeri</h1>
-            </div>
-            <button onclick="doLogout()" class="px-3 py-2 bg-slate-700 hover:bg-red-600 rounded-lg text-sm"><i class="fa-solid fa-right-from-bracket"></i></button>
-        </header>
-        <main class="flex-grow p-8 max-w-6xl mx-auto w-full">
-            <div class="flex gap-2 mb-5 flex-wrap" id="gallery-tabs">
-                <button class="g-tab px-4 py-2 rounded-lg font-bold text-sm bg-blue-600 text-white" data-scope="all" onclick="loadGallery('all', this)">Semua</button>
-                <button class="g-tab px-4 py-2 rounded-lg font-bold text-sm bg-slate-700 hover:bg-slate-600" data-scope="mine" onclick="loadGallery('mine', this)">Milik Saya</button>
-                <button class="g-tab px-4 py-2 rounded-lg font-bold text-sm bg-slate-700 hover:bg-slate-600" data-scope="templates" onclick="loadGallery('templates', this)">Template Resmi</button>
-                <button class="g-tab px-4 py-2 rounded-lg font-bold text-sm bg-slate-700 hover:bg-slate-600" data-scope="public" onclick="loadGallery('public', this)">Publik</button>
-            </div>
-            <div id="gallery-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
-        </main>
-    </div>
-
-    <!-- ============ MODALS ============ -->
-    <div id="settings-modal" class="modal-overlay fixed inset-0 bg-black/70 z-[9999] justify-center items-center backdrop-blur-sm">
-        <div class="bg-slate-800 border border-slate-600 rounded-xl p-6 w-96 shadow-2xl">
-            <h2 class="text-xl font-bold mb-4 text-blue-400"><i class="fa-solid fa-gear"></i> Pengaturan Software</h2>
-            <input type="hidden" id="setting-node-id">
-            <div class="mb-3"><label class="block text-xs text-slate-400 mb-1">Resolusi Output</label>
-                <select id="set-res" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-sm text-white"><option>1080p60</option><option>1080p30</option><option>4K30</option><option>720p60</option></select></div>
-            <div class="mb-3"><label class="block text-xs text-slate-400 mb-1">Video Bitrate (Kbps)</label>
-                <input type="number" id="set-bitrate" value="6000" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-sm text-white"></div>
-            <div class="mb-3"><label class="block text-xs text-slate-400 mb-1">Audio Sample Rate</label>
-                <select id="set-audio" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-sm text-white"><option>48kHz</option><option>44.1kHz</option></select></div>
-            <div class="mb-5"><label class="block text-xs text-slate-400 mb-1">Server Tujuan (RTMP/RTMPS)</label>
-                <input type="text" id="set-server" placeholder="rtmp://..." class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-sm text-white"></div>
-            <div class="flex justify-end gap-2">
-                <button onclick="closeSettings()" class="px-4 py-2 bg-slate-600 hover:bg-slate-500 rounded text-sm font-bold">Batal</button>
-                <button onclick="saveSettings()" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded text-sm font-bold text-white">Simpan</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="notes-modal" class="modal-overlay fixed inset-0 bg-black/70 z-[9999] justify-center items-center backdrop-blur-sm">
-        <div class="bg-slate-800 border border-slate-600 rounded-xl p-6 w-96 shadow-2xl">
-            <h2 class="text-xl font-bold mb-1 text-yellow-400"><i class="fa-solid fa-note-sticky"></i> Catatan Alat</h2>
-            <p id="notes-device-name" class="text-xs text-slate-400 mb-4"></p>
-            <input type="hidden" id="notes-node-id">
-            <textarea id="notes-text" rows="5" placeholder="IP 192.168.1.20, Channel 2, No. Seri..." class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-sm text-white mb-5 resize-none"></textarea>
-            <div class="flex justify-end gap-2">
-                <button onclick="closeNotes()" class="px-4 py-2 bg-slate-600 hover:bg-slate-500 rounded text-sm font-bold">Batal</button>
-                <button onclick="saveNotes()" class="px-4 py-2 bg-yellow-600 hover:bg-yellow-500 rounded text-sm font-bold text-white">Simpan</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="imagegen-modal" class="modal-overlay fixed inset-0 bg-black/70 z-[9999] justify-center items-center backdrop-blur-sm">
-        <div class="bg-slate-800 border border-slate-600 rounded-xl p-6 w-[28rem] shadow-2xl">
-            <h2 class="text-xl font-bold mb-1 text-indigo-400"><i class="fa-solid fa-image"></i> Generate Alat dari Gambar</h2>
-            <p class="text-xs text-slate-400 mb-4">Unggah foto produk, lalu isi nama & kategori.</p>
-            <div id="img-drop" class="border-2 border-dashed border-slate-600 rounded-lg p-6 text-center cursor-pointer hover:border-indigo-400 transition">
-                <i class="fa-solid fa-cloud-arrow-up text-3xl text-slate-500"></i>
-                <p class="text-sm text-slate-400 mt-2">Klik atau seret gambar ke sini</p>
-                <input type="file" id="img-file" accept="image/*" class="hidden">
-            </div>
-            <div id="img-preview-wrap" class="hidden mt-3"><img id="img-preview" class="max-h-40 mx-auto rounded border border-slate-600"></div>
-            <div class="mt-4"><label class="block text-xs text-slate-400 mb-1">Nama Alat</label><input type="text" id="img-name" placeholder="Kamera Sony A7 IV" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-sm text-white"></div>
-            <div class="mt-3 grid grid-cols-2 gap-3">
-                <div><label class="block text-xs text-slate-400 mb-1">Merk</label><input type="text" id="img-brand" placeholder="Sony" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-sm text-white"></div>
-                <div><label class="block text-xs text-slate-400 mb-1">Kategori</label><input type="text" id="img-cat" placeholder="Kamera Utama" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-sm text-white"></div>
-            </div>
-            <div class="mt-3 grid grid-cols-2 gap-3">
-                <div><label class="block text-xs text-slate-400 mb-1">Input (koma)</label><input type="text" id="img-ins" placeholder="HDMI, Audio" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-sm text-white"></div>
-                <div><label class="block text-xs text-slate-400 mb-1">Output (koma)</label><input type="text" id="img-outs" placeholder="HDMI, USB" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-sm text-white"></div>
-            </div>
-            <div class="flex justify-end gap-2 mt-5">
-                <button onclick="closeImageGen()" class="px-4 py-2 bg-slate-600 hover:bg-slate-500 rounded text-sm font-bold">Batal</button>
-                <button onclick="createFromImage()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded text-sm font-bold text-white">Buat Alat</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="guide-modal" class="modal-overlay fixed inset-0 bg-black/70 z-[9999] justify-center items-center backdrop-blur-sm p-4">
-        <div class="bg-slate-800 border border-slate-600 rounded-xl w-[52rem] max-w-full max-h-[90vh] shadow-2xl flex flex-col">
-            <div class="flex items-center justify-between p-4 border-b border-slate-700">
-                <h2 class="text-lg font-bold text-blue-400"><i class="fa-solid fa-book"></i> Panduan Realisasi</h2>
-                <button onclick="closeGuide()" class="icon-btn text-slate-300"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            <div class="flex border-b border-slate-700 text-sm">
-                <button class="guide-tab flex-1 py-2 font-bold border-b-2 border-blue-500 text-blue-400" data-tab="blueprint" onclick="switchGuide('blueprint')"><i class="fa-solid fa-diagram-project"></i> Blueprint</button>
-                <button class="guide-tab flex-1 py-2 font-bold text-slate-400" data-tab="tutorial" onclick="switchGuide('tutorial')"><i class="fa-solid fa-screwdriver-wrench"></i> Tutorial</button>
-                <button class="guide-tab flex-1 py-2 font-bold text-slate-400" data-tab="trouble" onclick="switchGuide('trouble')"><i class="fa-solid fa-circle-question"></i> Troubleshooting</button>
-            </div>
-            <div class="overflow-y-auto p-5 text-sm text-slate-300 leading-relaxed">
-                <div id="guide-blueprint">
-                    <h3 class="text-base font-bold text-white mb-2">Blueprint Arsitektur Live Streaming</h3>
-                    <pre class="bg-slate-900 border border-slate-700 rounded p-3 text-xs text-green-300 overflow-x-auto">[Kamera] --HDMI/SDI--> [Video Switcher] --SDI--> [Capture Card] --USB--> [PC OBS/vMix]
-   |                                  |                                      |
-[Microphone] --XLR/Audio--> [Audio Mixer] --Audio--> [Switcher/Encoder]   [Encoder] --RTMP--> [Platform Live]</pre>
-                    <ul class="list-disc pl-5 space-y-1 mt-3">
-                        <li><strong>Kamera</strong> menangkap video; output HDMI/SDI ke switcher.</li>
-                        <li><strong>Video Switcher</strong> memilih & menggabungkan sumber gambar.</li>
-                        <li><strong>Capture Card</strong> mengubah sinyal video jadi data ke PC.</li>
-                        <li><strong>Audio Mixer</strong> menyeimbangkan mic & musik.</li>
-                        <li><strong>Encoder / OBS</strong> mengompres & kirim stream via RTMP.</li>
-                    </ul>
-                </div>
-                <div id="guide-tutorial" class="hidden">
-                    <ol class="list-decimal pl-5 space-y-2">
-                        <li><strong>Pilih modul</strong> di beranda, lalu pilih alat dari katalog kiri.</li>
-                        <li><strong>Susun:</strong> tarik judul alat, scroll untuk zoom, drag area kosong untuk pan.</li>
-                        <li><strong>Hubungkan:</strong> klik port output lalu port input alat tujuan.</li>
-                        <li><strong>Rangkai Otomatis:</strong> pilih alat lalu klik tombol tersebut.</li>
-                        <li><strong>Simpan / Template:</strong> Simpan ke akun Anda atau publikasikan sebagai template.</li>
-                        <li><strong>Bagikan:</strong> salin tautan untuk dilihat orang lain tanpa login.</li>
-                    </ol>
-                </div>
-                <div id="guide-trouble" class="hidden">
-                    <table class="w-full text-xs border-collapse">
-                        <thead><tr class="border-b border-slate-600 text-slate-400"><th class="text-left py-1">Masalah</th><th class="text-left py-1">Solusi</th></tr></thead>
-                        <tbody class="align-top">
-                            <tr class="border-b border-slate-700"><td class="py-1.5 pr-3">Kabel ditolak</td><td class="py-1.5">Pastikan tipe port cocok (HDMI→HDMI) & arah Output→Input.</td></tr>
-                            <tr class="border-b border-slate-700"><td class="py-1.5 pr-3">Gambar tidak muncul</td><td class="py-1.5">Fallback ikon Font Awesome otomatis tampil.</td></tr>
-                            <tr class="border-b border-slate-700"><td class="py-1.5 pr-3">Gagal simpan</td><td class="py-1.5">Pastikan sudah login. Data tersimpan ke Turso (cloud).</td></tr>
-                            <tr><td class="py-1.5 pr-3">API gagal</td><td class="py-1.5">Cek env TURSO_URL & TURSO_TOKEN di Vercel.</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div id="publish-modal" class="modal-overlay fixed inset-0 bg-black/70 z-[9999] justify-center items-center backdrop-blur-sm">
-        <div class="bg-slate-800 border border-slate-600 rounded-xl p-6 w-96 shadow-2xl">
-            <h2 class="text-xl font-bold mb-4 text-purple-400"><i class="fa-solid fa-cloud-arrow-up"></i> Publikasikan Template</h2>
-            <div class="mb-3"><label class="block text-xs text-slate-400 mb-1">Judul Template</label>
-                <input id="pub-title" type="text" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-sm text-white"></div>
-            <div class="mb-3"><label class="block text-xs text-slate-400 mb-1">Modul</label>
-                <select id="pub-module" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-sm text-white"></select></div>
-            <label class="flex items-center gap-2 mb-2 text-sm"><input type="checkbox" id="pub-public" class="w-4 h-4"> Tampilkan ke publik (semua user)</label>
-            <label class="flex items-center gap-2 mb-5 text-sm"><input type="checkbox" id="pub-template" class="w-4 h-4"> Jadikan Template Resmi</label>
-            <div class="flex justify-end gap-2">
-                <button onclick="closePublish()" class="px-4 py-2 bg-slate-600 hover:bg-slate-500 rounded text-sm font-bold">Batal</button>
-                <button onclick="submitPublish()" class="px-4 py-2 bg-purple-600 hover:bg-purple-500 rounded text-sm font-bold text-white">Publikasikan</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="import-modal" class="modal-overlay fixed inset-0 bg-black/70 z-[9999] justify-center items-center backdrop-blur-sm p-4">
-        <div class="bg-slate-800 border border-slate-600 rounded-xl w-[40rem] max-w-full max-h-[85vh] shadow-2xl flex flex-col">
-            <div class="flex items-center justify-between p-4 border-b border-slate-700">
-                <h2 class="text-lg font-bold text-indigo-400"><i class="fa-solid fa-puzzle-piece"></i> Impor Build Lain</h2>
-                <button onclick="closeImport()" class="icon-btn text-slate-300"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            <div class="overflow-y-auto p-4" id="import-list"><p class="text-sm text-slate-500 text-center">Memuat…</p></div>
-        </div>
-    </div>
-
-    <div id="template-modal" class="modal-overlay fixed inset-0 bg-black/70 z-[9999] justify-center items-center backdrop-blur-sm p-4">
-        <div class="bg-slate-800 border border-slate-600 rounded-xl w-[44rem] max-w-full max-h-[90vh] shadow-2xl flex flex-col">
-            <div class="flex items-center justify-between p-4 border-b border-slate-700">
-                <h2 id="tmpl-title" class="text-lg font-bold text-purple-400"><i class="fa-solid fa-layer-group"></i> Template</h2>
-                <button onclick="closeTemplate()" class="icon-btn text-slate-300"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            <div class="overflow-y-auto p-4 space-y-4">
-                <div id="tmpl-meta" class="text-xs text-slate-400"></div>
-                <div id="tmpl-admin" class="hidden flex flex-wrap gap-2 p-3 bg-slate-900 rounded-lg border border-slate-700"></div>
-                <div>
-                    <h3 class="font-bold text-sm mb-2 text-blue-300"><i class="fa-solid fa-comments"></i> Komentar & Saran</h3>
-                    <div id="tmpl-comments" class="space-y-2 mb-3"></div>
-                    <div id="tmpl-comment-form" class="flex gap-2">
-                        <input id="tmpl-comment-input" type="text" placeholder="Tulis komentar…" class="flex-grow bg-slate-900 border border-slate-600 rounded p-2 text-sm text-white">
-                        <button onclick="postComment()" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded text-sm font-bold">Kirim</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script src="equipment-data.js"></script>
-    <script src="pc-builder.js"></script>
-    <script src="software-setup.js"></script>
-    <script src="live-setup.js"></script>
-    <script>
-        const svgNS = "http://www.w3.org/2000/svg";
-
-        const cableColors = { "HDMI":"#3b82f6","SDI":"#22c55e","Audio":"#ef4444","LAN":"#eab308","USB":"#a855f7","Wireless":"#e2e8f0","Power":"#f97316" };
-
-        const MODULES = {
-            live:      { name:'Setup Live',      icon:'fa-solid fa-tower-broadcast', color:'from-blue-500 to-cyan-500',
-                keywords:['kamera','webcam','ptz','switcher','video mixer','capture','encoder','stream','obs','vmix','mixer audio','mikrofon','audio','interface','monitor','network','lan','kabel','router','switch','power','baterai','headphone','teleprompter','green','speaker','lensa'] },
-            studio:    { name:'Setup Studio',    icon:'fa-solid fa-photo-film', color:'from-purple-500 to-pink-500',
-                keywords:['lampu','light','green screen','chromakey','tripod','stand','mount','teleprompter','acoustic','monitor speaker','speaker','kamera','webcam','mikrofon','audio','interface','backdrop','lensa'] },
-            recording: { name:'Setup Recording', icon:'fa-solid fa-microphone-lines', color:'from-rose-500 to-orange-500',
-                keywords:['recorder','record','kamera','webcam','mikrofon','audio','interface','storage','monitor speaker','headphone','mixer','capture','lensa'] },
-            software:  { name:'Setup Software',  icon:'fa-solid fa-display', color:'from-emerald-500 to-teal-500',
-                keywords:['software','obs','vmix','wirecast','streamlabs','capture','card','computer','pc','laptop','stream deck','encoder','stream'] },
-            pc:        { name:'Perakitan PC',    icon:'fa-solid fa-computer', color:'from-amber-500 to-red-500',
-                keywords:['cpu','gpu','motherboard','ram','storage','psu','case','cooler','monitor display','computer','pc','power'] }
-        };
-
-        function faIconFor(cat) {
-            const c = (cat || '').toLowerCase();
-            const map = [
-                [/kamera|camera|webcam|ptz|action cam|gopro|osmo|insta360/, 'fa-solid fa-camera'],
-                [/lensa|lens|optik/, 'fa-solid fa-circle-half-stroke'],
-                [/mikrofon|mic|audio|sound|mixer|console/, 'fa-solid fa-microphone'],
-                [/headphone|earphone|headset/, 'fa-solid fa-headphones'],
-                [/speaker|monitor audio|pengeras/, 'fa-solid fa-volume-high'],
-                [/switcher|video mixer|vision/, 'fa-solid fa-sliders'],
-                [/encoder|stream|obs|vmix|wirecast|software/, 'fa-solid fa-server'],
-                [/capture|card|recorder|record/, 'fa-solid fa-video'],
-                [/monitor|layar|display|tv|screen/, 'fa-solid fa-tv'],
-                [/komputer|pc|laptop|computer|mac|workstation/, 'fa-solid fa-computer'],
-                [/router|switch|network|lan|hub|access point|wifi|wireless/, 'fa-solid fa-network-wired'],
-                [/kabel|cable|hdmi|sdi|konektor|connector|adapter|konverter|converter/, 'fa-solid fa-plug'],
-                [/baterai|battery|power|charger|dummy|psu|listrik/, 'fa-solid fa-battery-full'],
-                [/lampu|light|led|studio light|ring/, 'fa-solid fa-lightbulb'],
-                [/tripod|stand|mount|rig|gimbal|stabilizer|dolly/, 'fa-solid fa-arrows-up-down-left-right'],
-                [/drone/, 'fa-solid fa-helicopter'],
-                [/green screen|chromakey|backdrop/, 'fa-solid fa-clone'],
-                [/case|bag|tas|koper/, 'fa-solid fa-suitcase'],
-                [/antena|antenna/, 'fa-solid fa-wifi'],
-                [/streamdeck|controller|panel|remote/, 'fa-solid fa-gamepad'],
-                [/teleprompter|prompter/, 'fa-solid fa-scroll'],
-                [/sd|card|storage|memory|ssd|hdd/, 'fa-solid fa-memory'],
-                [/filter|nd filter/, 'fa-solid fa-circle-half-stroke']
-            ];
-            for (const row of map) {
-                const re = row[0]; const icon = row[1];
-                if (re && re.test && re.test(c)) return icon;
-                if (!re) return icon;
-            }
-            return 'fa-solid fa-circle-question';
-        }
-
-        // --- STATE ---
-        let nodesCounter = 0, connections = [], activePort = null;
-        let zoom = 1, panX = 0, panY = 0;
-        let isDragging = false, dragNode = null, offset = { x: 0, y: 0 };
-        let isPanning = false, panStart = { x: 0, y: 0, panX: 0, panY: 0 };
-        let currentUser = null, currentModule = 'live', readOnlyMode = false, currentTemplateId = null;
-        let deviceDB = (typeof window.__deviceDB !== 'undefined') ? window.__deviceDB : {};
-        let selectedItems = new Map();
-
-        const canvasArea = document.getElementById('canvas-area');
-        const zoomWrapper = document.getElementById('zoom-wrapper');
-        const devicesLayer = document.getElementById('devices-layer');
-        const cablesLayer = document.getElementById('cables-layer');
-
-        // --- API HELPER ---
-        async function api(path, opts = {}) {
-            opts.credentials = 'include';
-            if (opts.body && typeof opts.body !== 'string') opts.body = JSON.stringify(opts.body);
-            if (opts.body) (opts.headers = opts.headers || {})['Content-Type'] = 'application/json';
-            const r = await fetch(path, opts);
-            let data = null; try { data = await r.json(); } catch (e) {}
-            return { ok: r.ok, status: r.status, data };
-        }
-
-        // --- AUTH ---
-        function toggleAuthMode() {
-            document.getElementById('login-box').classList.toggle('hidden');
-            document.getElementById('register-box').classList.toggle('hidden');
-        }
-        async function doLogin() {
-            const email = document.getElementById('auth-email').value.trim();
-            const password = document.getElementById('auth-pass').value;
-            if (!email || !password) { showToast('Isi email & password!'); return; }
-            const { ok, data } = await api('/api/auth', { method:'POST', body:{ action:'login', email, password } });
-            if (ok) { currentUser = data.user; enterApp(); }
-            else showToast(data && data.error ? data.error : 'Login gagal');
-        }
-        async function doRegister() {
-            const name = document.getElementById('reg-name').value.trim();
-            const email = document.getElementById('reg-email').value.trim();
-            const password = document.getElementById('reg-pass').value;
-            if (!name || !email || password.length < 6) { showToast('Lengkapi data (password min 6)!'); return; }
-            const { ok, data } = await api('/api/auth', { method:'POST', body:{ action:'register', name, email, password } });
-            if (ok) { currentUser = data.user; enterApp(); }
-            else showToast(data && data.error ? data.error : 'Gagal daftar');
-        }
-        async function startGoogle() {
-            // Langsung redirect ke endpoint begin yang akan meneruskan ke Google
-            window.location.href = '/api/auth/google?action=begin';
-        }
-        async function doLogout() {
-            await api('/api/auth', { method:'POST', body:{ action:'logout' } });
-            currentUser = null; showScreen('login-screen');
-        }
-        async function refreshMe() {
-            const { ok, data } = await api('/api/auth?action=me');
-            return ok ? data.user : null;
-        }
-
-        // --- SCREENS ---
-        function showScreen(id) {
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-        }
-        function enterApp() {
-            renderUserChip(); renderModuleGrid(); showScreen('home-screen');
-        }
-        function renderUserChip() {
-            const chip = document.getElementById('user-chip');
-            if (!currentUser) { chip.innerHTML = ''; return; }
-            const role = currentUser.role === 'admin' ? '<span class="text-[10px] bg-red-600 px-1.5 py-0.5 rounded text-white">ADMIN</span>' : '';
-            const pic = currentUser.picture ? `<img src="${currentUser.picture}" class="w-7 h-7 rounded-full">` : `<div class="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-xs"><i class="fa-solid fa-user"></i></div>`;
-            chip.innerHTML = `${pic}<span class="text-slate-300">${currentUser.name || currentUser.email}</span>${role}`;
-            const adminBtn = document.getElementById('btn-equip-admin');
-            if (adminBtn) adminBtn.classList.toggle('hidden', !currentUser);
-        }
-
-        // ===== EQUIPMENT ADMIN =====
-        function openEquipAdmin() {
-            document.getElementById('equip-admin-modal').classList.remove('hidden');
-            refreshEquipCount();
-        }
-        function closeEquipAdmin() {
-            document.getElementById('equip-admin-modal').classList.add('hidden');
-        }
-        async function refreshEquipCount() {
-            try {
-                const r = await fetch('/api/equipment-admin?action=count');
-                const d = await r.json();
-                document.getElementById('equip-count').textContent = d.count ?? '?';
-            } catch (e) { document.getElementById('equip-count').textContent = 'err'; }
-        }
-        function downloadEquipTemplate() {
-            const header = 'no,name,brand,category,img,emoji,has_settings,inputs,outputs,func,ports_raw';
-            const sample = '1,Sony FX6,Kamera Utama,Kamera,https://...,🎥,1,HDMI|Video; XLR|Audio,SDI|Video,Kamera sinema full-frame,12G-SDI x2';
-            const csv = '\uFEFF' + header + '\n' + sample + '\n';
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = 'equipment-template.csv';
-            a.click();
-        }
-        async function exportEquip() {
-            const r = await fetch('/api/equipment-admin?action=export');
-            const blob = await r.blob();
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = 'equipment-export.csv';
-            a.click();
-            refreshEquipCount();
-        }
-        async function importEquip() {
-            const input = document.getElementById('equip-csv-input');
-            const status = document.getElementById('equip-import-status');
-            if (!input.files.length) { status.textContent = 'Pilih file CSV dulu.'; status.className = 'text-xs text-red-400 mt-2'; return; }
-            const text = await input.files[0].text();
-            status.textContent = 'Mengimport...';
-            status.className = 'text-xs text-amber-300 mt-2';
-            try {
-                const r = await fetch('/api/equipment-admin?action=import', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/csv' },
-                    body: text
-                });
-                const d = await r.json();
-                if (d.ok) { status.textContent = `Berhasil import ${d.imported} alat.`; status.className = 'text-xs text-green-400 mt-2'; }
-                else { status.textContent = 'Gagal: ' + (d.error || 'unknown'); status.className = 'text-xs text-red-400 mt-2'; }
-            } catch (e) { status.textContent = 'Error: ' + e.message; status.className = 'text-xs text-red-400 mt-2'; }
-            refreshEquipCount();
-        }
-        async function deleteAllEquip() {
-            if (!confirm('YAKIN hapus SEMUA daftar alat? Tidak bisa dibatalkan.')) return;
-            const status = document.getElementById('equip-import-status');
-            status.textContent = 'Menghapus...';
-            try {
-                const r = await fetch('/api/equipment-admin', { method: 'DELETE' });
-                const d = await r.json();
-                status.textContent = d.ok ? 'Semua alat dihapus.' : 'Gagal: ' + (d.error || '');
-                status.className = d.ok ? 'text-xs text-green-400 mt-2' : 'text-xs text-red-400 mt-2';
-            } catch (e) { status.textContent = 'Error: ' + e.message; status.className = 'text-xs text-red-400 mt-2'; }
-            refreshEquipCount();
-        }
-        function renderModuleGrid() {
-            const grid = document.getElementById('module-grid');
-            const openFn = { pc:'openPCModule()', software:'openSoftwareModule()', live:'openLiveSetupModule()' };
-            grid.innerHTML = Object.entries(MODULES).map(([key, m]) => {
-                const act = openFn[key] || `startModule('${key}')`;
-                const sub = openFn[key] ? `buka modul ${m.name.toLowerCase()}` : `rancang & susun peralatan ${m.name.toLowerCase()}`;
-                return `
-                <button onclick="${act}" class="module-card text-left bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-lg hover:border-blue-500 transition">
-                    <div class="w-14 h-14 rounded-xl bg-gradient-to-br ${m.color} flex items-center justify-center text-white text-2xl mb-4"><i class="${m.icon}"></i></div>
-                    <h3 class="text-lg font-bold mb-1">${m.name}</h3>
-                    <p class="text-xs text-slate-400 mb-3">${sub}.</p>
-                    <span class="text-xs text-blue-400 font-bold"><i class="fa-solid fa-arrow-right"></i> Mulai</span>
-                </button>`;
-            }).join('');
-        }
-        function goHome() { showScreen('home-screen'); }
-
-        function startModule(key) {
-            currentModule = key; readOnlyMode = false; currentTemplateId = null;
-            document.getElementById('builder-module-badge').textContent = MODULES[key].name;
-            document.getElementById('readonly-banner').classList.add('hidden');
-            document.getElementById('builder-actions').style.display = '';
-            clearCanvasSilent();
-            renderCatalog();
-            showScreen('builder-screen');
-        }
-
-        // --- CATALOG (filtered by module) ---
-        function itemMatchesModule(it, key) {
-            if (key === 'live') return true;
-            const kws = MODULES[key].keywords;
-            const hay = ((it.cat || '') + ' ' + (it.name || '') + ' ' + (it.brand || '')).toLowerCase();
-            return kws.some(k => hay.includes(k));
-        }
-        function renderCatalog(filter = '') {
-            const catalog = document.getElementById('device-catalog');
-            const f = filter.trim().toLowerCase();
-            let html = '';
-            for (const catKey in deviceDB) {
-                const cat = deviceDB[catKey];
-                const byBrand = {};
-                cat.items.forEach(it => {
-                    if (!itemMatchesModule(it, currentModule)) return;
-                    if (f && !it.name.toLowerCase().includes(f) && !(it.brand||'').toLowerCase().includes(f)) return;
-                    (byBrand[it.brand || 'Lainnya'] = byBrand[it.brand || 'Lainnya'] || []).push(it);
-                });
-                const brandKeys = Object.keys(byBrand);
-                if (!brandKeys.length) continue;
-                const catCount = brandKeys.reduce((a,b)=>a+byBrand[b].length,0);
-                html += `<details class="mb-1" open><summary class="text-xs font-bold text-slate-400 uppercase cursor-pointer flex justify-between items-center py-2 select-none hover:text-slate-200"><span><i class="fa-solid fa-chevron-right chevron text-[10px] mr-1"></i>${cat.title}</span><span class="text-slate-600 text-[10px] font-normal">${catCount}</span></summary><div class="space-y-1 pb-2 pl-1">`;
-                brandKeys.forEach(brand => {
-                    const items = byBrand[brand];
-                    html += `<details class="mb-0.5" open><summary class="text-[11px] font-semibold text-blue-300 cursor-pointer flex justify-between items-center py-1 select-none hover:text-blue-200"><span><i class="fa-solid fa-chevron-right chevron text-[9px] mr-1"></i>${brand}</span><span class="text-slate-600 text-[10px]">${items.length}</span></summary><div class="space-y-1.5 pb-1 pl-2">`;
-                    items.forEach(item => {
-                        const encodedData = encodeURIComponent(JSON.stringify(item));
-                        const checked = selectedItems.has(item.id) ? 'checked' : '';
-                        html += `<label class="bg-slate-700 hover:bg-slate-600 p-2 rounded cursor-pointer transition flex items-center gap-2 border border-slate-600 hover:border-blue-500">
-                            <input type="checkbox" class="sel-chk flex-shrink-0" data-id="${item.id}" data-item="${encodedData}" ${checked} onchange="toggleSelect(this)">
-                            <div class="w-8 h-8 rounded bg-slate-900 flex-shrink-0 relative overflow-hidden flex items-center justify-center">
-                                <img src="${item.img}" class="max-w-full max-h-full object-contain p-0.5" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
-                                <span class="absolute inset-0 items-center justify-center text-base text-slate-400" style="display:none"><i class="${faIconFor(cat.title)}"></i></span>
-                            </div>
-                            <div class="flex-grow min-w-0">
-                                <div class="text-[13px] font-semibold truncate leading-tight">${item.name}</div>
-                                <div class="text-[10px] text-slate-400">${item.inputs.length} in / ${item.outputs.length} out</div>
-                            </div>
-                            <button type="button" onclick="event.preventDefault(); spawnDevice('${encodedData}')" class="icon-btn text-green-400 text-xs flex-shrink-0" title="Tambah"><i class="fa-solid fa-plus"></i></button>
-                        </label>`;
-                    });
-                    html += `</div></details>`;
-                });
-                html += `</div></details>`;
-            }
-            catalog.innerHTML = html || `<p class="text-sm text-slate-500 text-center mt-8">Tidak ada alat ditemukan.</p>`;
-            updateSelectionBar();
-        }
-        function toggleSelect(chk) {
-            const id = chk.getAttribute('data-id');
-            const item = JSON.parse(decodeURIComponent(chk.getAttribute('data-item')));
-            if (chk.checked) selectedItems.set(id, item); else selectedItems.delete(id);
-            updateSelectionBar();
-        }
-        function getSelectedArray() { return Array.from(selectedItems.values()); }
-        function updateSelectionBar() {
-            const bar = document.getElementById('selection-bar'); if (!bar) return;
-            const n = selectedItems.size;
-            bar.textContent = `${n} alat dipilih`;
-            bar.className = `p-2 border-t border-slate-700 text-xs text-center font-semibold ${n>0?'bg-blue-900/40 text-blue-200':'bg-slate-900 text-slate-400'}`;
-        }
-        function clearSelection() { selectedItems.clear(); document.querySelectorAll('.sel-chk').forEach(c=>c.checked=false); updateSelectionBar(); }
-
-        // --- AUTO WIRE ---
-        function autoWire() {
-            if (selectedItems.size === 0) { showToast('Pilih alat dari katalog terlebih dahulu!'); return; }
-            const items = getSelectedArray(); const spawned = [];
-            const cols = Math.ceil(Math.sqrt(items.length));
-            items.forEach((item, i) => {
-                const col = i % cols, row = Math.floor(i / cols);
-                nodesCounter++; const newId = 'node-' + nodesCounter;
-                spawnDevice(null, { id:newId, left:(60+col*280)+'px', top:(60+row*200)+'px', config:item, settings:JSON.stringify({res:'1080p60',bitrate:6000,audio:'48kHz',server:''}), notes:'' });
-                spawned.push(newId);
-            });
-            const usedInputs = new Set();
-            for (let a=0;a<spawned.length;a++) {
-                const na = document.getElementById(spawned[a]); const ca = JSON.parse(na.dataset.config);
-                for (const out of ca.outputs) {
-                    let connected = false;
-                    for (let b=0;b<spawned.length && !connected;b++) {
-                        if (b===a) continue;
-                        const nb = document.getElementById(spawned[b]); const cb = JSON.parse(nb.dataset.config);
-                        cb.inputs.forEach((inp, idx) => {
-                            if (connected) return;
-                            if (inp.type === out.type) {
-                                const inId = `${spawned[b]}-in-${idx}`;
-                                if (usedInputs.has(inId)) return;
-                                const outId = `${spawned[a]}-out-${ca.outputs.indexOf(out)}`;
-                                connections.push({ from:outId, to:inId, type:out.type }); usedInputs.add(inId); connected = true;
-                            }
-                        });
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Live Planner - Creative Command Center</title>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.googleapis.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-surface": "#d3e4fe",
+                        "inverse-on-surface": "#213145",
+                        "surface-bright": "#2a3a4f",
+                        "on-secondary-fixed": "#131b2e",
+                        "on-primary-container": "#00285c",
+                        "surface-container-high": "#1b2b3f",
+                        "on-surface-variant": "#c1c6d7",
+                        "surface-dim": "#031427",
+                        "primary-fixed": "#d8e2ff",
+                        "on-primary-fixed-variant": "#004493",
+                        "on-tertiary": "#00363e",
+                        "tertiary-fixed": "#a2eeff",
+                        "background": "#031427",
+                        "outline": "#8b90a0",
+                        "on-secondary-fixed-variant": "#3f465c",
+                        "surface-container": "#102034",
+                        "tertiary-fixed-dim": "#2fd9f4",
+                        "primary-fixed-dim": "#adc6ff",
+                        "surface-container-low": "#0b1c30",
+                        "secondary": "#bec6e0",
+                        "on-error": "#690005",
+                        "secondary-container": "#3f465c",
+                        "on-tertiary-fixed-variant": "#004e5a",
+                        "on-background": "#d3e4fe",
+                        "primary-container": "#4b8eff",
+                        "primary": "#adc6ff",
+                        "on-secondary": "#283044",
+                        "error": "#ffb4ab",
+                        "secondary-fixed": "#dae2fd",
+                        "on-primary": "#002e69",
+                        "on-tertiary-fixed": "#001f25",
+                        "surface-variant": "#26364a",
+                        "on-secondary-container": "#adb4ce",
+                        "inverse-primary": "#005bc1",
+                        "secondary-fixed-dim": "#bec6e0",
+                        "on-tertiary-container": "#002f36",
+                        "surface-tint": "#adc6ff",
+                        "error-container": "#93000a",
+                        "tertiary-container": "#009fb4",
+                        "on-primary-fixed": "#001a41",
+                        "inverse-surface": "#d3e4fe",
+                        "surface": "#031427",
+                        "on-error-container": "#ffdad6",
+                        "surface-container-lowest": "#000f21",
+                        "surface-container-highest": "#26364a",
+                        "outline-variant": "#414755",
+                        "tertiary": "#2fd9f4"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "margin-mobile": "16px",
+                        "container-max": "1440px",
+                        "gutter": "24px",
+                        "margin-desktop": "40px",
+                        "unit": "4px"
+                    },
+                    "fontFamily": {
+                        "headline-lg": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "body-md": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "label-sm": ["JetBrains Mono"],
+                        "display-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-lg": ["32px", { "lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "headline-lg-mobile": ["24px", { "lineHeight": "1.2", "fontWeight": "700" }],
+                        "body-md": ["16px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "headline-md": ["20px", { "lineHeight": "1.4", "fontWeight": "600" }],
+                        "label-sm": ["12px", { "lineHeight": "1.0", "letterSpacing": "0.05em", "fontWeight": "500" }],
+                        "display-lg": ["48px", { "lineHeight": "1.1", "letterSpacing": "-0.04em", "fontWeight": "800" }]
                     }
                 }
             }
-            setTimeout(()=>{ drawCables(); updateStats(); }, 50);
-            showToast(`Rangkai otomatis: ${spawned.length} alat, ${connections.length} kabel.`, true);
         }
-
-        // --- SUMMARY ---
-        function buildSummary() {
-            const catMap = {}, brandMap = {}, typeMap = {};
-            document.querySelectorAll('.device-node').forEach(node => {
-                const c = JSON.parse(node.dataset.config);
-                catMap[c.cat] = (catMap[c.cat]||0)+1;
-                brandMap[c.brand||'Lainnya'] = (brandMap[c.brand||'Lainnya']||0)+1;
-            });
-            connections.forEach(conn => typeMap[conn.type] = (typeMap[conn.type]||0)+1);
-            return { deviceCount: document.querySelectorAll('.device-node').length, catMap, brandMap, typeMap, connCount: connections.length };
-        }
-        function openSummary() {
-            const s = buildSummary(); const d = new Date().toLocaleString('id-ID');
-            let catRows = Object.entries(s.catMap).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<tr><td>${k}</td><td class="num">${v}</td></tr>`).join('');
-            let brandRows = Object.entries(s.brandMap).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<tr><td>${k}</td><td class="num">${v}</td></tr>`).join('');
-            let cableRows = Object.keys(s.typeMap).length ? Object.entries(s.typeMap).map(([k,v])=>`<tr><td><span class="dot" style="background:${cableColors[k]||'#888'}"></span>${k}</td><td class="num">${v}</td></tr>`).join('') : `<tr><td colspan="2" class="empty">— belum ada kabel —</td></tr>`;
-            const html = `<div class="page"><div class="header"><div class="logo"><i class="fa-solid fa-satellite-dish"></i></div><div><h1>Rangkuman Peralatan Live Streaming</h1><p>Dicetak: ${d}</p></div><div class="totals"><div class="total-box"><span class="big">${s.deviceCount}</span><span class="lbl">Total Alat</span></div><div class="total-box"><span class="big">${s.connCount}</span><span class="lbl">Total Kabel</span></div></div></div><div class="cards"><div class="card"><h3><i class="fa-solid fa-layer-group"></i> Per Kategori</h3><table><thead><tr><th>Kategori</th><th class="num">Jml</th></tr></thead><tbody>${catRows}</tbody></table></div><div class="card"><h3><i class="fa-solid fa-trademark"></i> Per Merk</h3><table><thead><tr><th>Merk</th><th class="num">Jml</th></tr></thead><tbody>${brandRows}</tbody></table></div></div><div class="card full"><h3><i class="fa-solid fa-plug"></i> Jenis Kabel</h3><table><thead><tr><th>Jenis Kabel</th><th class="num">Jml</th></tr></thead><tbody>${cableRows}</tbody></table></div><div class="footer">Dihasilkan oleh <strong>Live Planner</strong></div></div>`;
-            const w = window.open('', '_blank');
-            w.document.write(`<!DOCTYPE html><html><head><title>Rangkuman</title><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"><style>*{box-sizing:border-box}body{font-family:'Segoe UI',Arial,sans-serif;color:#1e293b;margin:0;background:#f1f5f9}.page{max-width:920px;margin:24px auto;background:#fff;padding:36px 40px;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.12)}.header{display:flex;align-items:center;gap:16px;border-bottom:3px solid #2563eb;padding-bottom:18px}.logo{width:54px;height:54px;border-radius:12px;background:linear-gradient(135deg,#2563eb,#7c3aed);color:#fff;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0}.header h1{margin:0;font-size:22px;color:#0f172a}.header p{margin:2px 0 0;color:#64748b;font-size:12px}.totals{margin-left:auto;display:flex;gap:12px}.total-box{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:8px 16px;text-align:center;min-width:84px}.total-box .big{display:block;font-size:26px;font-weight:800;color:#2563eb;line-height:1}.total-box .lbl{font-size:10px;color:#64748b;text-transform:uppercase}.cards{display:flex;gap:18px;margin-top:22px;flex-wrap:wrap}.card{flex:1;min-width:280px;border:1px solid #e2e8f0;border-radius:10px;padding:16px 18px}.card.full{margin-top:18px}.card h3{margin:0 0 12px;font-size:14px;color:#334155;display:flex;align-items:center;gap:8px}.card h3 i{color:#2563eb}table{width:100%;border-collapse:collapse;font-size:13px}thead th{text-align:left;border-bottom:2px solid #cbd5e1;padding:6px 4px;color:#475569;font-size:11px;text-transform:uppercase}tbody td{padding:6px 4px;border-bottom:1px solid #f1f5f9}td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:8px;vertical-align:middle}.empty{text-align:center;color:#94a3b8;font-style:italic}.footer{margin-top:24px;padding-top:14px;border-top:1px solid #e2e8f0;text-align:center;color:#94a3b8;font-size:11px}@media print{body{background:#fff}.page{margin:0;box-shadow:none;border-radius:0}@page{margin:14mm}}</style></head><body>${html}<script>window.onload=function(){setTimeout(function(){window.print()},400)}<\/script></body></html>`);
-            w.document.close();
-        }
-        function renderLegend() {
-            document.getElementById('legend-list').innerHTML = Object.entries(cableColors).map(([type,color])=>`<div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full flex-shrink-0" style="background:${color}"></span><span class="text-slate-300">${type}</span></div>`).join('');
-        }
-
-        // --- COORD HELPERS ---
-        function screenToLocal(clientX, clientY) {
-            const rect = canvasArea.getBoundingClientRect();
-            return { x:(clientX-rect.left-panX)/zoom, y:(clientY-rect.top-panY)/zoom };
-        }
-        function applyTransform() {
-            zoomWrapper.style.transform = `translate(${panX}px, ${panY}px) scale(${zoom})`;
-            document.getElementById('zoom-label').textContent = Math.round(zoom*100)+'%';
-            drawCables();
-        }
-        function zoomIn() { setZoomAtCenter(Math.min(2.5, zoom+0.15)); }
-        function zoomOut() { setZoomAtCenter(Math.max(0.3, zoom-0.15)); }
-        function zoomReset() { zoom=1; panX=0; panY=0; applyTransform(); }
-        function setZoomAtCenter(nz) {
-            const rect = canvasArea.getBoundingClientRect(); const cx=rect.width/2, cy=rect.height/2;
-            const lx=(cx-panX)/zoom, ly=(cy-panY)/zoom; zoom=nz; panX=cx-lx*zoom; panY=cy-ly*zoom; applyTransform();
-        }
-
-        // --- SPAWN DEVICE ---
-        function spawnDevice(encodedData, restoreData = null) {
-            const data = restoreData ? restoreData.config : JSON.parse(decodeURIComponent(encodedData));
-            if (!restoreData) nodesCounter++;
-            const nodeId = restoreData ? restoreData.id : 'node-' + nodesCounter;
-            const nodeDiv = document.createElement('div');
-            nodeDiv.id = nodeId;
-            nodeDiv.dataset.config = JSON.stringify(data);
-            nodeDiv.dataset.settings = restoreData ? (restoreData.settings || JSON.stringify({res:'1080p60',bitrate:6000,audio:'48kHz',server:''})) : JSON.stringify({res:'1080p60',bitrate:6000,audio:'48kHz',server:''});
-            nodeDiv.dataset.notes = restoreData ? (restoreData.notes || '') : '';
-            nodeDiv.className = 'device-node text-sm flex flex-col no-select';
-            if (!restoreData) {
-                const n = nodesCounter;
-                const col = n % 6, row = Math.floor(n / 6);
-                nodeDiv.style.left = (40 + col * 250) + 'px';
-                nodeDiv.style.top = (40 + row * 180) + 'px';
-            }
-            const hasNotes = nodeDiv.dataset.notes && nodeDiv.dataset.notes.trim().length > 0;
-            const specLine = (data.func && currentModule === 'pc') ? `<div class="px-2 pb-1 text-[10px] text-slate-400 line-clamp-2">${data.func}</div>` : '';
-            let innerHTML = `
-                <div class="bg-slate-800 p-2 rounded-t-lg border-b border-slate-700 font-bold flex justify-between items-center handle">
-                    <span class="truncate flex items-center">${data.name}${hasNotes ? '<span class="notes-dot" title="Ada catatan"></span>' : ''}</span>
-                    <div class="flex gap-1 flex-shrink-0 ml-1">
-                        <button onclick="openNotes('${nodeId}')" class="icon-btn text-yellow-400" title="Catatan"><i class="fa-solid fa-note-sticky"></i></button>
-                        ${data.hasSettings ? `<button onclick="openSettings('${nodeId}')" class="icon-btn text-blue-400" title="Pengaturan"><i class="fa-solid fa-gear"></i></button>` : ''}
-                        <button onclick="duplicateDevice('${nodeId}')" class="icon-btn text-purple-400" title="Duplikat"><i class="fa-solid fa-copy"></i></button>
-                        <button onclick="deleteDevice('${nodeId}')" class="icon-btn text-red-400" title="Hapus"><i class="fa-solid fa-xmark"></i></button>
-                    </div>
-                </div>
-                <div class="device-image">
-                    <img src="${data.img}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
-                    <span class="fallback-emoji"><i class="${faIconFor(data.cat || '')}"></i></span>
-                </div>
-                ${specLine}
-                <div class="p-2 flex justify-between relative min-h-[60px] bg-slate-800 rounded-b-lg">`;
-            innerHTML += `<div class="flex flex-col gap-3">`;
-            data.inputs.forEach((inp, idx) => {
-                const portId = `${nodeId}-in-${idx}`;
-                innerHTML += `<div class="relative flex items-center"><div id="${portId}" class="port port-in" data-node="${nodeId}" data-type="${inp.type}" data-io="input" onclick="handlePortClick(event, this)"></div><span class="text-[10px] text-slate-300 ml-3 font-semibold">${inp.name} <span class="text-[9px] text-slate-500">(${inp.type})</span></span></div>`;
-            });
-            innerHTML += `</div><div class="flex flex-col gap-3 text-right">`;
-            data.outputs.forEach((out, idx) => {
-                const portId = `${nodeId}-out-${idx}`;
-                innerHTML += `<div class="relative flex items-center justify-end"><span class="text-[10px] text-slate-300 mr-3 font-semibold"><span class="text-[9px] text-slate-500">(${out.type})</span> ${out.name}</span><div id="${portId}" class="port port-out" data-node="${nodeId}" data-type="${out.type}" data-io="output" onclick="handlePortClick(event, this)"></div></div>`;
-            });
-            innerHTML += `</div></div>`;
-            nodeDiv.innerHTML = innerHTML;
-            nodeDiv.addEventListener('mousedown', handleNodeDragStart);
-            devicesLayer.appendChild(nodeDiv);
-            updateStats();
-        }
-        function duplicateDevice(nodeId) {
-            const node = document.getElementById(nodeId); if (!node) return;
-            const config = JSON.parse(node.dataset.config); nodesCounter++; const newId = 'node-' + nodesCounter;
-            spawnDevice(null, { id:newId, left:(parseFloat(node.style.left)+30)+'px', top:(parseFloat(node.style.top)+30)+'px', config, settings:node.dataset.settings, notes:'' });
-            showToast('Alat diduplikat!', true);
-        }
-        function deleteDevice(nodeId) {
-            connections = connections.filter(conn => !conn.from.includes(nodeId) && !conn.to.includes(nodeId));
-            const node = document.getElementById(nodeId); if (node) node.remove();
-            resetActivePort(); drawCables(); updateStats();
-        }
-        function clearCanvasSilent() { devicesLayer.innerHTML=''; cablesLayer.innerHTML=''; connections=[]; nodesCounter=0; updateStats(); }
-        function clearCanvas() {
-            if (!confirm('Hapus semua alat dan kabel?')) return;
-            clearCanvasSilent(); showToast('Kanvas dibersihkan.', true);
-        }
-        function updateStats() { document.getElementById('stats-bar').textContent = `${document.querySelectorAll('.device-node').length} Alat • ${connections.length} Koneksi`; }
-
-        // --- DRAG / PAN / ZOOM ---
-        function handleNodeDragStart(e) {
-            if (readOnlyMode) return;
-            if (e.target.closest('button')) return;
-            if (e.target.classList.contains('port')) return;
-            e.stopPropagation(); isDragging = true; dragNode = this; dragNode.style.zIndex = 1000;
-            const local = screenToLocal(e.clientX, e.clientY);
-            offset.x = local.x - parseFloat(dragNode.style.left); offset.y = local.y - parseFloat(dragNode.style.top);
-        }
-        window.addEventListener('mousemove', (e) => {
-            if (isDragging && dragNode) {
-                const local = screenToLocal(e.clientX, e.clientY);
-                dragNode.style.left = (local.x-offset.x)+'px'; dragNode.style.top = (local.y-offset.y)+'px'; drawCables(); return;
-            }
-            if (isPanning) { panX = panStart.panX+(e.clientX-panStart.x); panY = panStart.panY+(e.clientY-panStart.y); applyTransform(); }
-        });
-        window.addEventListener('mouseup', () => { if (dragNode) dragNode.style.zIndex=10; isDragging=false; dragNode=null; isPanning=false; canvasArea.classList.remove('panning'); });
-        canvasArea.addEventListener('mousedown', (e) => {
-            if (e.target === canvasArea || e.target === devicesLayer || e.target === cablesLayer || e.target === zoomWrapper) {
-                isPanning = true; panStart = { x:e.clientX, y:e.clientY, panX, panY }; canvasArea.classList.add('panning'); resetActivePort();
-            }
-        });
-        canvasArea.addEventListener('wheel', (e) => {
-            e.preventDefault(); const rect = canvasArea.getBoundingClientRect();
-            const mx = e.clientX-rect.left, my = e.clientY-rect.top;
-            const lx=(mx-panX)/zoom, ly=(my-panY)/zoom; const delta = e.deltaY>0?-0.1:0.1;
-            zoom = Math.min(2.5, Math.max(0.3, zoom+delta)); panX = mx-lx*zoom; panY = my-ly*zoom; applyTransform();
-        }, { passive:false });
-
-        // --- PORTS & CABLES ---
-        function showToast(msg, isSuccess=false) {
-            const toast = document.getElementById('toast'); toast.innerText = msg;
-            toast.className = (isSuccess?'toast-success':'toast-error')+' shadow-lg'; toast.classList.add('show');
-            clearTimeout(window._toastTimer); window._toastTimer = setTimeout(()=>toast.classList.remove('show'), 3000);
-        }
-        function handlePortClick(e, portEl) {
-            if (readOnlyMode) return;
-            e.stopPropagation();
-            const pNode = portEl.getAttribute('data-node'), pType = portEl.getAttribute('data-type'), pIO = portEl.getAttribute('data-io'), pId = portEl.id;
-            if (!activePort) { activePort = { id:pId, node:pNode, type:pType, io:pIO, el:portEl }; portEl.classList.add('active'); return; }
-            if (activePort.id === pId) { resetActivePort(); return; }
-            if (activePort.node === pNode) { showToast('Tidak bisa menyambung ke alat yang sama!'); resetActivePort(); return; }
-            if (activePort.io === pIO) { showToast(`Keduanya ${pIO.toUpperCase()}! Harus Output -> Input.`); resetActivePort(); return; }
-            if (activePort.type !== pType) { showToast(`Kabel Ditolak! ${activePort.type} tidak cocok ${pType}.`); resetActivePort(); return; }
-            const inputId = activePort.io === 'input' ? activePort.id : pId;
-            if (connections.some(c => c.to === inputId)) { showToast('Port Input sudah terisi!'); resetActivePort(); return; }
-            connections.push({ from: activePort.io==='output'?activePort.id:pId, to: activePort.io==='input'?activePort.id:pId, type:pType });
-            resetActivePort(); drawCables(); updateStats();
-        }
-        function resetActivePort() { if (activePort && activePort.el) activePort.el.classList.remove('active'); activePort = null; }
-        function deleteConnection(idx) { connections.splice(idx,1); drawCables(); updateStats(); }
-        function drawCables() {
-            cablesLayer.innerHTML = '';
-            connections.forEach((conn, idx) => {
-                const elFrom = document.getElementById(conn.from), elTo = document.getElementById(conn.to);
-                if (!elFrom || !elTo) return;
-                const rFrom = elFrom.getBoundingClientRect(), rTo = elTo.getBoundingClientRect();
-                const p1 = screenToLocal(rFrom.left+rFrom.width/2, rFrom.top+rFrom.height/2);
-                const p2 = screenToLocal(rTo.left+rTo.width/2, rTo.top+rTo.height/2);
-                const color = cableColors[conn.type] || '#ffffff';
-                const curve = Math.abs(p2.x-p1.x)*0.6; const d = `M ${p1.x} ${p1.y} C ${p1.x+curve} ${p1.y}, ${p2.x-curve} ${p2.y}, ${p2.x} ${p2.y}`;
-                const path = document.createElementNS(svgNS,'path'); path.setAttribute('d',d); path.setAttribute('fill','none'); path.setAttribute('stroke',color); path.setAttribute('stroke-width','4'); path.setAttribute('stroke-linecap','round');
-                if (conn.type === 'Wireless') { path.setAttribute('stroke-dasharray','8,8'); path.setAttribute('opacity','0.7'); }
-                else { const animate=document.createElementNS(svgNS,'animate'); animate.setAttribute('attributeName','stroke-dashoffset'); animate.setAttribute('from','20'); animate.setAttribute('to','0'); animate.setAttribute('dur','1s'); animate.setAttribute('repeatCount','indefinite'); path.setAttribute('stroke-dasharray','10,10'); path.appendChild(animate); }
-                path.style.filter = `drop-shadow(0 0 5px ${color})`; cablesLayer.appendChild(path);
-                const hit = document.createElementNS(svgNS,'path'); hit.setAttribute('d',d); hit.setAttribute('fill','none'); hit.setAttribute('stroke','transparent'); hit.setAttribute('stroke-width','18'); hit.style.cursor='pointer'; hit.style.pointerEvents='stroke';
-                hit.addEventListener('click',(ev)=>{ ev.stopPropagation(); if(!readOnlyMode) deleteConnection(idx); }); cablesLayer.appendChild(hit);
-                const midX=(p1.x+p2.x)/2, midY=(p1.y+p2.y)/2; const g=document.createElementNS(svgNS,'g'); g.style.cursor='pointer'; g.style.pointerEvents='auto';
-                g.addEventListener('click',(ev)=>{ ev.stopPropagation(); if(!readOnlyMode) deleteConnection(idx); });
-                const circle=document.createElementNS(svgNS,'circle'); circle.setAttribute('cx',midX); circle.setAttribute('cy',midY); circle.setAttribute('r','8'); circle.setAttribute('fill','#1e293b'); circle.setAttribute('stroke',color); circle.setAttribute('stroke-width','1.5');
-                const text=document.createElementNS(svgNS,'text'); text.setAttribute('x',midX); text.setAttribute('y',midY+3); text.setAttribute('text-anchor','middle'); text.setAttribute('font-size','9'); text.setAttribute('fill','#f87171'); text.textContent='\u2715';
-                g.appendChild(circle); g.appendChild(text); cablesLayer.appendChild(g);
-            });
-        }
-
-        // --- SETTINGS / NOTES / IMAGE MODALS ---
-        const settingsModal = document.getElementById('settings-modal');
-        function openSettings(nodeId) {
-            const node = document.getElementById(nodeId); const s = JSON.parse(node.dataset.settings);
-            document.getElementById('setting-node-id').value = nodeId;
-            document.getElementById('set-res').value = s.res||'1080p60'; document.getElementById('set-bitrate').value = s.bitrate||6000;
-            document.getElementById('set-audio').value = s.audio||'48kHz'; document.getElementById('set-server').value = s.server||'';
-            settingsModal.classList.add('active');
-        }
-        function closeSettings() { settingsModal.classList.remove('active'); }
-        function saveSettings() {
-            const nodeId = document.getElementById('setting-node-id').value; const node = document.getElementById(nodeId);
-            node.dataset.settings = JSON.stringify({ res:document.getElementById('set-res').value, bitrate:document.getElementById('set-bitrate').value, audio:document.getElementById('set-audio').value, server:document.getElementById('set-server').value });
-            closeSettings(); showToast('Setting disimpan!', true);
-        }
-        const notesModal = document.getElementById('notes-modal');
-        function openNotes(nodeId) {
-            const node = document.getElementById(nodeId); const config = JSON.parse(node.dataset.config);
-            document.getElementById('notes-node-id').value = nodeId; document.getElementById('notes-device-name').textContent = config.name;
-            document.getElementById('notes-text').value = node.dataset.notes || ''; notesModal.classList.add('active');
-        }
-        function closeNotes() { notesModal.classList.remove('active'); }
-        function saveNotes() {
-            const nodeId = document.getElementById('notes-node-id').value; const node = document.getElementById(nodeId);
-            node.dataset.notes = document.getElementById('notes-text').value;
-            const dot = node.querySelector('.notes-dot'); const hasNotes = node.dataset.notes.trim().length>0;
-            if (hasNotes && !dot) node.querySelector('.handle span').insertAdjacentHTML('beforeend','<span class="notes-dot" title="Ada catatan"></span>');
-            else if (!hasNotes && dot) dot.remove();
-            closeNotes(); showToast('Catatan disimpan!', true);
-        }
-        function exportToImage() {
-            const zc = document.getElementById('zoom-controls'), lp = document.getElementById('legend-panel');
-            const obg = canvasArea.style.backgroundImage; zc.style.display='none'; lp.style.display='none'; canvasArea.style.backgroundImage='none'; canvasArea.style.backgroundColor='#0f172a';
-            html2canvas(canvasArea, { backgroundColor:'#0f172a', scale:2 }).then(canvas => {
-                zc.style.display=''; lp.style.display=''; canvasArea.style.backgroundImage=obg;
-                const link=document.createElement('a'); link.download='Live-Event-Planner.jpg'; link.href=canvas.toDataURL('image/jpeg',0.9); link.click();
-            }).catch(err=>{ zc.style.display=''; lp.style.display=''; canvasArea.style.backgroundImage=obg; console.error(err); showToast('Gagal export.'); });
-        }
-        const imageGenModal = document.getElementById('imagegen-modal'); let pendingImageData = null;
-        function openImageGen() { document.getElementById('img-file').value=''; document.getElementById('img-preview-wrap').classList.add('hidden'); ['img-name','img-brand','img-cat','img-ins','img-outs'].forEach(id=>document.getElementById(id).value=''); pendingImageData=null; imageGenModal.classList.add('active'); }
-        function closeImageGen() { imageGenModal.classList.remove('active'); }
-        (function setupImageDrop() {
-            const drop=document.getElementById('img-drop'), file=document.getElementById('img-file');
-            drop.addEventListener('click',()=>file.click()); file.addEventListener('change',e=>handleImageFile(e.target.files[0]));
-            ['dragover','dragenter'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add('border-indigo-400');}));
-            ['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove('border-indigo-400');}));
-            drop.addEventListener('drop',e=>{ if(e.dataTransfer.files[0]) handleImageFile(e.dataTransfer.files[0]); });
-        })();
-        function handleImageFile(f) {
-            if (!f || !f.type.startsWith('image/')) return; const reader=new FileReader();
-            reader.onload = ev => { pendingImageData=ev.target.result; document.getElementById('img-preview').src=pendingImageData; document.getElementById('img-preview-wrap').classList.remove('hidden'); };
-            reader.readAsDataURL(f);
-        }
-        function createFromImage() {
-            const name = document.getElementById('img-name').value.trim(); if (!name) { showToast('Isi nama alat!'); return; }
-            const brand = document.getElementById('img-brand').value.trim()||'Custom'; const cat = document.getElementById('img-cat').value.trim()||'Custom';
-            const parsePorts = s => s.split(',').map(x=>x.trim()).filter(Boolean).map(t=>({name:t,type:t}));
-            const item = { id:'custom_'+Date.now(), name, brand, cat, img:pendingImageData||'', hasSettings:false, inputs:parsePorts(document.getElementById('img-ins').value), outputs:parsePorts(document.getElementById('img-outs').value), func:'' };
-            const center = screenToLocal(canvasArea.getBoundingClientRect().width/2, canvasArea.getBoundingClientRect().height/2); nodesCounter++;
-            spawnDevice(null, { id:'node-'+nodesCounter, left:(center.x-115)+'px', top:(center.y-60)+'px', config:item, settings:JSON.stringify({res:'1080p60',bitrate:6000,audio:'48kHz',server:''}), notes:'' });
-            closeImageGen(); showToast('Alat "'+name+'" dibuat!', true);
-        }
-        const guideModal = document.getElementById('guide-modal');
-        function openGuide() { guideModal.classList.add('active'); }
-        function closeGuide() { guideModal.classList.remove('active'); }
-        function switchGuide(tab) {
-            ['blueprint','tutorial','trouble'].forEach(t => {
-                document.getElementById('guide-'+t).classList.toggle('hidden', t!==tab);
-                const btn=document.querySelector('.guide-tab[data-tab="'+t+'"]');
-                btn.classList.toggle('text-blue-400', t===tab); btn.classList.toggle('border-blue-500', t===tab); btn.classList.toggle('text-slate-400', t!==tab); btn.classList.toggle('border-transparent', t!==tab);
-            });
-        }
-
-        // --- SAVE / PUBLISH / SHARE ---
-        function collectProject() {
-            const nodes = [];
-            document.querySelectorAll('.device-node').forEach(node => {
-                nodes.push({ id:node.id, left:node.style.left, top:node.style.top, config:JSON.parse(node.dataset.config), settings:node.dataset.settings, notes:node.dataset.notes||'' });
-            });
-            return { nodes, connections, nodesCounter, module: currentModule };
-        }
-        async function saveProject() {
-            if (!currentUser) { showToast('Login diperlukan!'); return; }
-            const data = collectProject();
-            const title = prompt('Nama simpanan:', 'Rencana ' + MODULES[currentModule].name + ' ' + new Date().toLocaleDateString('id-ID')) || 'Tanpa Nama';
-            const { ok } = await api('/api/saves', { method:'POST', body:{ title, data } });
-            if (ok) showToast('Tersimpan ke akun Anda!', true); else showToast('Gagal simpan.');
-        }
-        function publishTemplate() {
-            if (!currentUser) { showToast('Login diperlukan!'); return; }
-            const sel = document.getElementById('pub-module');
-            sel.innerHTML = Object.entries(MODULES).map(([k,m])=>`<option value="${k}">${m.name}</option>`).join('');
-            sel.value = currentModule;
-            document.getElementById('pub-title').value = 'Template ' + MODULES[currentModule].name + ' ' + new Date().toLocaleDateString('id-ID');
-            document.getElementById('pub-public').checked = false; document.getElementById('pub-template').checked = false;
-            document.getElementById('publish-modal').classList.add('active');
-        }
-        function closePublish() { document.getElementById('publish-modal').classList.remove('active'); }
-        async function submitPublish() {
-            const title = document.getElementById('pub-title').value.trim() || 'Tanpa Judul';
-            const module = document.getElementById('pub-module').value;
-            const is_public = document.getElementById('pub-public').checked ? 1 : 0;
-            const is_template = document.getElementById('pub-template').checked ? 1 : 0;
-            const data = collectProject();
-            const { ok } = await api('/api/templates', { method:'POST', body:{ title, module, data, is_public, is_template } });
-            if (ok) { closePublish(); showToast('Template dipublikasikan!', true); }
-            else showToast('Gagal publikasikan.');
-        }
-        function copyShareLink() {
-            if (currentTemplateId) {
-                const url = location.origin + location.pathname + '?template=' + currentTemplateId;
-                navigator.clipboard.writeText(url); showToast('Tautan template disalin!', true); return;
-            }
-            showToast('Simpan sebagai template dulu untuk membagikan tautan.');
-            publishTemplate();
-        }
-
-        // --- IMPORT BUILD (interconnection) ---
-        const importModal = document.getElementById('import-modal');
-        function importBuild() { importModal.classList.add('active'); loadImportList(); }
-        function closeImport() { importModal.classList.remove('active'); }
-        async function loadImportList() {
-            const list = document.getElementById('import-list'); list.innerHTML = '<p class="text-sm text-slate-500 text-center">Memuat…</p>';
-            let html = '';
-            try {
-                const r1 = await api('/api/saves'); if (r1.ok && r1.data.items) {
-                    html += `<h3 class="font-bold text-sm text-green-300 mb-2"><i class="fa-solid fa-floppy-disk"></i> Simpanan Saya</h3>`;
-                    html += r1.data.items.map(s=>`<div class="bg-slate-700 rounded-lg p-3 mb-2 flex items-center justify-between"><div><div class="font-bold text-sm">${s.title}</div><div class="text-[11px] text-slate-400">${s.count} alat</div></div><button onclick="loadBuildIntoCanvas(${s.id},'save')" class="px-3 py-1 bg-blue-600 hover:bg-blue-500 rounded text-xs">Impor</button></div>`).join('');
-                }
-            } catch(e){}
-            try {
-                const r2 = await api('/api/templates?scope=public'); if (r2.ok && r2.data.items) {
-                    html += `<h3 class="font-bold text-sm text-purple-300 mt-3 mb-2"><i class="fa-solid fa-layer-group"></i> Template Publik</h3>`;
-                    html += r2.data.items.map(s=>`<div class="bg-slate-700 rounded-lg p-3 mb-2 flex items-center justify-between"><div><div class="font-bold text-sm">${s.title}</div><div class="text-[11px] text-slate-400">${s.count} alat • ${MODULES[s.module]?MODULES[s.module].name:s.module}</div></div><button onclick="loadBuildIntoCanvas(${s.id},'template')" class="px-3 py-1 bg-purple-600 hover:bg-purple-500 rounded text-xs">Impor</button></div>`).join('');
-                }
-            } catch(e){}
-            list.innerHTML = html || '<p class="text-sm text-slate-500 text-center">Tidak ada build tersedia.</p>';
-        }
-        async function loadBuildIntoCanvas(id, kind) {
-            const path = kind === 'save' ? '/api/saves/'+id : '/api/templates/'+id;
-            const { ok, data } = await api(path); if (!ok) { showToast('Gagal memuat.'); return; }
-            const pd = data.data; if (!pd || !pd.nodes) { showToast('Data kosong.'); return; }
-            const offsetBase = 40 + document.querySelectorAll('.device-node').length * 10;
-            pd.nodes.forEach(n => {
-                nodesCounter++; const newId = 'node-'+nodesCounter;
-                spawnDevice(null, { id:newId, left:(parseFloat(n.left||'0')+offsetBase)+'px', top:(parseFloat(n.top||'0')+offsetBase)+'px', config:n.config, settings:n.settings, notes:n.notes||'' });
-            });
-            (pd.connections||[]).forEach(c => connections.push(c));
-            setTimeout(()=>{ drawCables(); updateStats(); }, 100);
-            closeImport(); showToast('Build diimpor ke kanvas!', true);
-        }
-
-        // --- GALLERY ---
-        function openGallery() { showScreen('gallery-screen'); loadGallery('all', document.querySelector('.g-tab[data-scope="all"]')); }
-        async function loadGallery(scope, btn) {
-            document.querySelectorAll('.g-tab').forEach(b=>{ b.classList.remove('bg-blue-600','text-white'); b.classList.add('bg-slate-700','hover:bg-slate-600'); });
-            btn.classList.add('bg-blue-600','text-white'); btn.classList.remove('bg-slate-700','hover:bg-slate-600');
-            const list = document.getElementById('gallery-list'); list.innerHTML = '<p class="text-sm text-slate-500 text-center col-span-full">Memuat…</p>';
-            const { ok, data } = await api('/api/templates?scope='+scope);
-            if (!ok || !data.items || !data.items.length) { list.innerHTML = '<p class="text-sm text-slate-500 text-center col-span-full">Belum ada template.</p>'; return; }
-            list.innerHTML = data.items.map(t => {
-                const isAdmin = currentUser && currentUser.role === 'admin';
-                const isOwner = currentUser && t.owner_id === currentUser.id;
-                const badges = `${t.is_template?'<span class="text-[10px] bg-purple-600 px-1.5 py-0.5 rounded">TEMPLATE</span>':''}${t.is_public?'<span class="text-[10px] bg-green-600 px-1.5 py-0.5 rounded">PUBLIK</span>':''}${t.hidden?'<span class="text-[10px] bg-red-600 px-1.5 py-0.5 rounded">DISEMBUNYIKAN</span>':''}`;
-                return `<div class="bg-slate-800 border border-slate-700 rounded-xl p-4 shadow flex flex-col">
-                    <div class="flex items-center gap-2 mb-2"><i class="${MODULES[t.module]?MODULES[t.module].icon:'fa-solid fa-layer-group'} text-blue-400"></i><h3 class="font-bold flex-grow truncate">${t.title}</h3></div>
-                    <div class="text-[11px] text-slate-400 mb-1">${t.count} alat • ${MODULES[t.module]?MODULES[t.module].name:t.module}</div>
-                    <div class="mb-3">${badges}</div>
-                    <div class="flex gap-2 mt-auto flex-wrap">
-                        <button onclick="useTemplate(${t.id})" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 rounded text-xs font-bold"><i class="fa-solid fa-pen-to-square"></i> Gunakan</button>
-                        <button onclick="viewTemplate(${t.id})" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 rounded text-xs"><i class="fa-solid fa-eye"></i> Lihat</button>
-                        ${(isAdmin||isOwner)?`<button onclick="deleteTemplate(${t.id})" class="px-3 py-1.5 bg-red-700 hover:bg-red-600 rounded text-xs"><i class="fa-solid fa-trash"></i></button>`:''}
-                    </div>
-                </div>`;
-            }).join('');
-        }
-        async function useTemplate(id) {
-            const { ok, data } = await api('/api/templates/'+id); if (!ok) { showToast('Gagal memuat.'); return; }
-            const t = data.template; currentModule = t.module || 'live'; currentTemplateId = id; readOnlyMode = false;
-            document.getElementById('builder-module-badge').textContent = MODULES[currentModule].name + ' (dari template)';
-            document.getElementById('readonly-banner').classList.add('hidden');
-            document.getElementById('builder-actions').style.display = '';
-            clearCanvasSilent();
-            const pd = t.data; (pd.nodes||[]).forEach(n=>spawnDevice(null,n)); connections = pd.connections||[]; nodesCounter = pd.nodesCounter||0;
-            setTimeout(()=>{ drawCables(); updateStats(); }, 100);
-            showScreen('builder-screen'); showToast('Template dimuat — simpan sebagai milik Anda.', true);
-        }
-        async function viewTemplate(id) {
-            const { ok, data } = await api('/api/templates/'+id); if (!ok) { showToast('Gagal memuat.'); return; }
-            const t = data.template; const comments = data.comments || [];
-            document.getElementById('tmpl-title').innerHTML = `<i class="fa-solid fa-layer-group"></i> ${t.title}`;
-            document.getElementById('tmpl-meta').innerHTML = `${MODULES[t.module]?MODULES[t.module].name:t.module} • ${t.count} alat • oleh ${t.owner_name||'anon'} • ${new Date(t.created_at).toLocaleString('id-ID')}`;
-            const adminBox = document.getElementById('tmpl-admin');
-            const isAdmin = currentUser && currentUser.role === 'admin';
-            const isOwner = currentUser && t.owner_id === currentUser.id;
-            if (isAdmin || isOwner) {
-                adminBox.classList.remove('hidden');
-                let btns = '';
-                if (isAdmin) {
-                    btns += `<button onclick="adminTemplate(${t.id},'toggle_public')" class="px-3 py-1.5 bg-green-600 hover:bg-green-500 rounded text-xs"><i class="fa-solid fa-globe"></i> ${t.is_public?'Sembunyikan Publik':'Publikasikan'}</button>`;
-                    btns += `<button onclick="adminTemplate(${t.id},'toggle_template')" class="px-3 py-1.5 bg-purple-600 hover:bg-purple-500 rounded text-xs"><i class="fa-solid fa-star"></i> ${t.is_template?'Batal Template':'Jadikan Template'}</button>`;
-                    btns += `<button onclick="adminTemplate(${t.id},'toggle_hidden')" class="px-3 py-1.5 bg-yellow-600 hover:bg-yellow-500 rounded text-xs"><i class="fa-solid fa-eye-slash"></i> ${t.hidden?'Tampilkan':'Sembunyikan'}</button>`;
-                    btns += `<button onclick="deleteTemplate(${t.id})" class="px-3 py-1.5 bg-red-700 hover:bg-red-600 rounded text-xs"><i class="fa-solid fa-trash"></i> Hapus</button>`;
-                }
-                btns += `<button onclick="useTemplate(${t.id})" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 rounded text-xs"><i class="fa-solid fa-pen-to-square"></i> Gunakan/Edit</button>`;
-                adminBox.innerHTML = btns;
-            } else adminBox.classList.add('hidden');
-            const cbox = document.getElementById('tmpl-comments');
-            cbox.innerHTML = comments.length ? comments.map(c=>`<div class="bg-slate-900 rounded-lg p-2 text-sm"><div class="flex justify-between"><span class="font-bold text-xs text-blue-300">${c.user_name||'anon'}</span><span class="text-[10px] text-slate-500">${new Date(c.created_at).toLocaleString('id-ID')}</span></div><div class="text-slate-300">${c.text}</div>${((isAdmin)||(currentUser&&c.user_id===currentUser.id))?`<button onclick="deleteComment(${t.id},${c.id})" class="text-[10px] text-red-400 mt-1"><i class="fa-solid fa-trash"></i> Hapus</button>`:''}</div>`).join('') : '<p class="text-xs text-slate-500">Belum ada komentar.</p>';
-            document.getElementById('tmpl-comment-form').style.display = currentUser ? 'flex' : 'none';
-            document.getElementById('template-modal').classList.add('active');
-            window._tmplId = t.id;
-        }
-        function closeTemplate() { document.getElementById('template-modal').classList.remove('active'); }
-        async function postComment() {
-            if (!currentUser) { showToast('Login untuk komentar!'); return; }
-            const text = document.getElementById('tmpl-comment-input').value.trim(); if (!text) return;
-            const { ok } = await api('/api/comments?id='+window._tmplId, { method:'POST', body:{ text } });
-            if (ok) { document.getElementById('tmpl-comment-input').value=''; viewTemplate(window._tmplId); }
-            else showToast('Gagal kirim komentar.');
-        }
-        async function deleteComment(tid, cid) {
-            const { ok } = await api('/api/comments?id='+tid+'&cid='+cid, { method:'DELETE' });
-            if (ok) viewTemplate(tid); else showToast('Gagal hapus.');
-        }
-        async function adminTemplate(id, action) {
-            const { ok } = await api('/api/templates/'+id, { method:'PUT', body:{ action } });
-            if (ok) { showToast('Diperbarui.', true); viewTemplate(id); loadGallery('all', document.querySelector('.g-tab[data-scope="all"]')); }
-            else showToast('Gagal.');
-        }
-        async function deleteTemplate(id) {
-            if (!confirm('Hapus template ini?')) return;
-            const { ok } = await api('/api/templates/'+id, { method:'DELETE' });
-            if (ok) { closeTemplate(); showToast('Template dihapus.', true); loadGallery('all', document.querySelector('.g-tab[data-scope="all"]')); }
-            else showToast('Gagal hapus.');
-        }
-
-        // --- SHARE / READ-ONLY VIEW (no login) ---
-        async function loadShareView(id) {
-            const { ok, data } = await api('/api/templates/'+id);
-            if (!ok) { document.body.innerHTML = '<div class="flex items-center justify-center h-screen text-slate-300"><div class="text-center"><i class="fa-solid fa-triangle-exclamation text-4xl text-red-500 mb-3"></i><p>Template tidak ditemukan atau tidak tersedia.</p></div></div>'; return; }
-            const t = data.template; currentModule = t.module || 'live'; readOnlyMode = true; currentTemplateId = id;
-            document.getElementById('builder-module-badge').textContent = MODULES[currentModule].name;
-            document.getElementById('readonly-banner').classList.remove('hidden');
-            document.getElementById('builder-actions').style.display = 'none';
-            clearCanvasSilent();
-            const pd = t.data; (pd.nodes||[]).forEach(n=>spawnDevice(null,n)); connections = pd.connections||[]; nodesCounter = pd.nodesCounter||0;
-            setTimeout(()=>{ drawCables(); updateStats(); }, 100);
-            showScreen('builder-screen');
-        }
-
-        // --- EQUIPMENT LOAD ---
-        function buildDeviceDB(items) {
-            const db = {};
-            items.forEach(it => {
-                const cat = it.cat || 'Lainnya'; const key = 'cat_'+cat.toLowerCase().replace(/[\s/&]/g,'_');
-                if (!db[key]) db[key] = { title:cat, items:[] };
-                db[key].items.push({ id:it.id, name:it.name, brand:it.brand, img:it.img, hasSettings:!!it.hasSettings, inputs:it.inputs||[], outputs:it.outputs||[], func:it.func||'' });
-            });
-            return db;
-        }
-        async function loadEquipment() {
-            try {
-                const res = await fetch('/api/equipment'); if (res.ok) { const data = await res.json(); if (data.items && data.items.length) { deviceDB = buildDeviceDB(data.items); return; } }
-            } catch(e){}
-            if (typeof window.__deviceDB !== 'undefined') deviceDB = window.__deviceDB;
-        }
-
-        // --- INIT ---
-        window.onload = async () => {
-            renderLegend(); updateStats();
-            const params = new URLSearchParams(location.search);
-            const shareId = params.get('template') || params.get('share');
-            if (shareId) { await loadEquipment(); loadShareView(shareId); return; }
-            if (params.get('gerr')) { showToast(params.get('gerr')); history.replaceState(null, '', location.pathname); }
-            if (params.get('loggedin') === '1') { currentUser = await refreshMe(); if (currentUser) { enterApp(); return; } }
-            currentUser = await refreshMe();
-            await loadEquipment();
-            if (currentUser) enterApp(); else showScreen('login-screen');
-        };
     </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background-color: #031427;
+            color: #d3e4fe;
+        }
+        .rainbow-gradient {
+            background: linear-gradient(90deg, #4b8eff, #2fd9f4, #adc6ff);
+            background-size: 200% 200%;
+            animation: gradient-shift 3s ease infinite;
+        }
+        .rainbow-text {
+            background: linear-gradient(90deg, #4b8eff, #2fd9f4, #adc6ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        @keyframes gradient-shift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .glass-panel {
+            background: rgba(3, 20, 39, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(65, 71, 85, 0.3);
+        }
+        .rainbow-border {
+            position: relative;
+        }
+        .rainbow-border::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            padding: 1px;
+            border-radius: inherit;
+            background: linear-gradient(90deg, #4b8eff, #2fd9f4, #adc6ff);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+        }
+        .rainbow-glow:hover {
+            box-shadow: 0 0 15px rgba(47, 217, 244, 0.5);
+            filter: brightness(1.1);
+        }
+        .glow-border-focus:focus-within {
+            border-color: #2fd9f4;
+            box-shadow: 0 0 8px rgba(47, 217, 244, 0.5);
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #031427; }
+        ::-webkit-scrollbar-thumb { background: #26364a; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #414755; }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .screen { display: none; }
+        .screen.active { display: block; }
+        .canvas-node {
+            position: absolute;
+            width: 140px;
+            background: rgba(16, 32, 52, 0.95);
+            border: 1px solid #414755;
+            border-radius: 8px;
+            padding: 8px;
+            cursor: grab;
+            user-select: none;
+        }
+        .canvas-node.selected { border-color: #2fd9f4; box-shadow: 0 0 12px rgba(47,217,244,0.4); }
+        .port {
+            width: 12px; height: 12px; border-radius: 9999px;
+            background: #26364a; border: 1px solid #8b90a0; cursor: crosshair;
+        }
+        .port:hover { background: #2fd9f4; }
+        .port.connected { background: #4b8eff; }
+        .wire { position: absolute; pointer-events: none; }
+    </style>
+</head>
+<body class="bg-background text-on-background min-h-screen font-body-md overflow-x-hidden">
 
-    <!-- ============ EQUIPMENT ADMIN MODAL ============ -->
-    <div id="equip-admin-modal" class="hidden fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
-        <div class="bg-slate-800 rounded-2xl border border-slate-700 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <div class="flex items-center justify-between p-5 border-b border-slate-700">
-                <h3 class="text-lg font-bold"><i class="fa-solid fa-boxes-stacked text-amber-400"></i> Kelola Daftar Alat (Equipment)</h3>
-                <button onclick="closeEquipAdmin()" class="text-slate-400 hover:text-white text-xl"><i class="fa-solid fa-xmark"></i></button>
+<!-- ===================== LOGIN SCREEN ===================== -->
+<section id="login-screen" class="screen active min-h-screen flex items-center justify-center relative overflow-hidden">
+    <!-- Atmospheric Ambient Glows -->
+    <div class="absolute top-1/4 left-1/4 w-[40vw] h-[40vw] bg-primary/10 rounded-full blur-[120px] pointer-events-none transform -translate-x-1/2 -translate-y-1/2"></div>
+    <div class="absolute bottom-1/4 right-1/4 w-[30vw] h-[30vw] bg-tertiary/10 rounded-full blur-[100px] pointer-events-none transform translate-x-1/2 translate-y-1/2"></div>
+    <main class="w-full max-w-[480px] px-margin-mobile md:px-0 z-10">
+        <div class="glass-panel rounded-xl p-8 md:p-12 flex flex-col items-center text-center shadow-2xl relative overflow-hidden rainbow-border">
+            <div class="absolute top-0 left-0 w-full h-1 rainbow-gradient"></div>
+            <h1 class="font-display-lg text-display-lg rainbow-text mb-4 tracking-tight">Live Planner</h1>
+            <p class="font-body-md text-body-md text-on-surface-variant mb-10 max-w-sm">Command your creative workflow. Plan the perfect setup for your next live event or studio session.</p>
+
+            <!-- Auth mode toggle -->
+            <div class="flex w-full mb-6 rounded-lg bg-surface-container-low p-1">
+                <button id="login-tab" class="flex-1 py-2 rounded font-label-sm text-label-sm uppercase transition-all rainbow-text" onclick="toggleAuthMode('login')">Sign In</button>
+                <button id="register-tab" class="flex-1 py-2 rounded font-label-sm text-label-sm uppercase text-on-surface-variant transition-all" onclick="toggleAuthMode('register')">Register</button>
             </div>
-            <div class="p-5 space-y-5">
-                <div class="bg-slate-900 rounded-lg p-4 text-sm text-slate-300">
-                    <p class="font-bold text-amber-300 mb-2"><i class="fa-solid fa-circle-info"></i> Keterangan Kolom CSV</p>
-                    <ul class="list-disc pl-5 space-y-1 text-xs">
-                        <li><b>no</b> — Nomor urut (angka, opsional)</li>
-                        <li><b>name</b> — Nama alat (wajib)</li>
-                        <li><b>brand</b> — Merek alat</li>
-                        <li><b>category</b> — Kategori (mis. Kamera, Switcher, Audio, PC, Kabel)</li>
-                        <li><b>img</b> — URL gambar alat</li>
-                        <li><b>emoji</b> — Ikon emoji (mis. 🎥 🔊 💻)</li>
-                        <li><b>has_settings</b> — 1 jika punya pengaturan, 0 jika tidak</li>
-                        <li><b>inputs</b> — Daftar input, format: <code>Nama|Jenis; Nama2|Jenis2</code> (mis. HDMI|Video; XLR|Audio)</li>
-                        <li><b>outputs</b> — Daftar output, format sama seperti inputs</li>
-                        <li><b>func</b> — Keterangan / spesifikasi alat</li>
-                        <li><b>ports_raw</b> — Catatan port mentah (teks bebas)</li>
-                    </ul>
-                </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <button onclick="downloadEquipTemplate()" class="py-3 bg-blue-600 hover:bg-blue-500 rounded-lg font-bold text-sm"><i class="fa-solid fa-file-csv"></i> Unduh Template CSV</button>
-                    <button onclick="exportEquip()" class="py-3 bg-teal-600 hover:bg-teal-500 rounded-lg font-bold text-sm"><i class="fa-solid fa-download"></i> Export Data Saat Ini</button>
-                </div>
+            <form id="auth-form" class="w-full flex flex-col gap-4" onsubmit="return doAuth(event)">
+                <input id="auth-name" type="text" placeholder="Full Name" class="hidden w-full bg-[#020617] border border-outline-variant/30 rounded-lg py-3 px-4 text-on-surface focus:outline-none focus:border-tertiary focus:ring-1 focus:ring-tertiary/50 transition-all" />
+                <input id="auth-email" type="email" placeholder="Email" required class="w-full bg-[#020617] border border-outline-variant/30 rounded-lg py-3 px-4 text-on-surface focus:outline-none focus:border-tertiary focus:ring-1 focus:ring-tertiary/50 transition-all" />
+                <input id="auth-password" type="password" placeholder="Password (min 6)" required minlength="6" class="w-full bg-[#020617] border border-outline-variant/30 rounded-lg py-3 px-4 text-on-surface focus:outline-none focus:border-tertiary focus:ring-1 focus:ring-tertiary/50 transition-all" />
+                <p id="auth-error" class="text-error font-label-sm text-label-sm hidden"></p>
+                <button type="submit" class="w-full flex items-center justify-center gap-2 py-3 px-6 rounded-lg rainbow-gradient text-surface-container-lowest font-headline-md text-headline-md rainbow-glow transition-all">
+                    <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1;">login</span>
+                    <span id="auth-submit-label">Sign In</span>
+                </button>
+            </form>
 
-                <div class="border-t border-slate-700 pt-4">
-                    <label class="block text-sm font-bold mb-2">Import CSV</label>
-                    <input id="equip-csv-input" type="file" accept=".csv,text/csv" class="block w-full text-sm text-slate-300 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-amber-600 file:hover:bg-amber-500 file:text-white file:font-bold mb-3">
-                    <button onclick="importEquip()" class="w-full py-3 bg-amber-600 hover:bg-amber-500 rounded-lg font-bold text-sm"><i class="fa-solid fa-upload"></i> Import CSV</button>
-                    <p id="equip-import-status" class="text-xs text-slate-400 mt-2"></p>
-                </div>
-
-                <div class="border-t border-slate-700 pt-4">
-                    <p class="text-sm font-bold text-red-300 mb-2"><i class="fa-solid fa-triangle-exclamation"></i> Zona Berbahaya</p>
-                    <p class="text-xs text-slate-400 mb-3">Menghapus SELURUH daftar alat. Pastikan sudah export dulu jika perlu backup.</p>
-                    <button onclick="deleteAllEquip()" class="w-full py-3 bg-red-700 hover:bg-red-600 rounded-lg font-bold text-sm"><i class="fa-solid fa-trash-can"></i> Hapus Semua Alat</button>
-                </div>
-
-                <p class="text-xs text-slate-500 text-center">Jumlah alat saat ini: <span id="equip-count" class="font-bold text-white">?</span></p>
+            <div class="mt-6 w-full flex items-center gap-3 text-outline">
+                <div class="flex-1 h-px bg-outline-variant/30"></div>
+                <span class="font-label-sm text-label-sm uppercase">or</span>
+                <div class="flex-1 h-px bg-outline-variant/30"></div>
+            </div>
+            <button onclick="startGoogle()" class="mt-6 w-full flex items-center justify-center gap-3 py-3 px-6 rounded-full bg-surface-container-low border border-outline-variant/40 text-on-surface font-headline-md text-headline-md hover:border-tertiary transition-all">
+                <svg class="w-5 h-5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"></path>
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"></path>
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"></path>
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"></path>
+                </svg>
+                Continue with Google
+            </button>
+            <div class="mt-8 pt-6 border-t border-outline-variant/20 w-full flex justify-center">
+                <span class="font-label-sm text-label-sm text-outline tracking-widest uppercase">Secure Access Required</span>
             </div>
         </div>
+    </main>
+</section>
+
+<!-- ===================== APP SCREEN (Dashboard + Rooms) ===================== -->
+<section id="app-screen" class="screen">
+    <!-- TopNavBar -->
+    <header class="bg-surface/80 dark:bg-surface-dim/80 backdrop-blur-xl fixed top-0 w-full z-50 border-b border-outline-variant/30 shadow-sm flex justify-between items-center h-16 px-margin-desktop max-w-container-max mx-auto md:px-margin-desktop px-margin-mobile">
+        <div class="flex items-center gap-4">
+            <span class="font-headline-lg text-headline-lg rainbow-text hidden md:block">Live Planner</span>
+            <span class="font-headline-lg-mobile text-headline-lg-mobile rainbow-text md:hidden block">Live Planner</span>
+        </div>
+        <nav class="hidden md:flex gap-8 items-center h-full">
+            <a class="text-primary border-b-2 border-primary font-bold pb-1 font-label-sm text-label-sm uppercase scale-95 transition-transform duration-150 h-full flex items-center mt-1 cursor-pointer" href="#">Dashboard</a>
+            <a class="text-on-surface-variant hover:text-primary transition-colors hover:bg-surface-container-high/50 font-label-sm text-label-sm uppercase h-full flex items-center px-2 mt-1 cursor-pointer" onclick="openGallery()">Gallery</a>
+            <a class="text-on-surface-variant hover:text-primary transition-colors hover:bg-surface-container-high/50 font-label-sm text-label-sm uppercase h-full flex items-center px-2 mt-1 cursor-pointer" onclick="goBuilder()">Builder</a>
+        </nav>
+        <div class="flex items-center gap-4">
+            <button class="text-on-surface-variant hover:text-primary transition-colors p-2 rounded-full hover:bg-surface-bright/10"><span class="material-symbols-outlined">notifications</span></button>
+            <button class="text-on-surface-variant hover:text-primary transition-colors p-2 rounded-full hover:bg-surface-bright/10"><span class="material-symbols-outlined">settings</span></button>
+            <div class="w-8 h-8 rounded-full p-[2px] rainbow-gradient cursor-pointer" id="user-avatar">
+                <img alt="User avatar" class="w-full h-full rounded-full object-cover border-2 border-background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuByNHbW5BPTh30YpGjSyp6ZnBW-iLs3x8GPByXrbBv-apDm9nNJM_fFTDS-ptEc38AtxwCnsfA_sytAozHDgn89tG8f-FU7dzSgw2LfyXMNQagRetlT5_-OORdLerIR8JkmFGZgHwIYdC_zEsKif_EI-ovTaLoiR7Yamel_0kNCAOGFgweg33IgKt2LS0xvgxBNtABMQ4vWYzevxLzpwWC99E4JfQL74SIwPydvw9jnJV8L9v0pv5DY" />
+            </div>
+            <button onclick="doLogout()" class="text-on-surface-variant hover:text-error transition-colors p-2 rounded-full hover:bg-surface-bright/10" title="Logout"><span class="material-symbols-outlined">logout</span></button>
+        </div>
+    </header>
+
+    <div class="pt-16 flex min-h-screen">
+        <!-- SideNavBar -->
+        <aside class="bg-surface-container dark:bg-surface-container-low hidden md:flex flex-col py-6 gap-2 fixed left-0 top-16 h-[calc(100vh-64px)] w-60 border-r border-outline-variant/20 z-40">
+            <div class="px-6 mb-8 flex items-center gap-3">
+                <div class="w-10 h-10 rounded-lg bg-surface-bright flex items-center justify-center overflow-hidden">
+                    <span class="material-symbols-outlined text-tertiary">layers</span>
+                </div>
+                <div>
+                    <h2 class="font-headline-md text-headline-md font-bold text-on-surface">Creative Rail</h2>
+                    <p class="font-body-md text-body-md text-on-surface-variant text-sm">Command Center</p>
+                </div>
+            </div>
+            <div class="px-4 mb-4">
+                <button onclick="goBuilder()" class="w-full rainbow-gradient text-inverse-on-surface font-headline-md text-headline-md py-3 rounded-lg flex items-center justify-center gap-2 rainbow-glow transition-all">
+                    <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1;">add</span> New Project
+                </button>
+            </div>
+            <nav class="flex-1 flex flex-col gap-1">
+                <a class="bg-gradient-to-r from-primary/20 to-transparent text-primary border-l-4 border-primary font-bold px-4 py-3 flex items-center gap-3 scale-[0.98] cursor-pointer" onclick="openLiveRoom()"><span class="material-symbols-outlined">sensors</span><span class="font-headline-md text-headline-md text-sm">Setup Live</span></a>
+                <a class="text-on-surface-variant hover:bg-surface-variant/50 px-4 py-3 transition-all hover:translate-x-1 duration-200 flex items-center gap-3 cursor-pointer" onclick="openStudioRoom()"><span class="material-symbols-outlined">mic_external_on</span><span class="font-headline-md text-headline-md text-sm">Setup Studio</span></a>
+                <a class="text-on-surface-variant hover:bg-surface-variant/50 px-4 py-3 transition-all hover:translate-x-1 duration-200 flex items-center gap-3 cursor-pointer" onclick="openRecordRoom()"><span class="material-symbols-outlined">fiber_manual_record</span><span class="font-headline-md text-headline-md text-sm">Setup Record</span></a>
+                <a class="text-on-surface-variant hover:bg-surface-variant/50 px-4 py-3 transition-all hover:translate-x-1 duration-200 flex items-center gap-3 cursor-pointer" onclick="openSoftwareModule()"><span class="material-symbols-outlined">terminal</span><span class="font-headline-md text-headline-md text-sm">Setup Software</span></a>
+                <a class="text-on-surface-variant hover:bg-surface-variant/50 px-4 py-3 transition-all hover:translate-x-1 duration-200 flex items-center gap-3 cursor-pointer" onclick="openPCModule()"><span class="material-symbols-outlined">memory</span><span class="font-headline-md text-headline-md text-sm">Rakit PC</span></a>
+            </nav>
+            <div class="mt-auto flex flex-col gap-1 border-t border-outline-variant/20 pt-4 px-4">
+                <a class="text-on-surface-variant hover:bg-surface-variant/50 px-4 py-3 transition-all hover:translate-x-1 duration-200 flex items-center gap-3 rounded-lg cursor-pointer" onclick="openGallery()"><span class="material-symbols-outlined">forum</span><span class="font-headline-md text-headline-md text-sm font-normal">Community</span></a>
+                <a class="text-on-surface-variant hover:bg-surface-variant/50 px-4 py-3 transition-all hover:translate-x-1 duration-200 flex items-center gap-3 rounded-lg cursor-pointer" onclick="openGallery()"><span class="material-symbols-outlined">extension</span><span class="font-headline-md text-headline-md text-sm font-normal">Gallery</span></a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 md:ml-60 p-margin-mobile md:p-margin-desktop max-w-container-max mx-auto w-full">
+            <!-- DASHBOARD VIEW -->
+            <div id="view-dashboard">
+                <section class="mb-12 mt-8">
+                    <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                        <div>
+                            <h1 class="font-display-lg text-display-lg text-on-surface mb-2">Welcome back, <span class="rainbow-text" id="dash-name">Creator!</span></h1>
+                            <p class="font-body-md text-body-md text-on-surface-variant max-w-2xl">Your creative command center is primed. Pick a room to start planning your next broadcast.</p>
+                        </div>
+                        <button onclick="goBuilder()" class="rainbow-gradient text-inverse-on-surface font-headline-md text-headline-md px-8 py-4 rounded-xl flex items-center justify-center gap-3 rainbow-glow transition-all shadow-lg">
+                            <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1;">add_circle</span> Start New Project
+                        </button>
+                    </div>
+                </section>
+
+                <!-- Room Bento Grid -->
+                <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-gutter mb-12">
+                    <div onclick="openLiveRoom()" class="bg-surface-container-low border border-surface-variant rounded-xl p-6 relative overflow-hidden group hover:border-primary transition-colors duration-300 cursor-pointer rainbow-border">
+                        <div class="absolute top-0 left-0 w-full h-1 rainbow-gradient"></div>
+                        <div class="flex items-center gap-3 mb-3"><span class="material-symbols-outlined text-tertiary text-3xl">sensors</span><h3 class="font-headline-md text-headline-md text-on-surface">Setup Live</h3></div>
+                        <p class="font-body-md text-body-md text-on-surface-variant text-sm">Wire cameras, switchers & capture cards into a live broadcast canvas.</p>
+                    </div>
+                    <div onclick="openStudioRoom()" class="bg-surface-container-low border border-surface-variant rounded-xl p-6 relative overflow-hidden group hover:border-primary transition-colors duration-300 cursor-pointer rainbow-border">
+                        <div class="absolute top-0 left-0 w-full h-1 rainbow-gradient"></div>
+                        <div class="flex items-center gap-3 mb-3"><span class="material-symbols-outlined text-primary text-3xl">mic_external_on</span><h3 class="font-headline-md text-headline-md text-on-surface">Setup Studio</h3></div>
+                        <p class="font-body-md text-body-md text-on-surface-variant text-sm">Acoustic treatment & multi-mic studio layout planning.</p>
+                    </div>
+                    <div onclick="openRecordRoom()" class="bg-surface-container-low border border-surface-variant rounded-xl p-6 relative overflow-hidden group hover:border-primary transition-colors duration-300 cursor-pointer rainbow-border">
+                        <div class="absolute top-0 left-0 w-full h-1 rainbow-gradient"></div>
+                        <div class="flex items-center gap-3 mb-3"><span class="material-symbols-outlined text-secondary text-3xl">fiber_manual_record</span><h3 class="font-headline-md text-headline-md text-on-surface">Setup Record</h3></div>
+                        <p class="font-body-md text-body-md text-on-surface-variant text-sm">Recording pipelines, codecs & storage scheduling.</p>
+                    </div>
+                    <div onclick="openSoftwareModule()" class="bg-surface-container-low border border-surface-variant rounded-xl p-6 relative overflow-hidden group hover:border-primary transition-colors duration-300 cursor-pointer rainbow-border">
+                        <div class="absolute top-0 left-0 w-full h-1 rainbow-gradient"></div>
+                        <div class="flex items-center gap-3 mb-3"><span class="material-symbols-outlined text-tertiary text-3xl">terminal</span><h3 class="font-headline-md text-headline-md text-on-surface">Setup Software</h3></div>
+                        <p class="font-body-md text-body-md text-on-surface-variant text-sm">Scene-based software config for virtual production.</p>
+                    </div>
+                    <div onclick="openPCModule()" class="bg-surface-container-low border border-surface-variant rounded-xl p-6 relative overflow-hidden group hover:border-primary transition-colors duration-300 cursor-pointer rainbow-border">
+                        <div class="absolute top-0 left-0 w-full h-1 rainbow-gradient"></div>
+                        <div class="flex items-center gap-3 mb-3"><span class="material-symbols-outlined text-primary text-3xl">memory</span><h3 class="font-headline-md text-headline-md text-on-surface">Rakit PC</h3></div>
+                        <p class="font-body-md text-body-md text-on-surface-variant text-sm">Build & validate a custom PC from the component catalog.</p>
+                    </div>
+                    <div onclick="openGallery()" class="bg-surface-container-low border border-surface-variant rounded-xl p-6 relative overflow-hidden group hover:border-primary transition-colors duration-300 cursor-pointer rainbow-border">
+                        <div class="absolute top-0 left-0 w-full h-1 rainbow-gradient"></div>
+                        <div class="flex items-center gap-3 mb-3"><span class="material-symbols-outlined text-secondary text-3xl">extension</span><h3 class="font-headline-md text-headline-md text-on-surface">Gallery</h3></div>
+                        <p class="font-body-md text-body-md text-on-surface-variant text-sm">Community templates, shared builds & inspiration.</p>
+                    </div>
+                </section>
+
+                <!-- Stats Bento -->
+                <section class="grid grid-cols-1 md:grid-cols-3 gap-gutter mb-12">
+                    <div class="bg-surface-container-low border border-surface-variant rounded-xl p-6 relative overflow-hidden group hover:border-primary transition-colors duration-300">
+                        <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><span class="material-symbols-outlined text-6xl text-tertiary">inventory_2</span></div>
+                        <p class="font-label-sm text-label-sm text-on-surface-variant mb-2 uppercase tracking-wider">Equipment Count</p>
+                        <div class="flex items-end gap-3"><h3 class="font-headline-lg text-headline-lg text-on-surface" id="stat-equipment">—</h3><span class="font-label-sm text-label-sm text-tertiary mb-2">catalog</span></div>
+                    </div>
+                    <div class="bg-surface-container-low border border-surface-variant rounded-xl p-6 relative overflow-hidden group hover:border-primary transition-colors duration-300">
+                        <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><span class="material-symbols-outlined text-6xl text-primary">account_tree</span></div>
+                        <p class="font-label-sm text-label-sm text-on-surface-variant mb-2 uppercase tracking-wider">Active Builds</p>
+                        <div class="flex items-end gap-3"><h3 class="font-headline-lg text-headline-lg text-on-surface" id="stat-builds">5</h3><span class="font-label-sm text-label-sm text-primary mb-2">rooms</span></div>
+                    </div>
+                    <div class="bg-surface-container-low border border-surface-variant rounded-xl p-6 relative overflow-hidden group hover:border-primary transition-colors duration-300">
+                        <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><span class="material-symbols-outlined text-6xl text-secondary">forum</span></div>
+                        <p class="font-label-sm text-label-sm text-on-surface" id="stat-community-label">Community</p>
+                        <div class="flex items-end gap-3"><h3 class="font-headline-lg text-headline-lg text-on-surface" id="stat-community">—</h3><span class="font-label-sm text-label-sm text-secondary mb-2">shared</span></div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- ROOM VIEW (injected) -->
+            <div id="view-room" class="hidden"></div>
+        </main>
     </div>
+</section>
+
+<!-- ===================== BUILDER SCREEN ===================== -->
+<section id="builder-screen" class="screen">
+    <header class="bg-surface/80 dark:bg-surface-dim/80 backdrop-blur-xl fixed top-0 w-full z-50 border-b border-outline-variant/30 shadow-sm flex justify-between items-center h-16 px-margin-desktop max-w-container-max mx-auto">
+        <div class="flex items-center gap-4">
+            <button onclick="goDashboard()" class="text-on-surface-variant hover:text-primary p-2 rounded-full hover:bg-surface-bright/10"><span class="material-symbols-outlined">arrow_back</span></button>
+            <span class="font-headline-lg text-headline-lg rainbow-text">Blueprint Planner</span>
+        </div>
+        <div class="flex items-center gap-3">
+            <button onclick="openImageGen()" class="text-on-surface-variant hover:text-primary px-3 py-2 rounded-lg border border-outline-variant/40 hover:border-tertiary transition-all flex items-center gap-2"><span class="material-symbols-outlined text-sm">image</span><span class="font-label-sm text-label-sm">Image Gen</span></button>
+            <button onclick="saveProject()" class="text-on-surface-variant hover:text-primary px-3 py-2 rounded-lg border border-outline-variant/40 hover:border-tertiary transition-all flex items-center gap-2"><span class="material-symbols-outlined text-sm">save</span><span class="font-label-sm text-label-sm">Save</span></button>
+            <button onclick="publishTemplate()" class="rainbow-gradient text-surface-container-lowest font-label-sm text-label-sm px-4 py-2 rounded-lg rainbow-glow transition-all flex items-center gap-2"><span class="material-symbols-outlined text-sm">cloud_upload</span>Publish</button>
+        </div>
+    </header>
+    <div class="pt-16 flex h-screen">
+        <!-- Catalog -->
+        <aside class="hidden lg:flex flex-col w-80 border-r border-outline-variant/20 bg-surface-container-low">
+            <div class="p-4 border-b border-outline-variant/20">
+                <h2 class="font-headline-md text-headline-md text-on-surface mb-3">Component Catalog</h2>
+                <div class="relative">
+                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-sm">search</span>
+                    <input id="catalog-search" oninput="renderCatalog()" class="w-full bg-[#020617] border border-outline-variant/30 rounded py-2 pl-9 pr-3 text-on-surface focus:outline-none focus:border-tertiary text-sm" placeholder="Search devices..." />
+                </div>
+                <div id="catalog-cats" class="flex flex-wrap gap-2 mt-3"></div>
+            </div>
+            <div id="catalog-list" class="flex-1 overflow-y-auto p-4 space-y-2"></div>
+        </aside>
+        <!-- Canvas -->
+        <main class="flex-1 flex flex-col min-w-0">
+            <div class="flex items-center justify-between px-4 py-2 border-b border-outline-variant/20 bg-surface-container-low">
+                <div class="flex gap-2">
+                    <button onclick="zoomIn()" class="p-2 rounded bg-surface-variant text-on-surface-variant hover:text-primary transition-colors"><span class="material-symbols-outlined text-sm">zoom_in</span></button>
+                    <button onclick="zoomOut()" class="p-2 rounded bg-surface-variant text-on-surface-variant hover:text-primary transition-colors"><span class="material-symbols-outlined text-sm">zoom_out</span></button>
+                    <button onclick="zoomReset()" class="p-2 rounded bg-surface-variant text-on-surface-variant hover:text-primary transition-colors"><span class="material-symbols-outlined text-sm">fullscreen</span></button>
+                    <button onclick="autoWire()" class="p-2 rounded bg-surface-variant text-on-surface-variant hover:text-primary transition-colors" title="Auto-wire"><span class="material-symbols-outlined text-sm">hub</span></button>
+                    <button onclick="clearCanvas()" class="p-2 rounded bg-surface-variant text-on-surface-variant hover:text-error transition-colors" title="Clear"><span class="material-symbols-outlined text-sm">delete</span></button>
+                </div>
+                <span id="canvas-hint" class="font-label-sm text-label-sm text-outline">Drag devices onto the canvas. Click a port then another to connect.</span>
+            </div>
+            <div id="builder-canvas" class="flex-1 relative overflow-auto bg-surface" style="background-image: radial-gradient(circle, rgba(139,144,160,0.12) 1px, transparent 1px); background-size: 24px 24px;">
+                <div id="canvas-world" class="relative" style="width:2000px;height:1400px;transform-origin:0 0;"></div>
+            </div>
+        </main>
+        <!-- Inspector -->
+        <aside class="hidden md:flex flex-col w-72 border-l border-outline-variant/20 bg-surface-container-low">
+            <div class="p-4 border-b border-outline-variant/20 flex items-center justify-between">
+                <h2 class="font-headline-md text-headline-md text-on-surface">Inspector</h2>
+                <button onclick="openSummary()" class="text-on-surface-variant hover:text-primary"><span class="material-symbols-outlined">list_alt</span></button>
+            </div>
+            <div id="inspector-body" class="flex-1 overflow-y-auto p-4 font-body-md text-body-md text-on-surface-variant">Select a node to inspect.</div>
+        </aside>
+    </div>
+</section>
+
+<!-- ===================== PC SCREEN ===================== -->
+<section id="pc-screen" class="screen"></section>
+<!-- ===================== SOFTWARE SCREEN ===================== -->
+<section id="software-screen" class="screen"></section>
+<!-- ===================== LIVE SCREEN ===================== -->
+<section id="live-screen" class="screen"></section>
+<!-- ===================== GALLERY SCREEN ===================== -->
+<section id="gallery-screen" class="screen"></section>
+
+<!-- ===================== MODALS ===================== -->
+<div id="modal-root"></div>
+
+<!-- Scripts -->
+<script src="equipment-data.js"></script>
+<script src="app-core.js"></script>
+<script src="pc-builder.js"></script>
+<script src="software-setup.js"></script>
+<script src="live-setup.js"></script>
 </body>
 </html>
