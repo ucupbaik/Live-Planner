@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Enterprise Live Event Planner</title>
+    <title>Live Event Planner</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
@@ -22,37 +22,22 @@
         #canvas-area.panning { cursor: grabbing; }
 
         #zoom-wrapper {
-            position: absolute;
-            top: 0; left: 0;
-            width: 4000px; height: 3000px;
-            transform-origin: 0 0;
+            position: absolute; top: 0; left: 0;
+            width: 4000px; height: 3000px; transform-origin: 0 0;
         }
 
         .device-node {
-            position: absolute;
-            background: #1e293b;
-            border: 1px solid #334155;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
-            width: 230px;
-            cursor: default;
-            border-radius: 10px;
-            z-index: 10;
-            transition: border-color 0.2s;
+            position: absolute; background: #1e293b; border: 1px solid #334155;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5); width: 230px;
+            cursor: default; border-radius: 10px; z-index: 10; transition: border-color 0.2s;
         }
         .device-node:hover { border-color: #475569; }
         .device-node .handle { cursor: grab; }
         .device-node .handle:active { cursor: grabbing; }
 
         .port {
-            width: 14px;
-            height: 14px;
-            border-radius: 50%;
-            background: #cbd5e1;
-            border: 3px solid #0f172a;
-            cursor: crosshair;
-            position: absolute;
-            transition: all 0.2s;
-            z-index: 20;
+            width: 14px; height: 14px; border-radius: 50%; background: #cbd5e1;
+            border: 3px solid #0f172a; cursor: crosshair; position: absolute; transition: all 0.2s; z-index: 20;
         }
         .port:hover { transform: scale(1.4); background: #3b82f6; }
         .port.active { background: #eab308; box-shadow: 0 0 12px #eab308; border-color: #fff; }
@@ -61,16 +46,9 @@
         .port-out { right: -7px; }
 
         .device-image {
-            width: 100%;
-            height: 76px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #0f172a;
-            border-top: 1px solid #334155;
-            border-bottom: 1px solid #334155;
-            position: relative;
-            overflow: hidden;
+            width: 100%; height: 76px; display: flex; align-items: center; justify-content: center;
+            background: #0f172a; border-top: 1px solid #334155; border-bottom: 1px solid #334155;
+            position: relative; overflow: hidden;
         }
         .device-image img { max-width: 100%; max-height: 100%; object-fit: contain; padding: 6px; pointer-events: none; }
         .device-image .fallback-emoji { display: none; width: 100%; height: 100%; align-items: center; justify-content: center; font-size: 28px; }
@@ -80,12 +58,7 @@
 
         .notes-dot { width: 7px; height: 7px; border-radius: 50%; background: #eab308; display: inline-block; margin-left: 4px; }
 
-        #toast {
-            position: fixed; top: 20px; right: 20px;
-            padding: 12px 24px; border-radius: 8px; font-weight: bold;
-            transform: translateX(150%); transition: transform 0.3s;
-            z-index: 9999; max-width: 320px;
-        }
+        #toast { position: fixed; top: 20px; right: 20px; padding: 12px 24px; border-radius: 8px; font-weight: bold; transform: translateX(150%); transition: transform 0.3s; z-index: 99999; max-width: 340px; }
         .toast-error { background: #ef4444; color: white; }
         .toast-success { background: #10b981; color: white; }
         #toast.show { transform: translateX(0); }
@@ -103,43 +76,168 @@
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #1e293b; }
         ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+
+        .screen { position: absolute; inset: 0; display: none; }
+        .screen.active { display: flex; }
+
+        .module-card { transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s; }
+        .module-card:hover { transform: translateY(-4px); box-shadow: 0 18px 30px -10px rgba(0,0,0,.6); border-color: #3b82f6; }
+
+        .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
     </style>
 </head>
-<body class="bg-slate-900 text-slate-200 h-screen flex">
+<body class="bg-slate-900 text-slate-200 h-screen">
 
-    <!-- Notifikasi -->
-    <div id="toast" class="toast-error shadow-lg">Pesan Error</div>
+    <div id="toast" class="toast-error shadow-lg">Pesan</div>
 
-    <!-- Modal Software Settings -->
+    <!-- ============ LOGIN SCREEN ============ -->
+    <div id="login-screen" class="screen active flex-col items-center justify-center bg-slate-900">
+        <div class="w-full max-w-md bg-slate-800 border border-slate-700 rounded-2xl shadow-2xl p-8">
+            <div class="text-center mb-6">
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 text-white text-3xl mb-3"><i class="fa-solid fa-satellite-dish"></i></div>
+                <h1 class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">Live Event Planner</h1>
+                <p class="text-xs text-slate-400 mt-1">Masuk untuk merancang & menyimpan arsitektur siaran Anda</p>
+            </div>
+
+            <button onclick="startGoogle()" class="w-full py-3 mb-4 bg-white hover:bg-slate-100 text-slate-800 rounded-lg font-bold flex items-center justify-center gap-2 shadow">
+                <i class="fa-brands fa-google text-red-500"></i> Lanjut dengan Google
+            </button>
+
+            <div class="flex items-center gap-3 my-4">
+                <div class="h-px bg-slate-700 flex-grow"></div>
+                <span class="text-[11px] text-slate-500 uppercase">atau email</span>
+                <div class="h-px bg-slate-700 flex-grow"></div>
+            </div>
+
+            <div id="login-box">
+                <input id="auth-email" type="email" placeholder="Email" class="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-sm mb-3 text-white focus:outline-none focus:border-blue-500">
+                <input id="auth-pass" type="password" placeholder="Password" class="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-sm mb-3 text-white focus:outline-none focus:border-blue-500" onkeydown="if(event.key==='Enter')doLogin()">
+                <button onclick="doLogin()" class="w-full py-3 bg-blue-600 hover:bg-blue-500 rounded-lg font-bold text-white shadow"><i class="fa-solid fa-right-to-bracket"></i> Masuk</button>
+                <p class="text-center text-xs text-slate-400 mt-3">Belum punya akun? <button onclick="toggleAuthMode()" class="text-blue-400 font-bold hover:underline">Daftar di sini</button></p>
+            </div>
+
+            <div id="register-box" class="hidden">
+                <input id="reg-name" type="text" placeholder="Nama Lengkap" class="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-sm mb-3 text-white focus:outline-none focus:border-blue-500">
+                <input id="reg-email" type="email" placeholder="Email" class="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-sm mb-3 text-white focus:outline-none focus:border-blue-500">
+                <input id="reg-pass" type="password" placeholder="Password (min 6 karakter)" class="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-sm mb-3 text-white focus:outline-none focus:border-blue-500" onkeydown="if(event.key==='Enter')doRegister()">
+                <button onclick="doRegister()" class="w-full py-3 bg-green-600 hover:bg-green-500 rounded-lg font-bold text-white shadow"><i class="fa-solid fa-user-plus"></i> Daftar & Masuk</button>
+                <p class="text-center text-xs text-slate-400 mt-3">Sudah punya akun? <button onclick="toggleAuthMode()" class="text-blue-400 font-bold hover:underline">Masuk di sini</button></p>
+            </div>
+            <p class="text-[10px] text-slate-500 mt-4 text-center">Login email diverifikasi & aman. Admin dapat membuat template untuk semua pengguna.</p>
+        </div>
+    </div>
+
+    <!-- ============ HOME / MODULE SELECTOR ============ -->
+    <div id="home-screen" class="screen flex-col bg-slate-900 overflow-y-auto">
+        <header class="w-full bg-slate-800 border-b border-slate-700 px-6 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-xl"><i class="fa-solid fa-satellite-dish"></i></div>
+                <div>
+                    <h1 class="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500 leading-none">Live Event Planner</h1>
+                    <p class="text-[11px] text-slate-400">Pilih modul untuk memulai</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <button onclick="openGallery()" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm font-bold"><i class="fa-solid fa-layer-group"></i> Template & Galeri</button>
+                <div id="user-chip" class="flex items-center gap-2 text-sm"></div>
+                <button onclick="doLogout()" class="px-3 py-2 bg-slate-700 hover:bg-red-600 rounded-lg text-sm"><i class="fa-solid fa-right-from-bracket"></i></button>
+            </div>
+        </header>
+
+        <main class="flex-grow p-8 max-w-6xl mx-auto w-full">
+            <h2 class="text-2xl font-bold mb-1">Pilih Jenis Setup</h2>
+            <p class="text-slate-400 text-sm mb-6">Setiap modul saling terhubung & dapat disimpan sebagai template bersama.</p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5" id="module-grid"></div>
+
+            <div class="mt-10 flex gap-4 flex-wrap">
+                <button onclick="openGallery()" class="px-5 py-3 bg-purple-600 hover:bg-purple-500 rounded-lg font-bold"><i class="fa-solid fa-layer-group"></i> Buka Template / Galeri</button>
+                <button onclick="startModule('live')" class="px-5 py-3 bg-slate-700 hover:bg-slate-600 rounded-lg font-bold"><i class="fa-solid fa-plus"></i> Rancang Baru (Setup Live)</button>
+            </div>
+        </main>
+    </div>
+
+    <!-- ============ BUILDER SCREEN ============ -->
+    <div id="builder-screen" class="screen">
+        <aside class="w-80 bg-slate-800 border-r border-slate-700 flex flex-col z-20 shadow-xl flex-shrink-0">
+            <div class="p-4 border-b border-slate-700 bg-slate-900 flex items-center justify-between">
+                <button onclick="goHome()" class="text-slate-300 hover:text-white text-sm"><i class="fa-solid fa-arrow-left"></i> Beranda</button>
+                <span id="builder-module-badge" class="text-xs font-bold px-2 py-1 rounded bg-blue-600/30 text-blue-300"></span>
+            </div>
+
+            <div id="builder-actions" class="grid grid-cols-2 gap-2 p-4 border-b border-slate-700">
+                <button onclick="saveProject()" class="py-2 bg-green-600 hover:bg-green-500 rounded text-sm font-bold flex justify-center items-center gap-1 shadow"><i class="fa-solid fa-floppy-disk"></i> Simpan</button>
+                <button onclick="publishTemplate()" class="py-2 bg-purple-600 hover:bg-purple-500 rounded text-sm font-bold flex justify-center items-center gap-1 shadow"><i class="fa-solid fa-cloud-arrow-up"></i> Template</button>
+                <button onclick="copyShareLink()" class="py-2 bg-teal-600 hover:bg-teal-500 rounded text-sm font-bold flex justify-center items-center gap-1 shadow"><i class="fa-solid fa-link"></i> Bagikan</button>
+                <button onclick="importBuild()" class="py-2 bg-indigo-600 hover:bg-indigo-500 rounded text-sm font-bold flex justify-center items-center gap-1 shadow"><i class="fa-solid fa-puzzle-piece"></i> Impor</button>
+                <button onclick="clearCanvas()" class="py-2 bg-red-700 hover:bg-red-600 rounded text-sm font-bold flex justify-center items-center gap-1 shadow col-span-2"><i class="fa-solid fa-trash-can"></i> Bersihkan Kanvas</button>
+                <button onclick="autoWire()" class="col-span-2 py-2 bg-amber-600 hover:bg-amber-500 rounded text-sm font-bold flex justify-center items-center gap-1 shadow"><i class="fa-solid fa-link"></i> Rangkai Otomatis</button>
+                <button onclick="openSummary()" class="col-span-2 py-2 bg-teal-700 hover:bg-teal-600 rounded text-sm font-bold flex justify-center items-center gap-1 shadow"><i class="fa-solid fa-print"></i> Ringkasan Cetak</button>
+                <button onclick="openImageGen()" class="col-span-2 py-2 bg-indigo-700 hover:bg-indigo-600 rounded text-sm font-bold flex justify-center items-center gap-1 shadow"><i class="fa-solid fa-image"></i> Generate dari Gambar</button>
+                <button onclick="openGuide()" class="col-span-2 py-2 bg-slate-700 hover:bg-slate-600 rounded text-sm font-bold flex justify-center items-center gap-1 shadow"><i class="fa-solid fa-book"></i> Panduan</button>
+                <button onclick="clearSelection()" class="col-span-2 py-1.5 bg-slate-600 hover:bg-slate-500 rounded text-xs font-bold flex justify-center items-center gap-1 shadow"><i class="fa-solid fa-xmark"></i> Bersihkan Pilihan</button>
+            </div>
+
+            <div id="selection-bar" class="p-2 border-t border-slate-700 text-xs text-center font-semibold bg-slate-900 text-slate-400">0 alat dipilih</div>
+
+            <div class="p-4 pb-2">
+                <input id="search-input" type="text" placeholder="Cari alat..." oninput="renderCatalog(this.value)" class="w-full bg-slate-900 border border-slate-600 rounded-lg p-2 text-sm text-white focus:outline-none focus:border-blue-500">
+            </div>
+            <div class="flex-grow overflow-y-auto px-4 pb-4 space-y-1" id="device-catalog"></div>
+            <div id="stats-bar" class="p-3 border-t border-slate-700 bg-slate-900 text-xs text-slate-400 text-center font-semibold">0 Alat • 0 Koneksi</div>
+        </aside>
+
+        <main id="canvas-area" class="flex-grow relative overflow-hidden">
+            <div id="zoom-wrapper">
+                <svg id="cables-layer" class="absolute top-0 left-0 w-full h-full pointer-events-none z-0"></svg>
+                <div id="devices-layer" class="absolute top-0 left-0 w-full h-full z-10"></div>
+            </div>
+            <div id="zoom-controls" class="absolute bottom-5 right-5 bg-slate-800/90 border border-slate-600 rounded-lg shadow-xl flex items-center gap-1 p-1 backdrop-blur">
+                <button onclick="zoomOut()" class="w-10 h-10 flex items-center justify-center hover:bg-slate-700 rounded text-lg"><i class="fa-solid fa-magnifying-glass-minus"></i></button>
+                <span id="zoom-label" class="text-sm w-14 text-center select-none">100%</span>
+                <button onclick="zoomIn()" class="w-10 h-10 flex items-center justify-center hover:bg-slate-700 rounded text-lg"><i class="fa-solid fa-magnifying-glass-plus"></i></button>
+                <button onclick="zoomReset()" class="w-10 h-10 flex items-center justify-center hover:bg-slate-700 rounded text-base ml-1" title="Reset"><i class="fa-solid fa-expand"></i></button>
+            </div>
+            <div id="legend-panel" class="absolute bottom-5 left-5 bg-slate-800/90 border border-slate-600 rounded-lg shadow-xl p-3 text-xs backdrop-blur">
+                <p class="font-bold mb-2 text-slate-300">Jenis Kabel</p>
+                <div class="grid grid-cols-2 gap-x-3 gap-y-1" id="legend-list"></div>
+            </div>
+            <div id="readonly-banner" class="hidden absolute top-3 left-1/2 -translate-x-1/2 bg-amber-600 text-white text-xs font-bold px-4 py-2 rounded-full shadow z-40"><i class="fa-solid fa-eye"></i> Mode Tampilan (tanpa login)</div>
+        </main>
+    </div>
+
+    <!-- ============ GALLERY SCREEN ============ -->
+    <div id="gallery-screen" class="screen flex-col bg-slate-900 overflow-y-auto">
+        <header class="w-full bg-slate-800 border-b border-slate-700 px-6 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <button onclick="goHome()" class="text-slate-300 hover:text-white"><i class="fa-solid fa-arrow-left"></i></button>
+                <h1 class="text-xl font-black"><i class="fa-solid fa-layer-group text-purple-400"></i> Template & Galeri</h1>
+            </div>
+            <button onclick="doLogout()" class="px-3 py-2 bg-slate-700 hover:bg-red-600 rounded-lg text-sm"><i class="fa-solid fa-right-from-bracket"></i></button>
+        </header>
+        <main class="flex-grow p-8 max-w-6xl mx-auto w-full">
+            <div class="flex gap-2 mb-5 flex-wrap" id="gallery-tabs">
+                <button class="g-tab px-4 py-2 rounded-lg font-bold text-sm bg-blue-600 text-white" data-scope="all" onclick="loadGallery('all', this)">Semua</button>
+                <button class="g-tab px-4 py-2 rounded-lg font-bold text-sm bg-slate-700 hover:bg-slate-600" data-scope="mine" onclick="loadGallery('mine', this)">Milik Saya</button>
+                <button class="g-tab px-4 py-2 rounded-lg font-bold text-sm bg-slate-700 hover:bg-slate-600" data-scope="templates" onclick="loadGallery('templates', this)">Template Resmi</button>
+                <button class="g-tab px-4 py-2 rounded-lg font-bold text-sm bg-slate-700 hover:bg-slate-600" data-scope="public" onclick="loadGallery('public', this)">Publik</button>
+            </div>
+            <div id="gallery-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+        </main>
+    </div>
+
+    <!-- ============ MODALS ============ -->
     <div id="settings-modal" class="modal-overlay fixed inset-0 bg-black/70 z-[9999] justify-center items-center backdrop-blur-sm">
         <div class="bg-slate-800 border border-slate-600 rounded-xl p-6 w-96 shadow-2xl">
-            <h2 class="text-xl font-bold mb-4 text-blue-400"><i class="fa-solid fa-gear"></i> Software / Broadcast Settings</h2>
+            <h2 class="text-xl font-bold mb-4 text-blue-400"><i class="fa-solid fa-gear"></i> Pengaturan Software</h2>
             <input type="hidden" id="setting-node-id">
-
-            <div class="mb-3">
-                <label class="block text-xs text-slate-400 mb-1">Resolusi Output</label>
-                <select id="set-res" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-sm text-white">
-                    <option value="1080p60">1080p 60fps</option>
-                    <option value="1080p30">1080p 30fps</option>
-                    <option value="4K30">4K 30fps</option>
-                    <option value="720p60">720p 60fps</option>
-                </select>
-            </div>
-            <div class="mb-3">
-                <label class="block text-xs text-slate-400 mb-1">Video Bitrate (Kbps)</label>
-                <input type="number" id="set-bitrate" value="6000" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-sm text-white">
-            </div>
-            <div class="mb-3">
-                <label class="block text-xs text-slate-400 mb-1">Audio Sample Rate</label>
-                <select id="set-audio" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-sm text-white">
-                    <option value="48kHz">48 kHz</option>
-                    <option value="44.1kHz">44.1 kHz</option>
-                </select>
-            </div>
-            <div class="mb-5">
-                <label class="block text-xs text-slate-400 mb-1">Server Tujuan (RTMP/RTMPS)</label>
-                <input type="text" id="set-server" placeholder="rtmp://..." class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-sm text-white">
-            </div>
+            <div class="mb-3"><label class="block text-xs text-slate-400 mb-1">Resolusi Output</label>
+                <select id="set-res" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-sm text-white"><option>1080p60</option><option>1080p30</option><option>4K30</option><option>720p60</option></select></div>
+            <div class="mb-3"><label class="block text-xs text-slate-400 mb-1">Video Bitrate (Kbps)</label>
+                <input type="number" id="set-bitrate" value="6000" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-sm text-white"></div>
+            <div class="mb-3"><label class="block text-xs text-slate-400 mb-1">Audio Sample Rate</label>
+                <select id="set-audio" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-sm text-white"><option>48kHz</option><option>44.1kHz</option></select></div>
+            <div class="mb-5"><label class="block text-xs text-slate-400 mb-1">Server Tujuan (RTMP/RTMPS)</label>
+                <input type="text" id="set-server" placeholder="rtmp://..." class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-sm text-white"></div>
             <div class="flex justify-end gap-2">
                 <button onclick="closeSettings()" class="px-4 py-2 bg-slate-600 hover:bg-slate-500 rounded text-sm font-bold">Batal</button>
                 <button onclick="saveSettings()" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded text-sm font-bold text-white">Simpan</button>
@@ -147,13 +245,12 @@
         </div>
     </div>
 
-    <!-- Modal Catatan Alat -->
     <div id="notes-modal" class="modal-overlay fixed inset-0 bg-black/70 z-[9999] justify-center items-center backdrop-blur-sm">
         <div class="bg-slate-800 border border-slate-600 rounded-xl p-6 w-96 shadow-2xl">
             <h2 class="text-xl font-bold mb-1 text-yellow-400"><i class="fa-solid fa-note-sticky"></i> Catatan Alat</h2>
             <p id="notes-device-name" class="text-xs text-slate-400 mb-4"></p>
             <input type="hidden" id="notes-node-id">
-            <textarea id="notes-text" rows="5" placeholder="Contoh: IP 192.168.1.20, Channel 2, No. Seri XYZ..." class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-sm text-white mb-5 resize-none"></textarea>
+            <textarea id="notes-text" rows="5" placeholder="IP 192.168.1.20, Channel 2, No. Seri..." class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-sm text-white mb-5 resize-none"></textarea>
             <div class="flex justify-end gap-2">
                 <button onclick="closeNotes()" class="px-4 py-2 bg-slate-600 hover:bg-slate-500 rounded text-sm font-bold">Batal</button>
                 <button onclick="saveNotes()" class="px-4 py-2 bg-yellow-600 hover:bg-yellow-500 rounded text-sm font-bold text-white">Simpan</button>
@@ -161,42 +258,24 @@
         </div>
     </div>
 
-    <!-- Modal Generate dari Gambar -->
     <div id="imagegen-modal" class="modal-overlay fixed inset-0 bg-black/70 z-[9999] justify-center items-center backdrop-blur-sm">
         <div class="bg-slate-800 border border-slate-600 rounded-xl p-6 w-[28rem] shadow-2xl">
             <h2 class="text-xl font-bold mb-1 text-indigo-400"><i class="fa-solid fa-image"></i> Generate Alat dari Gambar</h2>
-            <p class="text-xs text-slate-400 mb-4">Unggah foto produk, lalu isi nama & kategori. Alat akan muncul di kanvas.</p>
+            <p class="text-xs text-slate-400 mb-4">Unggah foto produk, lalu isi nama & kategori.</p>
             <div id="img-drop" class="border-2 border-dashed border-slate-600 rounded-lg p-6 text-center cursor-pointer hover:border-indigo-400 transition">
                 <i class="fa-solid fa-cloud-arrow-up text-3xl text-slate-500"></i>
                 <p class="text-sm text-slate-400 mt-2">Klik atau seret gambar ke sini</p>
                 <input type="file" id="img-file" accept="image/*" class="hidden">
             </div>
-            <div id="img-preview-wrap" class="hidden mt-3">
-                <img id="img-preview" class="max-h-40 mx-auto rounded border border-slate-600">
-            </div>
-            <div class="mt-4">
-                <label class="block text-xs text-slate-400 mb-1">Nama Alat</label>
-                <input type="text" id="img-name" placeholder="Mis. Kamera Sony A7 IV" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-sm text-white">
+            <div id="img-preview-wrap" class="hidden mt-3"><img id="img-preview" class="max-h-40 mx-auto rounded border border-slate-600"></div>
+            <div class="mt-4"><label class="block text-xs text-slate-400 mb-1">Nama Alat</label><input type="text" id="img-name" placeholder="Kamera Sony A7 IV" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-sm text-white"></div>
+            <div class="mt-3 grid grid-cols-2 gap-3">
+                <div><label class="block text-xs text-slate-400 mb-1">Merk</label><input type="text" id="img-brand" placeholder="Sony" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-sm text-white"></div>
+                <div><label class="block text-xs text-slate-400 mb-1">Kategori</label><input type="text" id="img-cat" placeholder="Kamera Utama" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-sm text-white"></div>
             </div>
             <div class="mt-3 grid grid-cols-2 gap-3">
-                <div>
-                    <label class="block text-xs text-slate-400 mb-1">Merk</label>
-                    <input type="text" id="img-brand" placeholder="Sony" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-sm text-white">
-                </div>
-                <div>
-                    <label class="block text-xs text-slate-400 mb-1">Kategori</label>
-                    <input type="text" id="img-cat" placeholder="Kamera Utama" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-sm text-white">
-                </div>
-            </div>
-            <div class="mt-3 grid grid-cols-2 gap-3">
-                <div>
-                    <label class="block text-xs text-slate-400 mb-1">Input (pisah dengan koma)</label>
-                    <input type="text" id="img-ins" placeholder="HDMI, Audio" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-sm text-white">
-                </div>
-                <div>
-                    <label class="block text-xs text-slate-400 mb-1">Output (pisah dengan koma)</label>
-                    <input type="text" id="img-outs" placeholder="HDMI, USB" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-sm text-white">
-                </div>
+                <div><label class="block text-xs text-slate-400 mb-1">Input (koma)</label><input type="text" id="img-ins" placeholder="HDMI, Audio" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-sm text-white"></div>
+                <div><label class="block text-xs text-slate-400 mb-1">Output (koma)</label><input type="text" id="img-outs" placeholder="HDMI, USB" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-sm text-white"></div>
             </div>
             <div class="flex justify-end gap-2 mt-5">
                 <button onclick="closeImageGen()" class="px-4 py-2 bg-slate-600 hover:bg-slate-500 rounded text-sm font-bold">Batal</button>
@@ -205,7 +284,6 @@
         </div>
     </div>
 
-    <!-- Modal Panduan (Blueprint / Tutorial / Troubleshooting) -->
     <div id="guide-modal" class="modal-overlay fixed inset-0 bg-black/70 z-[9999] justify-center items-center backdrop-blur-sm p-4">
         <div class="bg-slate-800 border border-slate-600 rounded-xl w-[52rem] max-w-full max-h-[90vh] shadow-2xl flex flex-col">
             <div class="flex items-center justify-between p-4 border-b border-slate-700">
@@ -220,43 +298,35 @@
             <div class="overflow-y-auto p-5 text-sm text-slate-300 leading-relaxed">
                 <div id="guide-blueprint">
                     <h3 class="text-base font-bold text-white mb-2">Blueprint Arsitektur Live Streaming</h3>
-                    <p class="mb-3">Alur sinyal dasar sebuah siaran langsung:</p>
                     <pre class="bg-slate-900 border border-slate-700 rounded p-3 text-xs text-green-300 overflow-x-auto">[Kamera] --HDMI/SDI--> [Video Switcher] --SDI--> [Capture Card] --USB--> [PC OBS/vMix]
    |                                  |                                      |
 [Microphone] --XLR/Audio--> [Audio Mixer] --Audio--> [Switcher/Encoder]   [Encoder] --RTMP--> [Platform Live]</pre>
                     <ul class="list-disc pl-5 space-y-1 mt-3">
-                        <li><strong>Kamera</strong> menangkap video; output HDMI/SDI masuk ke switcher.</li>
-                        <li><strong>Video Switcher</strong> memilih sumber gambar & menggabungkan layer.</li>
-                        <li><strong>Capture Card</strong> mengubah sinyal video menjadi data ke PC.</li>
-                        <li><strong>Audio Mixer</strong> menyeimbangkan mic & musik sebelum ke encoder.</li>
-                        <li><strong>Encoder / OBS</strong> mengompres & mengirim stream via RTMP ke platform.</li>
-                        <li><strong>Monitor</strong> & <strong>Tally</strong> membantu kru melihat hasil & status on-air.</li>
+                        <li><strong>Kamera</strong> menangkap video; output HDMI/SDI ke switcher.</li>
+                        <li><strong>Video Switcher</strong> memilih & menggabungkan sumber gambar.</li>
+                        <li><strong>Capture Card</strong> mengubah sinyal video jadi data ke PC.</li>
+                        <li><strong>Audio Mixer</strong> menyeimbangkan mic & musik.</li>
+                        <li><strong>Encoder / OBS</strong> mengompres & kirim stream via RTMP.</li>
                     </ul>
                 </div>
                 <div id="guide-tutorial" class="hidden">
-                    <h3 class="text-base font-bold text-white mb-2">Cara Instalasi & Penggunaan</h3>
                     <ol class="list-decimal pl-5 space-y-2">
-                        <li><strong>Pilih alat:</strong> Buka katalog kiri, cari alat, centang lalu klik <i class="fa-solid fa-plus text-green-400"></i> untuk menaruh di kanvas.</li>
-                        <li><strong>Susun posisi:</strong> Tarik judul alat (handle) untuk memindahkan; scroll untuk zoom; drag area kosong untuk pan.</li>
-                        <li><strong>Hubungkan kabel:</strong> Klik port <span class="inline-block w-3 h-3 rounded-full bg-blue-500 align-middle"></span> (Output) lalu port Input alat tujuan. Warna = jenis kabel.</li>
-                        <li><strong>Rangkai otomatis:</strong> Centang beberapa alat lalu klik <em>Rangkai Otomatis</em> untuk menyambung port yang cocok otomatis.</li>
-                        <li><strong>Catatan & Setting:</strong> Klik <i class="fa-solid fa-note-sticky text-yellow-400"></i> untuk catatan, <i class="fa-solid fa-gear text-blue-400"></i> untuk setting software (resolusi, bitrate, server).</li>
-                        <li><strong>Simpan:</strong> Klik <i class="fa-solid fa-floppy-disk text-green-400"></i> Save (perlu login admin) atau export gambar <i class="fa-solid fa-camera-retro text-purple-400"></i>.</li>
-                        <li><strong>Cetak ringkasan:</strong> Klik <em>Ringkasan Cetak</em> untuk PDF daftar alat & kabel.</li>
-                        <li><strong>Generate dari gambar:</strong> Klik <em>Generate dari Gambar</em>, unggah foto produk, isi nama & kategori, lalu <em>Buat Alat</em>.</li>
+                        <li><strong>Pilih modul</strong> di beranda, lalu pilih alat dari katalog kiri.</li>
+                        <li><strong>Susun:</strong> tarik judul alat, scroll untuk zoom, drag area kosong untuk pan.</li>
+                        <li><strong>Hubungkan:</strong> klik port output lalu port input alat tujuan.</li>
+                        <li><strong>Rangkai Otomatis:</strong> pilih alat lalu klik tombol tersebut.</li>
+                        <li><strong>Simpan / Template:</strong> Simpan ke akun Anda atau publikasikan sebagai template.</li>
+                        <li><strong>Bagikan:</strong> salin tautan untuk dilihat orang lain tanpa login.</li>
                     </ol>
                 </div>
                 <div id="guide-trouble" class="hidden">
-                    <h3 class="text-base font-bold text-white mb-2">Troubleshooting</h3>
                     <table class="w-full text-xs border-collapse">
                         <thead><tr class="border-b border-slate-600 text-slate-400"><th class="text-left py-1">Masalah</th><th class="text-left py-1">Solusi</th></tr></thead>
                         <tbody class="align-top">
-                            <tr class="border-b border-slate-700"><td class="py-1.5 pr-3">Kabel ditolak / tidak nyambung</td><td class="py-1.5">Pastikan tipe port cocok (HDMI→HDMI, SDI→SDI, Audio→Audio) dan arah Output→Input.</td></tr>
-                            <tr class="border-b border-slate-700"><td class="py-1.5 pr-3">Gambar alat tidak muncul</td><td class="py-1.5">Gambar fallback Font Awesome akan tampil. Pastikan file di folder <code>images_real/</code> terunggah ke repo.</td></tr>
-                            <tr class="border-b border-slate-700"><td class="py-1.5 pr-3">Data tidak tersimpan</td><td class="py-1.5">Login sebagai admin di panel kiri. Simpanan disimpan ke Turso (cloud).</td></tr>
-                            <tr class="border-b border-slate-700"><td class="py-1.5 pr-3">API /api/equipment gagal</td><td class="py-1.5">Cek env <code>TURSO_URL</code> & <code>TURSO_TOKEN</code> di Vercel. Fallback ke <code>equipment-data.js</code> lokal otomatis.</td></tr>
-                            <tr class="border-b border-slate-700"><td class="py-1.5 pr-3">Zoom/pan tidak responsif</td><td class="py-1.5">Klik area kanvas kosong lalu drag untuk pan; scroll mouse untuk zoom.</td></tr>
-                            <tr><td class="py-1.5 pr-3">Deploy gagal di Vercel</td><td class="py-1.5">Pastikan <code>vercel.json</code> rewrite <code>/api</code> benar & <code>@libsql/client</code> ter-install (<code>npm install</code>).</td></tr>
+                            <tr class="border-b border-slate-700"><td class="py-1.5 pr-3">Kabel ditolak</td><td class="py-1.5">Pastikan tipe port cocok (HDMI→HDMI) & arah Output→Input.</td></tr>
+                            <tr class="border-b border-slate-700"><td class="py-1.5 pr-3">Gambar tidak muncul</td><td class="py-1.5">Fallback ikon Font Awesome otomatis tampil.</td></tr>
+                            <tr class="border-b border-slate-700"><td class="py-1.5 pr-3">Gagal simpan</td><td class="py-1.5">Pastikan sudah login. Data tersimpan ke Turso (cloud).</td></tr>
+                            <tr><td class="py-1.5 pr-3">API gagal</td><td class="py-1.5">Cek env TURSO_URL & TURSO_TOKEN di Vercel.</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -264,115 +334,72 @@
         </div>
     </div>
 
-    <!-- Modal Simpanan (admin manage, viewer download) -->
-    <div id="saves-modal" class="modal-overlay fixed inset-0 bg-black/70 z-[9999] justify-center items-center backdrop-blur-sm p-4">
-        <div class="bg-slate-800 border border-slate-600 rounded-xl w-[40rem] max-w-full max-h-[85vh] shadow-2xl flex flex-col">
-            <div class="flex items-center justify-between p-4 border-b border-slate-700">
-                <h2 class="text-lg font-bold text-teal-400"><i class="fa-solid fa-folder-open"></i> Simpanan Publik</h2>
-                <button onclick="closeSaves()" class="icon-btn text-slate-300"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            <div class="overflow-y-auto p-4" id="saves-list">
-                <p class="text-sm text-slate-500 text-center">Memuat simpanan…</p>
+    <div id="publish-modal" class="modal-overlay fixed inset-0 bg-black/70 z-[9999] justify-center items-center backdrop-blur-sm">
+        <div class="bg-slate-800 border border-slate-600 rounded-xl p-6 w-96 shadow-2xl">
+            <h2 class="text-xl font-bold mb-4 text-purple-400"><i class="fa-solid fa-cloud-arrow-up"></i> Publikasikan Template</h2>
+            <div class="mb-3"><label class="block text-xs text-slate-400 mb-1">Judul Template</label>
+                <input id="pub-title" type="text" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-sm text-white"></div>
+            <div class="mb-3"><label class="block text-xs text-slate-400 mb-1">Modul</label>
+                <select id="pub-module" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-sm text-white"></select></div>
+            <label class="flex items-center gap-2 mb-2 text-sm"><input type="checkbox" id="pub-public" class="w-4 h-4"> Tampilkan ke publik (semua user)</label>
+            <label class="flex items-center gap-2 mb-5 text-sm"><input type="checkbox" id="pub-template" class="w-4 h-4"> Jadikan Template Resmi</label>
+            <div class="flex justify-end gap-2">
+                <button onclick="closePublish()" class="px-4 py-2 bg-slate-600 hover:bg-slate-500 rounded text-sm font-bold">Batal</button>
+                <button onclick="submitPublish()" class="px-4 py-2 bg-purple-600 hover:bg-purple-500 rounded text-sm font-bold text-white">Publikasikan</button>
             </div>
         </div>
     </div>
 
-    <!-- Sidebar Alat -->
-    <aside class="w-80 bg-slate-800 border-r border-slate-700 flex flex-col z-20 shadow-xl flex-shrink-0">
-        <div class="p-5 border-b border-slate-700 bg-slate-900">
-            <h1 class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">Live Planner</h1>
-            <p class="text-xs text-slate-400 mt-1">Enterprise Architecture Builder</p>
-        </div>
-
-        <!-- Login Admin (kiri) -->
-        <div id="login-panel" class="p-4 border-b border-slate-700 bg-slate-900/60">
-            <div id="login-form">
-                <label class="block text-xs text-slate-400 mb-1"><i class="fa-solid fa-lock"></i> Login Admin</label>
-                <div class="flex gap-2">
-                    <input type="password" id="login-pass" placeholder="Password admin" class="flex-grow bg-slate-900 border border-slate-600 rounded p-2 text-sm text-white focus:outline-none focus:border-blue-500" onkeydown="if(event.key==='Enter')adminLogin()">
-                    <button onclick="adminLogin()" class="px-3 bg-blue-600 hover:bg-blue-500 rounded text-sm font-bold"><i class="fa-solid fa-right-to-bracket"></i></button>
-                </div>
-                <p class="text-[10px] text-slate-500 mt-1">Login untuk simpan ke cloud & kelola simpanan.</p>
+    <div id="import-modal" class="modal-overlay fixed inset-0 bg-black/70 z-[9999] justify-center items-center backdrop-blur-sm p-4">
+        <div class="bg-slate-800 border border-slate-600 rounded-xl w-[40rem] max-w-full max-h-[85vh] shadow-2xl flex flex-col">
+            <div class="flex items-center justify-between p-4 border-b border-slate-700">
+                <h2 class="text-lg font-bold text-indigo-400"><i class="fa-solid fa-puzzle-piece"></i> Impor Build Lain</h2>
+                <button onclick="closeImport()" class="icon-btn text-slate-300"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <div id="login-info" class="hidden">
-                <div class="flex items-center justify-between">
-                    <span class="text-xs text-green-400 font-bold"><i class="fa-solid fa-circle-check"></i> Admin aktif</span>
-                    <button onclick="adminLogout()" class="text-xs text-slate-400 hover:text-red-400"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+            <div class="overflow-y-auto p-4" id="import-list"><p class="text-sm text-slate-500 text-center">Memuat…</p></div>
+        </div>
+    </div>
+
+    <div id="template-modal" class="modal-overlay fixed inset-0 bg-black/70 z-[9999] justify-center items-center backdrop-blur-sm p-4">
+        <div class="bg-slate-800 border border-slate-600 rounded-xl w-[44rem] max-w-full max-h-[90vh] shadow-2xl flex flex-col">
+            <div class="flex items-center justify-between p-4 border-b border-slate-700">
+                <h2 id="tmpl-title" class="text-lg font-bold text-purple-400"><i class="fa-solid fa-layer-group"></i> Template</h2>
+                <button onclick="closeTemplate()" class="icon-btn text-slate-300"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="overflow-y-auto p-4 space-y-4">
+                <div id="tmpl-meta" class="text-xs text-slate-400"></div>
+                <div id="tmpl-admin" class="hidden flex flex-wrap gap-2 p-3 bg-slate-900 rounded-lg border border-slate-700"></div>
+                <div>
+                    <h3 class="font-bold text-sm mb-2 text-blue-300"><i class="fa-solid fa-comments"></i> Komentar & Saran</h3>
+                    <div id="tmpl-comments" class="space-y-2 mb-3"></div>
+                    <div id="tmpl-comment-form" class="flex gap-2">
+                        <input id="tmpl-comment-input" type="text" placeholder="Tulis komentar…" class="flex-grow bg-slate-900 border border-slate-600 rounded p-2 text-sm text-white">
+                        <button onclick="postComment()" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded text-sm font-bold">Kirim</button>
+                    </div>
                 </div>
-                <button onclick="openSaves()" class="mt-2 w-full py-1.5 bg-teal-600 hover:bg-teal-500 rounded text-xs font-bold"><i class="fa-solid fa-folder-open"></i> Lihat Simpanan</button>
             </div>
         </div>
-
-        <!-- Action Buttons -->
-        <div class="grid grid-cols-2 gap-2 p-4 border-b border-slate-700">
-            <button onclick="saveProject()" class="py-2 bg-green-600 hover:bg-green-500 rounded text-sm font-bold flex justify-center items-center gap-1 shadow"><i class="fa-solid fa-floppy-disk"></i> Save</button>
-            <button onclick="loadProject()" class="py-2 bg-blue-600 hover:bg-blue-500 rounded text-sm font-bold flex justify-center items-center gap-1 shadow"><i class="fa-solid fa-folder-open"></i> Load</button>
-            <button onclick="clearCanvas()" class="py-2 bg-red-700 hover:bg-red-600 rounded text-sm font-bold flex justify-center items-center gap-1 shadow"><i class="fa-solid fa-trash-can"></i> Clear</button>
-            <button onclick="exportToImage()" class="py-2 bg-purple-600 hover:bg-purple-500 rounded text-sm font-bold flex justify-center items-center gap-1 shadow"><i class="fa-solid fa-camera-retro"></i> Export</button>
-            <button onclick="autoWire()" class="col-span-2 py-2 bg-amber-600 hover:bg-amber-500 rounded text-sm font-bold flex justify-center items-center gap-1 shadow" title="Rangkai otomatis dari alat terpilih"><i class="fa-solid fa-link"></i> Rangkai Otomatis</button>
-            <button onclick="openSummary()" class="col-span-2 py-2 bg-teal-600 hover:bg-teal-500 rounded text-sm font-bold flex justify-center items-center gap-1 shadow" title="Cetak ringkasan total alat & kabel"><i class="fa-solid fa-print"></i> Ringkasan Cetak</button>
-            <button onclick="openImageGen()" class="col-span-2 py-2 bg-indigo-600 hover:bg-indigo-500 rounded text-sm font-bold flex justify-center items-center gap-1 shadow" title="Buat alat dari gambar (upload)"><i class="fa-solid fa-image"></i> Generate dari Gambar</button>
-            <button onclick="openGuide()" class="col-span-2 py-2 bg-slate-700 hover:bg-slate-600 rounded text-sm font-bold flex justify-center items-center gap-1 shadow" title="Blueprint, tutorial & troubleshooting"><i class="fa-solid fa-book"></i> Panduan & Blueprint</button>
-            <button onclick="clearSelection()" class="col-span-2 py-1.5 bg-slate-600 hover:bg-slate-500 rounded text-xs font-bold flex justify-center items-center gap-1 shadow"><i class="fa-solid fa-xmark"></i> Bersihkan Pilihan</button>
-        </div>
-
-        <div id="selection-bar" class="p-2 border-t border-slate-700 text-xs text-center font-semibold bg-slate-900 text-slate-400">0 alat dipilih</div>
-
-        <!-- Search -->
-        <div class="p-4 pb-2">
-                <input id="search-input" type="text" placeholder="Cari alat..." oninput="renderCatalog(this.value)"
-                class="w-full bg-slate-900 border border-slate-600 rounded-lg p-2 text-sm text-white focus:outline-none focus:border-blue-500">
-        </div>
-
-        <div class="flex-grow overflow-y-auto px-4 pb-4 space-y-1" id="device-catalog">
-            <!-- Render via JS -->
-        </div>
-
-        <div id="stats-bar" class="p-3 border-t border-slate-700 bg-slate-900 text-xs text-slate-400 text-center font-semibold">
-            0 Alat • 0 Koneksi
-        </div>
-    </aside>
-
-    <!-- Canvas -->
-    <main id="canvas-area" class="flex-grow relative overflow-hidden">
-        <div id="zoom-wrapper">
-            <svg id="cables-layer" class="absolute top-0 left-0 w-full h-full pointer-events-none z-0"></svg>
-            <div id="devices-layer" class="absolute top-0 left-0 w-full h-full z-10"></div>
-        </div>
-
-        <!-- Zoom Controls -->
-        <div id="zoom-controls" class="absolute bottom-5 right-5 bg-slate-800/90 border border-slate-600 rounded-lg shadow-xl flex items-center gap-1 p-1 backdrop-blur">
-            <button onclick="zoomOut()" class="w-10 h-10 flex items-center justify-center hover:bg-slate-700 rounded text-2xl font-bold leading-none">−</button>
-            <span id="zoom-label" class="text-sm w-14 text-center select-none">100%</span>
-            <button onclick="zoomIn()" class="w-10 h-10 flex items-center justify-center hover:bg-slate-700 rounded text-2xl font-bold leading-none">+</button>
-            <button onclick="zoomReset()" class="w-10 h-10 flex items-center justify-center hover:bg-slate-700 rounded text-base ml-1" title="Reset tampilan">⤢</button>
-        </div>
-
-        <!-- Legend -->
-        <div id="legend-panel" class="absolute bottom-5 left-5 bg-slate-800/90 border border-slate-600 rounded-lg shadow-xl p-3 text-xs backdrop-blur">
-            <p class="font-bold mb-2 text-slate-300">Jenis Kabel</p>
-            <div class="grid grid-cols-2 gap-x-3 gap-y-1" id="legend-list"></div>
-        </div>
-    </main>
+    </div>
 
     <script src="equipment-data.js"></script>
     <script>
         const svgNS = "http://www.w3.org/2000/svg";
 
-        // --- DATABASE ALAT (di-generate dari Excel: Peralatan_Multimedia_Live_Streaming_FINAL.xlsx) ---
-        // deviceDB dimuat dari file equipment-data.js (kategori -> brand -> alat, dengan gambar lokal)
+        const cableColors = { "HDMI":"#3b82f6","SDI":"#22c55e","Audio":"#ef4444","LAN":"#eab308","USB":"#a855f7","Wireless":"#e2e8f0","Power":"#f97316" };
 
-        const cableColors = {
-            "HDMI": "#3b82f6",
-            "SDI": "#22c55e",
-            "Audio": "#ef4444",
-            "LAN": "#eab308",
-            "USB": "#a855f7",
-            "Wireless": "#e2e8f0",
-            "Power": "#f97316"
+        const MODULES = {
+            live:      { name:'Setup Live',      icon:'fa-solid fa-tower-broadcast', color:'from-blue-500 to-cyan-500',
+                keywords:['kamera','webcam','ptz','switcher','video mixer','capture','encoder','stream','obs','vmix','mixer audio','mikrofon','audio','interface','monitor','network','lan','kabel','router','switch','power','baterai','headphone','teleprompter','green','speaker','lensa'] },
+            studio:    { name:'Setup Studio',    icon:'fa-solid fa-photo-film', color:'from-purple-500 to-pink-500',
+                keywords:['lampu','light','green screen','chromakey','tripod','stand','mount','teleprompter','acoustic','monitor speaker','speaker','kamera','webcam','mikrofon','audio','interface','backdrop','lensa'] },
+            recording: { name:'Setup Recording', icon:'fa-solid fa-microphone-lines', color:'from-rose-500 to-orange-500',
+                keywords:['recorder','record','kamera','webcam','mikrofon','audio','interface','storage','monitor speaker','headphone','mixer','capture','lensa'] },
+            software:  { name:'Setup Software',  icon:'fa-solid fa-display', color:'from-emerald-500 to-teal-500',
+                keywords:['software','obs','vmix','wirecast','streamlabs','capture','card','computer','pc','laptop','stream deck','encoder','stream'] },
+            pc:        { name:'Perakitan PC',    icon:'fa-solid fa-computer', color:'from-amber-500 to-red-500',
+                keywords:['cpu','gpu','motherboard','ram','storage','psu','case','cooler','monitor display','computer','pc','power'] }
         };
 
-        // --- Font Awesome icon berdasarkan kategori (fallback bila gambar gagal) ---
         function faIconFor(cat) {
             const c = (cat || '').toLowerCase();
             const map = [
@@ -382,11 +409,11 @@
                 [/headphone|earphone|headset/, 'fa-solid fa-headphones'],
                 [/speaker|monitor audio|pengeras/, 'fa-solid fa-volume-high'],
                 [/switcher|video mixer|vision/, 'fa-solid fa-sliders'],
-                [/encoder|stream|obs|vMix|wirecast|software/, 'fa-solid fa-server'],
+                [/encoder|stream|obs|vmix|wirecast|software/, 'fa-solid fa-server'],
                 [/capture|card|recorder|record/, 'fa-solid fa-video'],
                 [/monitor|layar|display|tv|screen/, 'fa-solid fa-tv'],
                 [/komputer|pc|laptop|computer|mac|workstation/, 'fa-solid fa-computer'],
-                [/router|switch|network|lan|hub|po[e]?|access point|wifi|wireless/, 'fa-solid fa-network-wired'],
+                [/router|switch|network|lan|hub|access point|wifi|wireless/, 'fa-solid fa-network-wired'],
                 [/kabel|cable|hdmi|sdi|konektor|connector|adapter|konverter|converter/, 'fa-solid fa-plug'],
                 [/baterai|battery|power|charger|dummy|psu|listrik/, 'fa-solid fa-battery-full'],
                 [/lampu|light|led|studio light|ring/, 'fa-solid fa-lightbulb'],
@@ -398,77 +425,157 @@
                 [/streamdeck|controller|panel|remote/, 'fa-solid fa-gamepad'],
                 [/teleprompter|prompter/, 'fa-solid fa-scroll'],
                 [/sd|card|storage|memory|ssd|hdd/, 'fa-solid fa-memory'],
-                [/gimbal/, 'fa-solid fa-compass'],
                 [/filter|nd filter/, 'fa-solid fa-circle-half-stroke']
             ];
-            for (const [re, icon] of map) if (re.test(c)) return icon;
+            for (const row of map) {
+                const re = row[0]; const icon = row[1];
+                if (re && re.test && re.test(c)) return icon;
+                if (!re) return icon;
+            }
             return 'fa-solid fa-circle-question';
         }
 
         // --- STATE ---
-        let nodesCounter = 0;
-        let connections = [];
-        let activePort = null;
-
+        let nodesCounter = 0, connections = [], activePort = null;
         let zoom = 1, panX = 0, panY = 0;
         let isDragging = false, dragNode = null, offset = { x: 0, y: 0 };
         let isPanning = false, panStart = { x: 0, y: 0, panX: 0, panY: 0 };
+        let currentUser = null, currentModule = 'live', readOnlyMode = false, currentTemplateId = null;
+        let deviceDB = (typeof window.__deviceDB !== 'undefined') ? window.__deviceDB : {};
+        let selectedItems = new Map();
 
         const canvasArea = document.getElementById('canvas-area');
         const zoomWrapper = document.getElementById('zoom-wrapper');
         const devicesLayer = document.getElementById('devices-layer');
         const cablesLayer = document.getElementById('cables-layer');
 
-        // --- CATALOG (kategori -> merk, bisa di-collapse, dengan checkbox pilih) ---
-        let selectedItems = new Map();
+        // --- API HELPER ---
+        async function api(path, opts = {}) {
+            opts.credentials = 'include';
+            if (opts.body && typeof opts.body !== 'string') opts.body = JSON.stringify(opts.body);
+            if (opts.body) (opts.headers = opts.headers || {})['Content-Type'] = 'application/json';
+            const r = await fetch(path, opts);
+            let data = null; try { data = await r.json(); } catch (e) {}
+            return { ok: r.ok, status: r.status, data };
+        }
 
+        // --- AUTH ---
+        function toggleAuthMode() {
+            document.getElementById('login-box').classList.toggle('hidden');
+            document.getElementById('register-box').classList.toggle('hidden');
+        }
+        async function doLogin() {
+            const email = document.getElementById('auth-email').value.trim();
+            const password = document.getElementById('auth-pass').value;
+            if (!email || !password) { showToast('Isi email & password!'); return; }
+            const { ok, data } = await api('/api/auth', { method:'POST', body:{ action:'login', email, password } });
+            if (ok) { currentUser = data.user; enterApp(); }
+            else showToast(data && data.error ? data.error : 'Login gagal');
+        }
+        async function doRegister() {
+            const name = document.getElementById('reg-name').value.trim();
+            const email = document.getElementById('reg-email').value.trim();
+            const password = document.getElementById('reg-pass').value;
+            if (!name || !email || password.length < 6) { showToast('Lengkapi data (password min 6)!'); return; }
+            const { ok, data } = await api('/api/auth', { method:'POST', body:{ action:'register', name, email, password } });
+            if (ok) { currentUser = data.user; enterApp(); }
+            else showToast(data && data.error ? data.error : 'Gagal daftar');
+        }
+        async function startGoogle() {
+            try {
+                const r = await fetch('/api/auth/google?action=begin');
+                const data = await r.json();
+                if (data.configured && data.url) { window.location.href = data.url; }
+                else { showToast('Login Google belum dikonfigurasi. Gunakan email/password.'); }
+            } catch(e) { showToast('Gagal memulai login Google.'); }
+        }
+        async function doLogout() {
+            await api('/api/auth', { method:'POST', body:{ action:'logout' } });
+            currentUser = null; showScreen('login-screen');
+        }
+        async function refreshMe() {
+            const { ok, data } = await api('/api/auth?action=me');
+            return ok ? data.user : null;
+        }
+
+        // --- SCREENS ---
+        function showScreen(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
+        function enterApp() {
+            renderUserChip(); renderModuleGrid(); showScreen('home-screen');
+        }
+        function renderUserChip() {
+            const chip = document.getElementById('user-chip');
+            if (!currentUser) { chip.innerHTML = ''; return; }
+            const role = currentUser.role === 'admin' ? '<span class="text-[10px] bg-red-600 px-1.5 py-0.5 rounded text-white">ADMIN</span>' : '';
+            const pic = currentUser.picture ? `<img src="${currentUser.picture}" class="w-7 h-7 rounded-full">` : `<div class="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-xs"><i class="fa-solid fa-user"></i></div>`;
+            chip.innerHTML = `${pic}<span class="text-slate-300">${currentUser.name || currentUser.email}</span>${role}`;
+        }
+        function renderModuleGrid() {
+            const grid = document.getElementById('module-grid');
+            grid.innerHTML = Object.entries(MODULES).map(([key, m]) => `
+                <button onclick="startModule('${key}')" class="module-card text-left bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-lg">
+                    <div class="w-14 h-14 rounded-xl bg-gradient-to-br ${m.color} flex items-center justify-center text-white text-2xl mb-4"><i class="${m.icon}"></i></div>
+                    <h3 class="text-lg font-bold mb-1">${m.name}</h3>
+                    <p class="text-xs text-slate-400 mb-3">Rancang & susun peralatan ${m.name.toLowerCase()}.</p>
+                    <span class="text-xs text-blue-400 font-bold"><i class="fa-solid fa-arrow-right"></i> Mulai</span>
+                </button>`).join('');
+        }
+        function goHome() { showScreen('home-screen'); }
+
+        function startModule(key) {
+            currentModule = key; readOnlyMode = false; currentTemplateId = null;
+            document.getElementById('builder-module-badge').textContent = MODULES[key].name;
+            document.getElementById('readonly-banner').classList.add('hidden');
+            document.getElementById('builder-actions').style.display = '';
+            clearCanvasSilent();
+            renderCatalog();
+            showScreen('builder-screen');
+        }
+
+        // --- CATALOG (filtered by module) ---
+        function itemMatchesModule(it, key) {
+            if (key === 'live') return true;
+            const kws = MODULES[key].keywords;
+            const hay = ((it.cat || '') + ' ' + (it.name || '') + ' ' + (it.brand || '')).toLowerCase();
+            return kws.some(k => hay.includes(k));
+        }
         function renderCatalog(filter = '') {
             const catalog = document.getElementById('device-catalog');
             const f = filter.trim().toLowerCase();
             let html = '';
             for (const catKey in deviceDB) {
                 const cat = deviceDB[catKey];
-                // kelompokkan per merk
                 const byBrand = {};
                 cat.items.forEach(it => {
+                    if (!itemMatchesModule(it, currentModule)) return;
                     if (f && !it.name.toLowerCase().includes(f) && !(it.brand||'').toLowerCase().includes(f)) return;
                     (byBrand[it.brand || 'Lainnya'] = byBrand[it.brand || 'Lainnya'] || []).push(it);
                 });
                 const brandKeys = Object.keys(byBrand);
-                if (brandKeys.length === 0) continue;
-                const catCount = brandKeys.reduce((a, b) => a + byBrand[b].length, 0);
-                html += `
-                    <details class="mb-1" open>
-                        <summary class="text-xs font-bold text-slate-400 uppercase cursor-pointer flex justify-between items-center py-2 select-none hover:text-slate-200">
-                            <span><span class="chevron inline-block">▸</span> ${cat.title}</span>
-                            <span class="text-slate-600 text-[10px] font-normal">${catCount}</span>
-                        </summary>
-                        <div class="space-y-1 pb-2 pl-1">`;
+                if (!brandKeys.length) continue;
+                const catCount = brandKeys.reduce((a,b)=>a+byBrand[b].length,0);
+                html += `<details class="mb-1" open><summary class="text-xs font-bold text-slate-400 uppercase cursor-pointer flex justify-between items-center py-2 select-none hover:text-slate-200"><span><i class="fa-solid fa-chevron-right chevron text-[10px] mr-1"></i>${cat.title}</span><span class="text-slate-600 text-[10px] font-normal">${catCount}</span></summary><div class="space-y-1 pb-2 pl-1">`;
                 brandKeys.forEach(brand => {
                     const items = byBrand[brand];
-                    html += `
-                        <details class="mb-0.5" open>
-                            <summary class="text-[11px] font-semibold text-blue-300 cursor-pointer flex justify-between items-center py-1 select-none hover:text-blue-200">
-                                <span><span class="chevron inline-block">▸</span> ${brand}</span>
-                                <span class="text-slate-600 text-[10px] font-normal">${items.length}</span>
-                            </summary>
-                            <div class="space-y-1.5 pb-1 pl-2">`;
+                    html += `<details class="mb-0.5" open><summary class="text-[11px] font-semibold text-blue-300 cursor-pointer flex justify-between items-center py-1 select-none hover:text-blue-200"><span><i class="fa-solid fa-chevron-right chevron text-[9px] mr-1"></i>${brand}</span><span class="text-slate-600 text-[10px]">${items.length}</span></summary><div class="space-y-1.5 pb-1 pl-2">`;
                     items.forEach(item => {
                         const encodedData = encodeURIComponent(JSON.stringify(item));
                         const checked = selectedItems.has(item.id) ? 'checked' : '';
-                        html += `
-                            <label class="bg-slate-700 hover:bg-slate-600 p-2 rounded cursor-pointer transition flex items-center gap-2 border border-slate-600 hover:border-blue-500">
-                                <input type="checkbox" class="sel-chk flex-shrink-0" data-id="${item.id}" data-item="${encodedData}" ${checked} onchange="toggleSelect(this)">
-                                <div class="w-8 h-8 rounded bg-slate-900 flex-shrink-0 relative overflow-hidden flex items-center justify-center">
-                                    <img src="${item.img}" class="max-w-full max-h-full object-contain p-0.5" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
-                                    <span class="absolute inset-0 items-center justify-center text-base text-slate-400" style="display:none"><i class="${faIconFor(cat.title)}"></i></span>
-                                </div>
-                                <div class="flex-grow min-w-0">
-                                    <div class="text-[13px] font-semibold truncate leading-tight">${item.name}</div>
-                                    <div class="text-[10px] text-slate-400">${item.inputs.length} in / ${item.outputs.length} out</div>
-                                </div>
-                                <button type="button" onclick="event.preventDefault(); spawnDevice('${encodedData}')" class="icon-btn text-green-400 text-xs flex-shrink-0" title="Tambah ke kanvas"><i class="fa-solid fa-plus"></i></button>
-                            </label>`;
+                        html += `<label class="bg-slate-700 hover:bg-slate-600 p-2 rounded cursor-pointer transition flex items-center gap-2 border border-slate-600 hover:border-blue-500">
+                            <input type="checkbox" class="sel-chk flex-shrink-0" data-id="${item.id}" data-item="${encodedData}" ${checked} onchange="toggleSelect(this)">
+                            <div class="w-8 h-8 rounded bg-slate-900 flex-shrink-0 relative overflow-hidden flex items-center justify-center">
+                                <img src="${item.img}" class="max-w-full max-h-full object-contain p-0.5" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                                <span class="absolute inset-0 items-center justify-center text-base text-slate-400" style="display:none"><i class="${faIconFor(cat.title)}"></i></span>
+                            </div>
+                            <div class="flex-grow min-w-0">
+                                <div class="text-[13px] font-semibold truncate leading-tight">${item.name}</div>
+                                <div class="text-[10px] text-slate-400">${item.inputs.length} in / ${item.outputs.length} out</div>
+                            </div>
+                            <button type="button" onclick="event.preventDefault(); spawnDevice('${encodedData}')" class="icon-btn text-green-400 text-xs flex-shrink-0" title="Tambah"><i class="fa-solid fa-plus"></i></button>
+                        </label>`;
                     });
                     html += `</div></details>`;
                 });
@@ -477,233 +584,112 @@
             catalog.innerHTML = html || `<p class="text-sm text-slate-500 text-center mt-8">Tidak ada alat ditemukan.</p>`;
             updateSelectionBar();
         }
-
         function toggleSelect(chk) {
             const id = chk.getAttribute('data-id');
             const item = JSON.parse(decodeURIComponent(chk.getAttribute('data-item')));
-            if (chk.checked) selectedItems.set(id, item);
-            else selectedItems.delete(id);
+            if (chk.checked) selectedItems.set(id, item); else selectedItems.delete(id);
             updateSelectionBar();
         }
-
         function getSelectedArray() { return Array.from(selectedItems.values()); }
-
         function updateSelectionBar() {
-            const bar = document.getElementById('selection-bar');
-            if (!bar) return;
+            const bar = document.getElementById('selection-bar'); if (!bar) return;
             const n = selectedItems.size;
             bar.textContent = `${n} alat dipilih`;
-            bar.className = `p-2 border-t border-slate-700 text-xs text-center font-semibold ${n > 0 ? 'bg-blue-900/40 text-blue-200' : 'bg-slate-900 text-slate-400'}`;
+            bar.className = `p-2 border-t border-slate-700 text-xs text-center font-semibold ${n>0?'bg-blue-900/40 text-blue-200':'bg-slate-900 text-slate-400'}`;
         }
+        function clearSelection() { selectedItems.clear(); document.querySelectorAll('.sel-chk').forEach(c=>c.checked=false); updateSelectionBar(); }
 
-        function clearSelection() {
-            selectedItems.clear();
-            document.querySelectorAll('.sel-chk').forEach(c => c.checked = false);
-            updateSelectionBar();
-        }
-
-        // --- RANGKAI OTOMATIS (auto-wire) dari alat terpilih ---
+        // --- AUTO WIRE ---
         function autoWire() {
             if (selectedItems.size === 0) { showToast('Pilih alat dari katalog terlebih dahulu!'); return; }
-            // spawn semua alat terpilih
-            const items = getSelectedArray();
-            const spawned = [];
+            const items = getSelectedArray(); const spawned = [];
             const cols = Math.ceil(Math.sqrt(items.length));
             items.forEach((item, i) => {
                 const col = i % cols, row = Math.floor(i / cols);
-                const left = 60 + col * 280;
-                const top = 60 + row * 200;
-                nodesCounter++;
-                const newId = 'node-' + nodesCounter;
-                spawnDevice(null, {
-                    id: newId, left: left + 'px', top: top + 'px',
-                    config: item, settings: JSON.stringify({res:'1080p60',bitrate:6000,audio:'48kHz',server:''}), notes: ''
-                });
+                nodesCounter++; const newId = 'node-' + nodesCounter;
+                spawnDevice(null, { id:newId, left:(60+col*280)+'px', top:(60+row*200)+'px', config:item, settings:JSON.stringify({res:'1080p60',bitrate:6000,audio:'48kHz',server:''}), notes:'' });
                 spawned.push(newId);
             });
-            // hubungkan berdasarkan tipe port yang cocok (output -> input)
             const usedInputs = new Set();
-            for (let a = 0; a < spawned.length; a++) {
-                const na = document.getElementById(spawned[a]);
-                const ca = JSON.parse(na.dataset.config);
+            for (let a=0;a<spawned.length;a++) {
+                const na = document.getElementById(spawned[a]); const ca = JSON.parse(na.dataset.config);
                 for (const out of ca.outputs) {
                     let connected = false;
-                    for (let b = 0; b < spawned.length && !connected; b++) {
-                        if (b === a) continue;
-                        const nb = document.getElementById(spawned[b]);
-                        const cb = JSON.parse(nb.dataset.config);
+                    for (let b=0;b<spawned.length && !connected;b++) {
+                        if (b===a) continue;
+                        const nb = document.getElementById(spawned[b]); const cb = JSON.parse(nb.dataset.config);
                         cb.inputs.forEach((inp, idx) => {
                             if (connected) return;
                             if (inp.type === out.type) {
                                 const inId = `${spawned[b]}-in-${idx}`;
                                 if (usedInputs.has(inId)) return;
                                 const outId = `${spawned[a]}-out-${ca.outputs.indexOf(out)}`;
-                                connections.push({ from: outId, to: inId, type: out.type });
-                                usedInputs.add(inId);
-                                connected = true;
+                                connections.push({ from:outId, to:inId, type:out.type }); usedInputs.add(inId); connected = true;
                             }
                         });
                     }
                 }
             }
-            setTimeout(() => { drawCables(); updateStats(); }, 50);
+            setTimeout(()=>{ drawCables(); updateStats(); }, 50);
             showToast(`Rangkai otomatis: ${spawned.length} alat, ${connections.length} kabel.`, true);
         }
 
-        // --- RINGKASAN CETAK (total alat & kabel) ---
+        // --- SUMMARY ---
         function buildSummary() {
-            const deviceCount = document.querySelectorAll('.device-node').length;
-            // hitung alat per kategori & merk
             const catMap = {}, brandMap = {}, typeMap = {};
             document.querySelectorAll('.device-node').forEach(node => {
                 const c = JSON.parse(node.dataset.config);
-                catMap[c.cat] = (catMap[c.cat] || 0) + 1;
-                const br = c.brand || 'Lainnya';
-                brandMap[br] = (brandMap[br] || 0) + 1;
+                catMap[c.cat] = (catMap[c.cat]||0)+1;
+                brandMap[c.brand||'Lainnya'] = (brandMap[c.brand||'Lainnya']||0)+1;
             });
-            connections.forEach(conn => {
-                typeMap[conn.type] = (typeMap[conn.type] || 0) + 1;
-            });
-            return { deviceCount, catMap, brandMap, typeMap, connCount: connections.length };
+            connections.forEach(conn => typeMap[conn.type] = (typeMap[conn.type]||0)+1);
+            return { deviceCount: document.querySelectorAll('.device-node').length, catMap, brandMap, typeMap, connCount: connections.length };
         }
-
         function openSummary() {
-            const s = buildSummary();
-            const d = new Date().toLocaleString('id-ID');
-            let catRows = Object.entries(s.catMap).sort((a,b)=>b[1]-a[1])
-                .map(([k,v]) => `<tr><td>${k}</td><td class="num">${v}</td></tr>`).join('');
-            let brandRows = Object.entries(s.brandMap).sort((a,b)=>b[1]-a[1])
-                .map(([k,v]) => `<tr><td>${k}</td><td class="num">${v}</td></tr>`).join('');
-            let cableRows = Object.keys(s.typeMap).length
-                ? Object.entries(s.typeMap).map(([k,v]) => `<tr><td><span class="dot" style="background:${cableColors[k]||'#888'}"></span>${k}</td><td class="num">${v}</td></tr>`).join('')
-                : `<tr><td colspan="2" class="empty">— belum ada kabel —</td></tr>`;
-            const html = `
-                <div class="page">
-                    <div class="header">
-                        <div class="logo"><i class="fa-solid fa-satellite-dish"></i></div>
-                        <div>
-                            <h1>Rangkuman Peralatan Live Streaming</h1>
-                            <p>Dicetak: ${d}</p>
-                        </div>
-                        <div class="totals">
-                            <div class="total-box"><span class="big">${s.deviceCount}</span><span class="lbl">Total Alat</span></div>
-                            <div class="total-box"><span class="big">${s.connCount}</span><span class="lbl">Total Kabel</span></div>
-                        </div>
-                    </div>
-                    <div class="cards">
-                        <div class="card">
-                            <h3><i class="fa-solid fa-layer-group"></i> Per Kategori</h3>
-                            <table><thead><tr><th>Kategori</th><th class="num">Jml</th></tr></thead><tbody>${catRows}</tbody></table>
-                        </div>
-                        <div class="card">
-                            <h3><i class="fa-solid fa-trademark"></i> Per Merk</h3>
-                            <table><thead><tr><th>Merk</th><th class="num">Jml</th></tr></thead><tbody>${brandRows}</tbody></table>
-                        </div>
-                    </div>
-                    <div class="card full">
-                        <h3><i class="fa-solid fa-plug"></i> Jenis Kabel / Koneksi</h3>
-                        <table><thead><tr><th>Jenis Kabel</th><th class="num">Jml</th></tr></thead><tbody>${cableRows}</tbody></table>
-                    </div>
-                    <div class="footer">Dihasilkan oleh <strong>Live Planner</strong> — Enterprise Live Event Architecture Builder</div>
-                </div>`;
+            const s = buildSummary(); const d = new Date().toLocaleString('id-ID');
+            let catRows = Object.entries(s.catMap).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<tr><td>${k}</td><td class="num">${v}</td></tr>`).join('');
+            let brandRows = Object.entries(s.brandMap).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<tr><td>${k}</td><td class="num">${v}</td></tr>`).join('');
+            let cableRows = Object.keys(s.typeMap).length ? Object.entries(s.typeMap).map(([k,v])=>`<tr><td><span class="dot" style="background:${cableColors[k]||'#888'}"></span>${k}</td><td class="num">${v}</td></tr>`).join('') : `<tr><td colspan="2" class="empty">— belum ada kabel —</td></tr>`;
+            const html = `<div class="page"><div class="header"><div class="logo"><i class="fa-solid fa-satellite-dish"></i></div><div><h1>Rangkuman Peralatan Live Streaming</h1><p>Dicetak: ${d}</p></div><div class="totals"><div class="total-box"><span class="big">${s.deviceCount}</span><span class="lbl">Total Alat</span></div><div class="total-box"><span class="big">${s.connCount}</span><span class="lbl">Total Kabel</span></div></div></div><div class="cards"><div class="card"><h3><i class="fa-solid fa-layer-group"></i> Per Kategori</h3><table><thead><tr><th>Kategori</th><th class="num">Jml</th></tr></thead><tbody>${catRows}</tbody></table></div><div class="card"><h3><i class="fa-solid fa-trademark"></i> Per Merk</h3><table><thead><tr><th>Merk</th><th class="num">Jml</th></tr></thead><tbody>${brandRows}</tbody></table></div></div><div class="card full"><h3><i class="fa-solid fa-plug"></i> Jenis Kabel</h3><table><thead><tr><th>Jenis Kabel</th><th class="num">Jml</th></tr></thead><tbody>${cableRows}</tbody></table></div><div class="footer">Dihasilkan oleh <strong>Live Planner</strong></div></div>`;
             const w = window.open('', '_blank');
-            w.document.write(`<!DOCTYPE html><html><head><title>Rangkuman Peralatan</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-<style>
-  * { box-sizing: border-box; }
-  body { font-family: 'Segoe UI', Arial, sans-serif; color: #1e293b; margin: 0; background: #f1f5f9; }
-  .page { max-width: 920px; margin: 24px auto; background: #fff; padding: 36px 40px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,.12); }
-  .header { display: flex; align-items: center; gap: 16px; border-bottom: 3px solid #2563eb; padding-bottom: 18px; }
-  .logo { width: 54px; height: 54px; border-radius: 12px; background: linear-gradient(135deg,#2563eb,#7c3aed); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 26px; flex-shrink: 0; }
-  .header h1 { margin: 0; font-size: 22px; color: #0f172a; }
-  .header p { margin: 2px 0 0; color: #64748b; font-size: 12px; }
-  .totals { margin-left: auto; display: flex; gap: 12px; }
-  .total-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 8px 16px; text-align: center; min-width: 84px; }
-  .total-box .big { display: block; font-size: 26px; font-weight: 800; color: #2563eb; line-height: 1; }
-  .total-box .lbl { font-size: 10px; color: #64748b; text-transform: uppercase; letter-spacing: .5px; }
-  .cards { display: flex; gap: 18px; margin-top: 22px; flex-wrap: wrap; }
-  .card { flex: 1; min-width: 280px; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px 18px; }
-  .card.full { margin-top: 18px; }
-  .card h3 { margin: 0 0 12px; font-size: 14px; color: #334155; display: flex; align-items: center; gap: 8px; }
-  .card h3 i { color: #2563eb; }
-  table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  thead th { text-align: left; border-bottom: 2px solid #cbd5e1; padding: 6px 4px; color: #475569; font-size: 11px; text-transform: uppercase; letter-spacing: .4px; }
-  tbody td { padding: 6px 4px; border-bottom: 1px solid #f1f5f9; }
-  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
-  .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 8px; vertical-align: middle; }
-  .empty { text-align: center; color: #94a3b8; font-style: italic; }
-  .footer { margin-top: 24px; padding-top: 14px; border-top: 1px solid #e2e8f0; text-align: center; color: #94a3b8; font-size: 11px; }
-  @media print { body { background: #fff; } .page { margin: 0; box-shadow: none; border-radius: 0; } @page { margin: 14mm; } }
-</style></head><body>${html}<script>window.onload=function(){setTimeout(function(){window.print()},400)}<\/script></body></html>`);
+            w.document.write(`<!DOCTYPE html><html><head><title>Rangkuman</title><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"><style>*{box-sizing:border-box}body{font-family:'Segoe UI',Arial,sans-serif;color:#1e293b;margin:0;background:#f1f5f9}.page{max-width:920px;margin:24px auto;background:#fff;padding:36px 40px;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.12)}.header{display:flex;align-items:center;gap:16px;border-bottom:3px solid #2563eb;padding-bottom:18px}.logo{width:54px;height:54px;border-radius:12px;background:linear-gradient(135deg,#2563eb,#7c3aed);color:#fff;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0}.header h1{margin:0;font-size:22px;color:#0f172a}.header p{margin:2px 0 0;color:#64748b;font-size:12px}.totals{margin-left:auto;display:flex;gap:12px}.total-box{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:8px 16px;text-align:center;min-width:84px}.total-box .big{display:block;font-size:26px;font-weight:800;color:#2563eb;line-height:1}.total-box .lbl{font-size:10px;color:#64748b;text-transform:uppercase}.cards{display:flex;gap:18px;margin-top:22px;flex-wrap:wrap}.card{flex:1;min-width:280px;border:1px solid #e2e8f0;border-radius:10px;padding:16px 18px}.card.full{margin-top:18px}.card h3{margin:0 0 12px;font-size:14px;color:#334155;display:flex;align-items:center;gap:8px}.card h3 i{color:#2563eb}table{width:100%;border-collapse:collapse;font-size:13px}thead th{text-align:left;border-bottom:2px solid #cbd5e1;padding:6px 4px;color:#475569;font-size:11px;text-transform:uppercase}tbody td{padding:6px 4px;border-bottom:1px solid #f1f5f9}td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:8px;vertical-align:middle}.empty{text-align:center;color:#94a3b8;font-style:italic}.footer{margin-top:24px;padding-top:14px;border-top:1px solid #e2e8f0;text-align:center;color:#94a3b8;font-size:11px}@media print{body{background:#fff}.page{margin:0;box-shadow:none;border-radius:0}@page{margin:14mm}}</style></head><body>${html}<script>window.onload=function(){setTimeout(function(){window.print()},400)}<\/script></body></html>`);
             w.document.close();
         }
-
         function renderLegend() {
-            const legend = document.getElementById('legend-list');
-            legend.innerHTML = Object.entries(cableColors).map(([type, color]) => `
-                <div class="flex items-center gap-1.5">
-                    <span class="w-2.5 h-2.5 rounded-full flex-shrink-0" style="background:${color}"></span>
-                    <span class="text-slate-300">${type}</span>
-                </div>`).join('');
+            document.getElementById('legend-list').innerHTML = Object.entries(cableColors).map(([type,color])=>`<div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full flex-shrink-0" style="background:${color}"></span><span class="text-slate-300">${type}</span></div>`).join('');
         }
 
-        // --- COORDINATE HELPERS (zoom/pan aware) ---
+        // --- COORD HELPERS ---
         function screenToLocal(clientX, clientY) {
             const rect = canvasArea.getBoundingClientRect();
-            return {
-                x: (clientX - rect.left - panX) / zoom,
-                y: (clientY - rect.top - panY) / zoom
-            };
+            return { x:(clientX-rect.left-panX)/zoom, y:(clientY-rect.top-panY)/zoom };
         }
-
         function applyTransform() {
             zoomWrapper.style.transform = `translate(${panX}px, ${panY}px) scale(${zoom})`;
-            document.getElementById('zoom-label').textContent = Math.round(zoom * 100) + '%';
+            document.getElementById('zoom-label').textContent = Math.round(zoom*100)+'%';
             drawCables();
         }
-
-        function zoomIn() { setZoomAtCenter(Math.min(2.5, zoom + 0.15)); }
-        function zoomOut() { setZoomAtCenter(Math.max(0.3, zoom - 0.15)); }
-        function zoomReset() { zoom = 1; panX = 0; panY = 0; applyTransform(); }
-
-        function setZoomAtCenter(newZoom) {
-            const rect = canvasArea.getBoundingClientRect();
-            const cx = rect.width / 2, cy = rect.height / 2;
-            const localX = (cx - panX) / zoom, localY = (cy - panY) / zoom;
-            zoom = newZoom;
-            panX = cx - localX * zoom;
-            panY = cy - localY * zoom;
-            applyTransform();
+        function zoomIn() { setZoomAtCenter(Math.min(2.5, zoom+0.15)); }
+        function zoomOut() { setZoomAtCenter(Math.max(0.3, zoom-0.15)); }
+        function zoomReset() { zoom=1; panX=0; panY=0; applyTransform(); }
+        function setZoomAtCenter(nz) {
+            const rect = canvasArea.getBoundingClientRect(); const cx=rect.width/2, cy=rect.height/2;
+            const lx=(cx-panX)/zoom, ly=(cy-panY)/zoom; zoom=nz; panX=cx-lx*zoom; panY=cy-ly*zoom; applyTransform();
         }
 
         // --- SPAWN DEVICE ---
         function spawnDevice(encodedData, restoreData = null) {
             const data = restoreData ? restoreData.config : JSON.parse(decodeURIComponent(encodedData));
-
             if (!restoreData) nodesCounter++;
             const nodeId = restoreData ? restoreData.id : 'node-' + nodesCounter;
-
             const nodeDiv = document.createElement('div');
             nodeDiv.id = nodeId;
             nodeDiv.dataset.config = JSON.stringify(data);
-            nodeDiv.dataset.settings = restoreData ? (restoreData.settings || JSON.stringify({res: '1080p60', bitrate: 6000, audio: '48kHz', server: ''})) : JSON.stringify({res: '1080p60', bitrate: 6000, audio: '48kHz', server: ''});
+            nodeDiv.dataset.settings = restoreData ? (restoreData.settings || JSON.stringify({res:'1080p60',bitrate:6000,audio:'48kHz',server:''})) : JSON.stringify({res:'1080p60',bitrate:6000,audio:'48kHz',server:''});
             nodeDiv.dataset.notes = restoreData ? (restoreData.notes || '') : '';
             nodeDiv.className = 'device-node text-sm flex flex-col no-select';
-
-            let localLeft, localTop;
-            if (restoreData) {
-                localLeft = parseFloat(restoreData.left) || 0;
-                localTop = parseFloat(restoreData.top) || 0;
-            } else {
-                const center = screenToLocal(canvasArea.getBoundingClientRect().width / 2, canvasArea.getBoundingClientRect().height / 2);
-                localLeft = center.x - 115 + (Math.random() * 160 - 80);
-                localTop = center.y - 60 + (Math.random() * 120 - 60);
-            }
-            nodeDiv.style.left = localLeft + 'px';
-            nodeDiv.style.top = localTop + 'px';
-
             const hasNotes = nodeDiv.dataset.notes && nodeDiv.dataset.notes.trim().length > 0;
-
+            const specLine = (data.func && currentModule === 'pc') ? `<div class="px-2 pb-1 text-[10px] text-slate-400 line-clamp-2">${data.func}</div>` : '';
             let innerHTML = `
                 <div class="bg-slate-800 p-2 rounded-t-lg border-b border-slate-700 font-bold flex justify-between items-center handle">
                     <span class="truncate flex items-center">${data.name}${hasNotes ? '<span class="notes-dot" title="Ada catatan"></span>' : ''}</span>
@@ -718,581 +704,394 @@
                     <img src="${data.img}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
                     <span class="fallback-emoji"><i class="${faIconFor(data.cat || '')}"></i></span>
                 </div>
-                <div class="p-2 flex justify-between relative min-h-[60px] bg-slate-800 rounded-b-lg">
-            `;
-
+                ${specLine}
+                <div class="p-2 flex justify-between relative min-h-[60px] bg-slate-800 rounded-b-lg">`;
             innerHTML += `<div class="flex flex-col gap-3">`;
             data.inputs.forEach((inp, idx) => {
                 const portId = `${nodeId}-in-${idx}`;
-                innerHTML += `
-                    <div class="relative flex items-center">
-                        <div id="${portId}" class="port port-in" data-node="${nodeId}" data-type="${inp.type}" data-io="input" onclick="handlePortClick(event, this)"></div>
-                        <span class="text-[10px] text-slate-300 ml-3 font-semibold">${inp.name} <span class="text-[9px] text-slate-500">(${inp.type})</span></span>
-                    </div>`;
+                innerHTML += `<div class="relative flex items-center"><div id="${portId}" class="port port-in" data-node="${nodeId}" data-type="${inp.type}" data-io="input" onclick="handlePortClick(event, this)"></div><span class="text-[10px] text-slate-300 ml-3 font-semibold">${inp.name} <span class="text-[9px] text-slate-500">(${inp.type})</span></span></div>`;
             });
-            innerHTML += `</div>`;
-
-            innerHTML += `<div class="flex flex-col gap-3 text-right">`;
+            innerHTML += `</div><div class="flex flex-col gap-3 text-right">`;
             data.outputs.forEach((out, idx) => {
                 const portId = `${nodeId}-out-${idx}`;
-                innerHTML += `
-                    <div class="relative flex items-center justify-end">
-                        <span class="text-[10px] text-slate-300 mr-3 font-semibold"><span class="text-[9px] text-slate-500">(${out.type})</span> ${out.name}</span>
-                        <div id="${portId}" class="port port-out" data-node="${nodeId}" data-type="${out.type}" data-io="output" onclick="handlePortClick(event, this)"></div>
-                    </div>`;
+                innerHTML += `<div class="relative flex items-center justify-end"><span class="text-[10px] text-slate-300 mr-3 font-semibold"><span class="text-[9px] text-slate-500">(${out.type})</span> ${out.name}</span><div id="${portId}" class="port port-out" data-node="${nodeId}" data-type="${out.type}" data-io="output" onclick="handlePortClick(event, this)"></div></div>`;
             });
             innerHTML += `</div></div>`;
-
             nodeDiv.innerHTML = innerHTML;
             nodeDiv.querySelector('.handle').addEventListener('mousedown', handleNodeDragStart);
             devicesLayer.appendChild(nodeDiv);
             updateStats();
         }
-
         function duplicateDevice(nodeId) {
-            const node = document.getElementById(nodeId);
-            if (!node) return;
-            const config = JSON.parse(node.dataset.config);
-            nodesCounter++;
-            const newId = 'node-' + nodesCounter;
-            spawnDevice(null, {
-                id: newId,
-                left: (parseFloat(node.style.left) + 30) + 'px',
-                top: (parseFloat(node.style.top) + 30) + 'px',
-                config,
-                settings: node.dataset.settings,
-                notes: ''
-            });
-            showToast('Alat berhasil diduplikat!', true);
+            const node = document.getElementById(nodeId); if (!node) return;
+            const config = JSON.parse(node.dataset.config); nodesCounter++; const newId = 'node-' + nodesCounter;
+            spawnDevice(null, { id:newId, left:(parseFloat(node.style.left)+30)+'px', top:(parseFloat(node.style.top)+30)+'px', config, settings:node.dataset.settings, notes:'' });
+            showToast('Alat diduplikat!', true);
         }
-
         function deleteDevice(nodeId) {
             connections = connections.filter(conn => !conn.from.includes(nodeId) && !conn.to.includes(nodeId));
-            const node = document.getElementById(nodeId);
-            if (node) node.remove();
-            resetActivePort();
-            drawCables();
-            updateStats();
+            const node = document.getElementById(nodeId); if (node) node.remove();
+            resetActivePort(); drawCables(); updateStats();
         }
-
+        function clearCanvasSilent() { devicesLayer.innerHTML=''; cablesLayer.innerHTML=''; connections=[]; nodesCounter=0; updateStats(); }
         function clearCanvas() {
-            if (!confirm('Hapus semua alat dan kabel dari kanvas? Tindakan ini tidak bisa dibatalkan.')) return;
-            devicesLayer.innerHTML = '';
-            cablesLayer.innerHTML = '';
-            connections = [];
-            nodesCounter = 0;
-            updateStats();
-            showToast('Kanvas berhasil dibersihkan.', true);
+            if (!confirm('Hapus semua alat dan kabel?')) return;
+            clearCanvasSilent(); showToast('Kanvas dibersihkan.', true);
         }
+        function updateStats() { document.getElementById('stats-bar').textContent = `${document.querySelectorAll('.device-node').length} Alat • ${connections.length} Koneksi`; }
 
-        function updateStats() {
-            const deviceCount = document.querySelectorAll('.device-node').length;
-            document.getElementById('stats-bar').textContent = `${deviceCount} Alat • ${connections.length} Koneksi`;
-        }
-
-        // --- DRAG (zoom/pan aware) ---
+        // --- DRAG / PAN / ZOOM ---
         function handleNodeDragStart(e) {
+            if (readOnlyMode) return;
             if (e.target.closest('button')) return;
-            e.stopPropagation();
-            isDragging = true;
-            dragNode = this.parentElement;
-            dragNode.style.zIndex = 1000;
+            e.stopPropagation(); isDragging = true; dragNode = this.parentElement; dragNode.style.zIndex = 1000;
             const local = screenToLocal(e.clientX, e.clientY);
-            offset.x = local.x - parseFloat(dragNode.style.left);
-            offset.y = local.y - parseFloat(dragNode.style.top);
+            offset.x = local.x - parseFloat(dragNode.style.left); offset.y = local.y - parseFloat(dragNode.style.top);
         }
-
         window.addEventListener('mousemove', (e) => {
             if (isDragging && dragNode) {
                 const local = screenToLocal(e.clientX, e.clientY);
-                dragNode.style.left = (local.x - offset.x) + 'px';
-                dragNode.style.top = (local.y - offset.y) + 'px';
-                drawCables();
-                return;
+                dragNode.style.left = (local.x-offset.x)+'px'; dragNode.style.top = (local.y-offset.y)+'px'; drawCables(); return;
             }
-            if (isPanning) {
-                panX = panStart.panX + (e.clientX - panStart.x);
-                panY = panStart.panY + (e.clientY - panStart.y);
-                applyTransform();
-            }
+            if (isPanning) { panX = panStart.panX+(e.clientX-panStart.x); panY = panStart.panY+(e.clientY-panStart.y); applyTransform(); }
         });
-
-        window.addEventListener('mouseup', () => {
-            if (dragNode) dragNode.style.zIndex = 10;
-            isDragging = false; dragNode = null;
-            isPanning = false;
-            canvasArea.classList.remove('panning');
-        });
-
-        // --- PAN & ZOOM ---
+        window.addEventListener('mouseup', () => { if (dragNode) dragNode.style.zIndex=10; isDragging=false; dragNode=null; isPanning=false; canvasArea.classList.remove('panning'); });
         canvasArea.addEventListener('mousedown', (e) => {
             if (e.target === canvasArea || e.target === devicesLayer || e.target === cablesLayer || e.target === zoomWrapper) {
-                isPanning = true;
-                panStart = { x: e.clientX, y: e.clientY, panX, panY };
-                canvasArea.classList.add('panning');
-                resetActivePort();
+                isPanning = true; panStart = { x:e.clientX, y:e.clientY, panX, panY }; canvasArea.classList.add('panning'); resetActivePort();
             }
         });
-
         canvasArea.addEventListener('wheel', (e) => {
-            e.preventDefault();
-            const rect = canvasArea.getBoundingClientRect();
-            const mouseX = e.clientX - rect.left, mouseY = e.clientY - rect.top;
-            const localX = (mouseX - panX) / zoom, localY = (mouseY - panY) / zoom;
-            const delta = e.deltaY > 0 ? -0.1 : 0.1;
-            zoom = Math.min(2.5, Math.max(0.3, zoom + delta));
-            panX = mouseX - localX * zoom;
-            panY = mouseY - localY * zoom;
-            applyTransform();
-        }, { passive: false });
+            e.preventDefault(); const rect = canvasArea.getBoundingClientRect();
+            const mx = e.clientX-rect.left, my = e.clientY-rect.top;
+            const lx=(mx-panX)/zoom, ly=(my-panY)/zoom; const delta = e.deltaY>0?-0.1:0.1;
+            zoom = Math.min(2.5, Math.max(0.3, zoom+delta)); panX = mx-lx*zoom; panY = my-ly*zoom; applyTransform();
+        }, { passive:false });
 
         // --- PORTS & CABLES ---
-        function showToast(msg, isSuccess = false) {
-            const toast = document.getElementById('toast');
-            toast.innerText = msg;
-            toast.className = (isSuccess ? 'toast-success' : 'toast-error') + ' shadow-lg';
-            toast.classList.add('show');
-            clearTimeout(window._toastTimer);
-            window._toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
+        function showToast(msg, isSuccess=false) {
+            const toast = document.getElementById('toast'); toast.innerText = msg;
+            toast.className = (isSuccess?'toast-success':'toast-error')+' shadow-lg'; toast.classList.add('show');
+            clearTimeout(window._toastTimer); window._toastTimer = setTimeout(()=>toast.classList.remove('show'), 3000);
         }
-
         function handlePortClick(e, portEl) {
+            if (readOnlyMode) return;
             e.stopPropagation();
-            const pNode = portEl.getAttribute('data-node');
-            const pType = portEl.getAttribute('data-type');
-            const pIO = portEl.getAttribute('data-io');
-            const pId = portEl.id;
-
-            if (!activePort) {
-                activePort = { id: pId, node: pNode, type: pType, io: pIO, el: portEl };
-                portEl.classList.add('active'); return;
-            }
-
+            const pNode = portEl.getAttribute('data-node'), pType = portEl.getAttribute('data-type'), pIO = portEl.getAttribute('data-io'), pId = portEl.id;
+            if (!activePort) { activePort = { id:pId, node:pNode, type:pType, io:pIO, el:portEl }; portEl.classList.add('active'); return; }
             if (activePort.id === pId) { resetActivePort(); return; }
-            if (activePort.node === pNode) { showToast("Tidak bisa menyambungkan ke alat yang sama!"); resetActivePort(); return; }
-            if (activePort.io === pIO) { showToast(`Keduanya adalah ${pIO.toUpperCase()}! Harus Output -> Input.`); resetActivePort(); return; }
-            if (activePort.type !== pType) { showToast(`Kabel Ditolak! Port ${activePort.type} tidak cocok dengan ${pType}.`); resetActivePort(); return; }
-
+            if (activePort.node === pNode) { showToast('Tidak bisa menyambung ke alat yang sama!'); resetActivePort(); return; }
+            if (activePort.io === pIO) { showToast(`Keduanya ${pIO.toUpperCase()}! Harus Output -> Input.`); resetActivePort(); return; }
+            if (activePort.type !== pType) { showToast(`Kabel Ditolak! ${activePort.type} tidak cocok ${pType}.`); resetActivePort(); return; }
             const inputId = activePort.io === 'input' ? activePort.id : pId;
-            const isUsed = connections.some(c => c.to === inputId);
-            if (isUsed) { showToast("Port Input ini sudah terisi! Hapus kabel yang ada terlebih dahulu."); resetActivePort(); return; }
-
-            connections.push({
-                from: activePort.io === 'output' ? activePort.id : pId,
-                to: activePort.io === 'input' ? activePort.id : pId,
-                type: pType
-            });
-
-            resetActivePort();
-            drawCables();
-            updateStats();
+            if (connections.some(c => c.to === inputId)) { showToast('Port Input sudah terisi!'); resetActivePort(); return; }
+            connections.push({ from: activePort.io==='output'?activePort.id:pId, to: activePort.io==='input'?activePort.id:pId, type:pType });
+            resetActivePort(); drawCables(); updateStats();
         }
-
-        function resetActivePort() {
-            if (activePort && activePort.el) activePort.el.classList.remove('active');
-            activePort = null;
-        }
-
-        function deleteConnection(idx) {
-            connections.splice(idx, 1);
-            drawCables();
-            updateStats();
-        }
-
+        function resetActivePort() { if (activePort && activePort.el) activePort.el.classList.remove('active'); activePort = null; }
+        function deleteConnection(idx) { connections.splice(idx,1); drawCables(); updateStats(); }
         function drawCables() {
             cablesLayer.innerHTML = '';
             connections.forEach((conn, idx) => {
-                const elFrom = document.getElementById(conn.from);
-                const elTo = document.getElementById(conn.to);
+                const elFrom = document.getElementById(conn.from), elTo = document.getElementById(conn.to);
                 if (!elFrom || !elTo) return;
-
-                const rFrom = elFrom.getBoundingClientRect();
-                const rTo = elTo.getBoundingClientRect();
-                const p1 = screenToLocal(rFrom.left + rFrom.width / 2, rFrom.top + rFrom.height / 2);
-                const p2 = screenToLocal(rTo.left + rTo.width / 2, rTo.top + rTo.height / 2);
-
+                const rFrom = elFrom.getBoundingClientRect(), rTo = elTo.getBoundingClientRect();
+                const p1 = screenToLocal(rFrom.left+rFrom.width/2, rFrom.top+rFrom.height/2);
+                const p2 = screenToLocal(rTo.left+rTo.width/2, rTo.top+rTo.height/2);
                 const color = cableColors[conn.type] || '#ffffff';
-                const curve = Math.abs(p2.x - p1.x) * 0.6;
-                const d = `M ${p1.x} ${p1.y} C ${p1.x + curve} ${p1.y}, ${p2.x - curve} ${p2.y}, ${p2.x} ${p2.y}`;
-
-                const path = document.createElementNS(svgNS, 'path');
-                path.setAttribute('d', d);
-                path.setAttribute('fill', 'none');
-                path.setAttribute('stroke', color);
-                path.setAttribute('stroke-width', '4');
-                path.setAttribute('stroke-linecap', 'round');
-
-                if (conn.type === 'Wireless') {
-                    path.setAttribute('stroke-dasharray', '8, 8');
-                    path.setAttribute('opacity', '0.7');
-                } else {
-                    const animate = document.createElementNS(svgNS, 'animate');
-                    animate.setAttribute('attributeName', 'stroke-dashoffset');
-                    animate.setAttribute('from', '20'); animate.setAttribute('to', '0');
-                    animate.setAttribute('dur', '1s'); animate.setAttribute('repeatCount', 'indefinite');
-                    path.setAttribute('stroke-dasharray', '10, 10');
-                    path.appendChild(animate);
-                }
-                path.style.filter = `drop-shadow(0 0 5px ${color})`;
-                cablesLayer.appendChild(path);
-
-                // Hit area lebih tebal supaya mudah diklik untuk dihapus
-                const hit = document.createElementNS(svgNS, 'path');
-                hit.setAttribute('d', d);
-                hit.setAttribute('fill', 'none');
-                hit.setAttribute('stroke', 'transparent');
-                hit.setAttribute('stroke-width', '18');
-                hit.style.cursor = 'pointer';
-                hit.style.pointerEvents = 'stroke';
-                hit.addEventListener('click', (ev) => { ev.stopPropagation(); deleteConnection(idx); });
-                cablesLayer.appendChild(hit);
-
-                // Tombol hapus di tengah kabel
-                const midX = (p1.x + p2.x) / 2, midY = (p1.y + p2.y) / 2;
-                const g = document.createElementNS(svgNS, 'g');
-                g.style.cursor = 'pointer';
-                g.style.pointerEvents = 'auto';
-                g.addEventListener('click', (ev) => { ev.stopPropagation(); deleteConnection(idx); });
-                const circle = document.createElementNS(svgNS, 'circle');
-                circle.setAttribute('cx', midX); circle.setAttribute('cy', midY); circle.setAttribute('r', '8');
-                circle.setAttribute('fill', '#1e293b'); circle.setAttribute('stroke', color); circle.setAttribute('stroke-width', '1.5');
-                const text = document.createElementNS(svgNS, 'text');
-                text.setAttribute('x', midX); text.setAttribute('y', midY + 3);
-                text.setAttribute('text-anchor', 'middle'); text.setAttribute('font-size', '9');
-                text.setAttribute('fill', '#f87171'); text.textContent = '\u2715';
-                g.appendChild(circle); g.appendChild(text);
-                cablesLayer.appendChild(g);
+                const curve = Math.abs(p2.x-p1.x)*0.6; const d = `M ${p1.x} ${p1.y} C ${p1.x+curve} ${p1.y}, ${p2.x-curve} ${p2.y}, ${p2.x} ${p2.y}`;
+                const path = document.createElementNS(svgNS,'path'); path.setAttribute('d',d); path.setAttribute('fill','none'); path.setAttribute('stroke',color); path.setAttribute('stroke-width','4'); path.setAttribute('stroke-linecap','round');
+                if (conn.type === 'Wireless') { path.setAttribute('stroke-dasharray','8,8'); path.setAttribute('opacity','0.7'); }
+                else { const animate=document.createElementNS(svgNS,'animate'); animate.setAttribute('attributeName','stroke-dashoffset'); animate.setAttribute('from','20'); animate.setAttribute('to','0'); animate.setAttribute('dur','1s'); animate.setAttribute('repeatCount','indefinite'); path.setAttribute('stroke-dasharray','10,10'); path.appendChild(animate); }
+                path.style.filter = `drop-shadow(0 0 5px ${color})`; cablesLayer.appendChild(path);
+                const hit = document.createElementNS(svgNS,'path'); hit.setAttribute('d',d); hit.setAttribute('fill','none'); hit.setAttribute('stroke','transparent'); hit.setAttribute('stroke-width','18'); hit.style.cursor='pointer'; hit.style.pointerEvents='stroke';
+                hit.addEventListener('click',(ev)=>{ ev.stopPropagation(); if(!readOnlyMode) deleteConnection(idx); }); cablesLayer.appendChild(hit);
+                const midX=(p1.x+p2.x)/2, midY=(p1.y+p2.y)/2; const g=document.createElementNS(svgNS,'g'); g.style.cursor='pointer'; g.style.pointerEvents='auto';
+                g.addEventListener('click',(ev)=>{ ev.stopPropagation(); if(!readOnlyMode) deleteConnection(idx); });
+                const circle=document.createElementNS(svgNS,'circle'); circle.setAttribute('cx',midX); circle.setAttribute('cy',midY); circle.setAttribute('r','8'); circle.setAttribute('fill','#1e293b'); circle.setAttribute('stroke',color); circle.setAttribute('stroke-width','1.5');
+                const text=document.createElementNS(svgNS,'text'); text.setAttribute('x',midX); text.setAttribute('y',midY+3); text.setAttribute('text-anchor','middle'); text.setAttribute('font-size','9'); text.setAttribute('fill','#f87171'); text.textContent='\u2715';
+                g.appendChild(circle); g.appendChild(text); cablesLayer.appendChild(g);
             });
         }
 
-        // --- SAVE & LOAD (window.storage, menggantikan localStorage yang tidak didukung) ---
-        async function loadProject() {
-            try {
-                const result = await window.storage.get('live-planner-project', false);
-                if (!result) { showToast('Tidak ada data tersimpan.'); return; }
-                const projectData = JSON.parse(result.value);
-
-                devicesLayer.innerHTML = '';
-                cablesLayer.innerHTML = '';
-                connections = projectData.connections || [];
-                nodesCounter = projectData.nodesCounter || 0;
-
-                (projectData.nodes || []).forEach(nodeData => spawnDevice(null, nodeData));
-
-                setTimeout(() => { drawCables(); updateStats(); }, 100);
-                showToast('Konfigurasi berhasil dimuat!', true);
-            } catch (err) {
-                console.error('Load error:', err);
-                showToast('Tidak ada data tersimpan atau gagal memuat.');
-            }
-        }
-
-        // --- SOFTWARE SETTINGS MODAL ---
+        // --- SETTINGS / NOTES / IMAGE MODALS ---
         const settingsModal = document.getElementById('settings-modal');
         function openSettings(nodeId) {
-            const node = document.getElementById(nodeId);
-            const settings = JSON.parse(node.dataset.settings);
+            const node = document.getElementById(nodeId); const s = JSON.parse(node.dataset.settings);
             document.getElementById('setting-node-id').value = nodeId;
-            document.getElementById('set-res').value = settings.res || '1080p60';
-            document.getElementById('set-bitrate').value = settings.bitrate || 6000;
-            document.getElementById('set-audio').value = settings.audio || '48kHz';
-            document.getElementById('set-server').value = settings.server || '';
+            document.getElementById('set-res').value = s.res||'1080p60'; document.getElementById('set-bitrate').value = s.bitrate||6000;
+            document.getElementById('set-audio').value = s.audio||'48kHz'; document.getElementById('set-server').value = s.server||'';
             settingsModal.classList.add('active');
         }
         function closeSettings() { settingsModal.classList.remove('active'); }
         function saveSettings() {
-            const nodeId = document.getElementById('setting-node-id').value;
-            const node = document.getElementById(nodeId);
-            const newSettings = {
-                res: document.getElementById('set-res').value,
-                bitrate: document.getElementById('set-bitrate').value,
-                audio: document.getElementById('set-audio').value,
-                server: document.getElementById('set-server').value
-            };
-            node.dataset.settings = JSON.stringify(newSettings);
-            closeSettings();
-            showToast('Setting Software Disimpan!', true);
+            const nodeId = document.getElementById('setting-node-id').value; const node = document.getElementById(nodeId);
+            node.dataset.settings = JSON.stringify({ res:document.getElementById('set-res').value, bitrate:document.getElementById('set-bitrate').value, audio:document.getElementById('set-audio').value, server:document.getElementById('set-server').value });
+            closeSettings(); showToast('Setting disimpan!', true);
         }
-
-        // --- NOTES MODAL ---
         const notesModal = document.getElementById('notes-modal');
         function openNotes(nodeId) {
-            const node = document.getElementById(nodeId);
-            const config = JSON.parse(node.dataset.config);
-            document.getElementById('notes-node-id').value = nodeId;
-            document.getElementById('notes-device-name').textContent = config.name;
-            document.getElementById('notes-text').value = node.dataset.notes || '';
-            notesModal.classList.add('active');
+            const node = document.getElementById(nodeId); const config = JSON.parse(node.dataset.config);
+            document.getElementById('notes-node-id').value = nodeId; document.getElementById('notes-device-name').textContent = config.name;
+            document.getElementById('notes-text').value = node.dataset.notes || ''; notesModal.classList.add('active');
         }
         function closeNotes() { notesModal.classList.remove('active'); }
         function saveNotes() {
-            const nodeId = document.getElementById('notes-node-id').value;
-            const node = document.getElementById(nodeId);
+            const nodeId = document.getElementById('notes-node-id').value; const node = document.getElementById(nodeId);
             node.dataset.notes = document.getElementById('notes-text').value;
-            const dot = node.querySelector('.notes-dot');
-            const hasNotes = node.dataset.notes.trim().length > 0;
-            if (hasNotes && !dot) {
-                node.querySelector('.handle span').insertAdjacentHTML('beforeend', '<span class="notes-dot" title="Ada catatan"></span>');
-            } else if (!hasNotes && dot) {
-                dot.remove();
-            }
-            closeNotes();
-            showToast('Catatan disimpan!', true);
+            const dot = node.querySelector('.notes-dot'); const hasNotes = node.dataset.notes.trim().length>0;
+            if (hasNotes && !dot) node.querySelector('.handle span').insertAdjacentHTML('beforeend','<span class="notes-dot" title="Ada catatan"></span>');
+            else if (!hasNotes && dot) dot.remove();
+            closeNotes(); showToast('Catatan disimpan!', true);
         }
-
-        // --- EXPORT ---
         function exportToImage() {
-            const zc = document.getElementById('zoom-controls');
-            const lp = document.getElementById('legend-panel');
-            const originalBg = canvasArea.style.backgroundImage;
-            zc.style.display = 'none'; lp.style.display = 'none';
-            canvasArea.style.backgroundImage = 'none';
-            canvasArea.style.backgroundColor = '#0f172a';
-            html2canvas(canvasArea, { backgroundColor: '#0f172a', scale: 2 }).then(canvas => {
-                canvasArea.style.backgroundImage = originalBg;
-                zc.style.display = ''; lp.style.display = '';
-                const link = document.createElement('a');
-                link.download = 'Live-Event-Planner.jpg';
-                link.href = canvas.toDataURL('image/jpeg', 0.9);
-                link.click();
-            }).catch(err => {
-                zc.style.display = ''; lp.style.display = '';
-                canvasArea.style.backgroundImage = originalBg;
-                console.error(err);
-                showToast('Gagal export gambar.');
-            });
+            const zc = document.getElementById('zoom-controls'), lp = document.getElementById('legend-panel');
+            const obg = canvasArea.style.backgroundImage; zc.style.display='none'; lp.style.display='none'; canvasArea.style.backgroundImage='none'; canvasArea.style.backgroundColor='#0f172a';
+            html2canvas(canvasArea, { backgroundColor:'#0f172a', scale:2 }).then(canvas => {
+                zc.style.display=''; lp.style.display=''; canvasArea.style.backgroundImage=obg;
+                const link=document.createElement('a'); link.download='Live-Event-Planner.jpg'; link.href=canvas.toDataURL('image/jpeg',0.9); link.click();
+            }).catch(err=>{ zc.style.display=''; lp.style.display=''; canvasArea.style.backgroundImage=obg; console.error(err); showToast('Gagal export.'); });
         }
-
-        // --- GENERATE DARI GAMBAR (upload) ---
-        const imageGenModal = document.getElementById('imagegen-modal');
-        let pendingImageData = null;
-        function openImageGen() {
-            document.getElementById('img-file').value = '';
-            document.getElementById('img-preview-wrap').classList.add('hidden');
-            ['img-name','img-brand','img-cat','img-ins','img-outs'].forEach(id => document.getElementById(id).value = '');
-            pendingImageData = null;
-            imageGenModal.classList.add('active');
-        }
+        const imageGenModal = document.getElementById('imagegen-modal'); let pendingImageData = null;
+        function openImageGen() { document.getElementById('img-file').value=''; document.getElementById('img-preview-wrap').classList.add('hidden'); ['img-name','img-brand','img-cat','img-ins','img-outs'].forEach(id=>document.getElementById(id).value=''); pendingImageData=null; imageGenModal.classList.add('active'); }
         function closeImageGen() { imageGenModal.classList.remove('active'); }
         (function setupImageDrop() {
-            const drop = document.getElementById('img-drop');
-            const file = document.getElementById('img-file');
-            drop.addEventListener('click', () => file.click());
-            file.addEventListener('change', e => handleImageFile(e.target.files[0]));
-            ['dragover','dragenter'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('border-indigo-400'); }));
-            ['dragleave','drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('border-indigo-400'); }));
-            drop.addEventListener('drop', e => { if (e.dataTransfer.files[0]) handleImageFile(e.dataTransfer.files[0]); });
+            const drop=document.getElementById('img-drop'), file=document.getElementById('img-file');
+            drop.addEventListener('click',()=>file.click()); file.addEventListener('change',e=>handleImageFile(e.target.files[0]));
+            ['dragover','dragenter'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add('border-indigo-400');}));
+            ['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove('border-indigo-400');}));
+            drop.addEventListener('drop',e=>{ if(e.dataTransfer.files[0]) handleImageFile(e.dataTransfer.files[0]); });
         })();
         function handleImageFile(f) {
-            if (!f || !f.type.startsWith('image/')) return;
-            const reader = new FileReader();
-            reader.onload = ev => {
-                pendingImageData = ev.target.result;
-                document.getElementById('img-preview').src = pendingImageData;
-                document.getElementById('img-preview-wrap').classList.remove('hidden');
-            };
+            if (!f || !f.type.startsWith('image/')) return; const reader=new FileReader();
+            reader.onload = ev => { pendingImageData=ev.target.result; document.getElementById('img-preview').src=pendingImageData; document.getElementById('img-preview-wrap').classList.remove('hidden'); };
             reader.readAsDataURL(f);
         }
         function createFromImage() {
-            const name = document.getElementById('img-name').value.trim();
-            if (!name) { showToast('Isi nama alat terlebih dahulu!'); return; }
-            const brand = document.getElementById('img-brand').value.trim() || 'Custom';
-            const cat = document.getElementById('img-cat').value.trim() || 'Custom';
-            const parsePorts = s => s.split(',').map(x => x.trim()).filter(Boolean).map(t => ({ name: t, type: t }));
-            const item = {
-                id: 'custom_' + Date.now(),
-                name, brand, cat,
-                img: pendingImageData || '',
-                emoji: '🔧',
-                hasSettings: false,
-                inputs: parsePorts(document.getElementById('img-ins').value),
-                outputs: parsePorts(document.getElementById('img-outs').value),
-                func: ''
-            };
-            // taruh di tengah kanvas
-            const center = screenToLocal(canvasArea.getBoundingClientRect().width / 2, canvasArea.getBoundingClientRect().height / 2);
-            nodesCounter++;
-            spawnDevice(null, {
-                id: 'node-' + nodesCounter,
-                left: (center.x - 115) + 'px',
-                top: (center.y - 60) + 'px',
-                config: item,
-                settings: JSON.stringify({res:'1080p60',bitrate:6000,audio:'48kHz',server:''}),
-                notes: ''
-            });
-            closeImageGen();
-            showToast('Alat "' + name + '" dibuat dari gambar!', true);
+            const name = document.getElementById('img-name').value.trim(); if (!name) { showToast('Isi nama alat!'); return; }
+            const brand = document.getElementById('img-brand').value.trim()||'Custom'; const cat = document.getElementById('img-cat').value.trim()||'Custom';
+            const parsePorts = s => s.split(',').map(x=>x.trim()).filter(Boolean).map(t=>({name:t,type:t}));
+            const item = { id:'custom_'+Date.now(), name, brand, cat, img:pendingImageData||'', hasSettings:false, inputs:parsePorts(document.getElementById('img-ins').value), outputs:parsePorts(document.getElementById('img-outs').value), func:'' };
+            const center = screenToLocal(canvasArea.getBoundingClientRect().width/2, canvasArea.getBoundingClientRect().height/2); nodesCounter++;
+            spawnDevice(null, { id:'node-'+nodesCounter, left:(center.x-115)+'px', top:(center.y-60)+'px', config:item, settings:JSON.stringify({res:'1080p60',bitrate:6000,audio:'48kHz',server:''}), notes:'' });
+            closeImageGen(); showToast('Alat "'+name+'" dibuat!', true);
         }
-
-        // --- PANDAAN / GUIDE MODAL ---
         const guideModal = document.getElementById('guide-modal');
         function openGuide() { guideModal.classList.add('active'); }
         function closeGuide() { guideModal.classList.remove('active'); }
         function switchGuide(tab) {
             ['blueprint','tutorial','trouble'].forEach(t => {
-                document.getElementById('guide-' + t).classList.toggle('hidden', t !== tab);
-                const btn = document.querySelector('.guide-tab[data-tab="' + t + '"]');
-                btn.classList.toggle('text-blue-400', t === tab);
-                btn.classList.toggle('border-blue-500', t === tab);
-                btn.classList.toggle('text-slate-400', t !== tab);
-                btn.classList.toggle('border-transparent', t !== tab);
+                document.getElementById('guide-'+t).classList.toggle('hidden', t!==tab);
+                const btn=document.querySelector('.guide-tab[data-tab="'+t+'"]');
+                btn.classList.toggle('text-blue-400', t===tab); btn.classList.toggle('border-blue-500', t===tab); btn.classList.toggle('text-slate-400', t!==tab); btn.classList.toggle('border-transparent', t!==tab);
             });
         }
 
-        // --- LOGIN ADMIN (kiri) ---
-        const ADMIN_HASH = 'liveplanner2024'; // password sederhana (demo)
-        let isAdmin = false;
-        function adminLogin() {
-            const p = document.getElementById('login-pass').value;
-            if (p === ADMIN_HASH) {
-                isAdmin = true;
-                document.getElementById('login-form').classList.add('hidden');
-                document.getElementById('login-info').classList.remove('hidden');
-                showToast('Login admin berhasil!', true);
-            } else {
-                showToast('Password admin salah!');
-            }
+        // --- SAVE / PUBLISH / SHARE ---
+        function collectProject() {
+            const nodes = [];
+            document.querySelectorAll('.device-node').forEach(node => {
+                nodes.push({ id:node.id, left:node.style.left, top:node.style.top, config:JSON.parse(node.dataset.config), settings:node.dataset.settings, notes:node.dataset.notes||'' });
+            });
+            return { nodes, connections, nodesCounter, module: currentModule };
         }
-        function adminLogout() {
-            isAdmin = false;
-            document.getElementById('login-pass').value = '';
-            document.getElementById('login-form').classList.remove('hidden');
-            document.getElementById('login-info').classList.add('hidden');
-            showToast('Logout admin.');
-        }
-
-        // --- SIMPAN KE CLOUD (Turso via API) ---
         async function saveProject() {
-            if (!isAdmin) { showToast('Login sebagai admin untuk menyimpan ke cloud!'); openSaves(); return; }
-            try {
-                const nodes = [];
-                document.querySelectorAll('.device-node').forEach(node => {
-                    nodes.push({
-                        id: node.id, left: node.style.left, top: node.style.top,
-                        config: JSON.parse(node.dataset.config),
-                        settings: node.dataset.settings, notes: node.dataset.notes || ''
-                    });
-                });
-                const projectData = { nodes, connections, nodesCounter };
-                const title = prompt('Nama simpanan:', 'Rencana ' + new Date().toLocaleDateString('id-ID')) || 'Tanpa Nama';
-                const res = await fetch('/api/saves', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ title, data: projectData })
-                });
-                if (res.ok) { showToast('Tersimpan ke cloud!', true); }
-                else { showToast('Gagal simpan ke cloud (pakai Save lokal).'); await localSave(projectData); }
-            } catch (err) {
-                console.error(err);
-                showToast('Gagal simpan cloud — cek koneksi.');
-            }
+            if (!currentUser) { showToast('Login diperlukan!'); return; }
+            const data = collectProject();
+            const title = prompt('Nama simpanan:', 'Rencana ' + MODULES[currentModule].name + ' ' + new Date().toLocaleDateString('id-ID')) || 'Tanpa Nama';
+            const { ok } = await api('/api/saves', { method:'POST', body:{ title, data } });
+            if (ok) showToast('Tersimpan ke akun Anda!', true); else showToast('Gagal simpan.');
         }
-        async function localSave(projectData) {
-            const result = await window.storage.set('live-planner-project', JSON.stringify(projectData), false);
-            if (result) showToast('Konfigurasi disimpan lokal!', true);
+        function publishTemplate() {
+            if (!currentUser) { showToast('Login diperlukan!'); return; }
+            const sel = document.getElementById('pub-module');
+            sel.innerHTML = Object.entries(MODULES).map(([k,m])=>`<option value="${k}">${m.name}</option>`).join('');
+            sel.value = currentModule;
+            document.getElementById('pub-title').value = 'Template ' + MODULES[currentModule].name + ' ' + new Date().toLocaleDateString('id-ID');
+            document.getElementById('pub-public').checked = false; document.getElementById('pub-template').checked = false;
+            document.getElementById('publish-modal').classList.add('active');
+        }
+        function closePublish() { document.getElementById('publish-modal').classList.remove('active'); }
+        async function submitPublish() {
+            const title = document.getElementById('pub-title').value.trim() || 'Tanpa Judul';
+            const module = document.getElementById('pub-module').value;
+            const is_public = document.getElementById('pub-public').checked ? 1 : 0;
+            const is_template = document.getElementById('pub-template').checked ? 1 : 0;
+            const data = collectProject();
+            const { ok } = await api('/api/templates', { method:'POST', body:{ title, module, data, is_public, is_template } });
+            if (ok) { closePublish(); showToast('Template dipublikasikan!', true); }
+            else showToast('Gagal publikasikan.');
+        }
+        function copyShareLink() {
+            if (currentTemplateId) {
+                const url = location.origin + location.pathname + '?template=' + currentTemplateId;
+                navigator.clipboard.writeText(url); showToast('Tautan template disalin!', true); return;
+            }
+            showToast('Simpan sebagai template dulu untuk membagikan tautan.');
+            publishTemplate();
         }
 
-        // --- LIHAT SIMPANAN (admin & viewer bisa download) ---
-        const savesModal = document.getElementById('saves-modal');
-        function openSaves() {
-            savesModal.classList.add('active');
-            loadSaves();
-        }
-        function closeSaves() { savesModal.classList.remove('active'); }
-        async function loadSaves() {
-            const list = document.getElementById('saves-list');
-            list.innerHTML = '<p class="text-sm text-slate-500 text-center">Memuat simpanan…</p>';
+        // --- IMPORT BUILD (interconnection) ---
+        const importModal = document.getElementById('import-modal');
+        function importBuild() { importModal.classList.add('active'); loadImportList(); }
+        function closeImport() { importModal.classList.remove('active'); }
+        async function loadImportList() {
+            const list = document.getElementById('import-list'); list.innerHTML = '<p class="text-sm text-slate-500 text-center">Memuat…</p>';
+            let html = '';
             try {
-                const res = await fetch('/api/saves');
-                if (!res.ok) throw new Error('no api');
-                const data = await res.json();
-                if (!data.items || !data.items.length) {
-                    list.innerHTML = '<p class="text-sm text-slate-500 text-center">Belum ada simpanan publik.</p>';
-                    return;
+                const r1 = await api('/api/saves'); if (r1.ok && r1.data.items) {
+                    html += `<h3 class="font-bold text-sm text-green-300 mb-2"><i class="fa-solid fa-floppy-disk"></i> Simpanan Saya</h3>`;
+                    html += r1.data.items.map(s=>`<div class="bg-slate-700 rounded-lg p-3 mb-2 flex items-center justify-between"><div><div class="font-bold text-sm">${s.title}</div><div class="text-[11px] text-slate-400">${s.count} alat</div></div><button onclick="loadBuildIntoCanvas(${s.id},'save')" class="px-3 py-1 bg-blue-600 hover:bg-blue-500 rounded text-xs">Impor</button></div>`).join('');
                 }
-                list.innerHTML = data.items.map(s => `
-                    <div class="bg-slate-700 rounded-lg p-3 mb-2 flex items-center justify-between">
-                        <div>
-                            <div class="font-bold text-sm">${s.title}</div>
-                            <div class="text-[11px] text-slate-400">${s.count} alat • ${new Date(s.created_at).toLocaleString('id-ID')}</div>
-                        </div>
-                        <div class="flex gap-2">
-                            ${isAdmin ? `<button onclick="loadSaveById('${s.id}')" class="px-2 py-1 bg-blue-600 hover:bg-blue-500 rounded text-xs"><i class="fa-solid fa-folder-open"></i> Buka</button>` : ''}
-                            <button onclick="downloadSave('${s.id}')" class="px-2 py-1 bg-green-600 hover:bg-green-500 rounded text-xs"><i class="fa-solid fa-download"></i> Download</button>
-                        </div>
-                    </div>`).join('');
-            } catch (e) {
-                list.innerHTML = '<p class="text-sm text-slate-500 text-center">API simpanan tidak tersedia.</p>';
-            }
+            } catch(e){}
+            try {
+                const r2 = await api('/api/templates?scope=public'); if (r2.ok && r2.data.items) {
+                    html += `<h3 class="font-bold text-sm text-purple-300 mt-3 mb-2"><i class="fa-solid fa-layer-group"></i> Template Publik</h3>`;
+                    html += r2.data.items.map(s=>`<div class="bg-slate-700 rounded-lg p-3 mb-2 flex items-center justify-between"><div><div class="font-bold text-sm">${s.title}</div><div class="text-[11px] text-slate-400">${s.count} alat • ${MODULES[s.module]?MODULES[s.module].name:s.module}</div></div><button onclick="loadBuildIntoCanvas(${s.id},'template')" class="px-3 py-1 bg-purple-600 hover:bg-purple-500 rounded text-xs">Impor</button></div>`).join('');
+                }
+            } catch(e){}
+            list.innerHTML = html || '<p class="text-sm text-slate-500 text-center">Tidak ada build tersedia.</p>';
         }
-        async function downloadSave(id) {
-            const res = await fetch('/api/saves/' + id);
-            if (!res.ok) { showToast('Gagal mengunduh.'); return; }
-            const data = await res.json();
-            const blob = new Blob([JSON.stringify(data.data, null, 2)], { type: 'application/json' });
-            const link = document.createElement('a');
-            link.download = (data.title || 'planner') + '.json';
-            link.href = URL.createObjectURL(blob);
-            link.click();
-            showToast('Unduhan dimulai!', true);
-        }
-        async function loadSaveById(id) {
-            const res = await fetch('/api/saves/' + id);
-            if (!res.ok) { showToast('Gagal memuat.'); return; }
-            const data = await res.json();
-            const pd = data.data;
-            devicesLayer.innerHTML = ''; cablesLayer.innerHTML = '';
-            connections = pd.connections || []; nodesCounter = pd.nodesCounter || 0;
-            (pd.nodes || []).forEach(n => spawnDevice(null, n));
-            setTimeout(() => { drawCables(); updateStats(); }, 100);
-            closeSaves();
-            showToast('Simpanan dimuat!', true);
+        async function loadBuildIntoCanvas(id, kind) {
+            const path = kind === 'save' ? '/api/saves/'+id : '/api/templates/'+id;
+            const { ok, data } = await api(path); if (!ok) { showToast('Gagal memuat.'); return; }
+            const pd = data.data; if (!pd || !pd.nodes) { showToast('Data kosong.'); return; }
+            const offsetBase = 40 + document.querySelectorAll('.device-node').length * 10;
+            pd.nodes.forEach(n => {
+                nodesCounter++; const newId = 'node-'+nodesCounter;
+                spawnDevice(null, { id:newId, left:(parseFloat(n.left||'0')+offsetBase)+'px', top:(parseFloat(n.top||'0')+offsetBase)+'px', config:n.config, settings:n.settings, notes:n.notes||'' });
+            });
+            (pd.connections||[]).forEach(c => connections.push(c));
+            setTimeout(()=>{ drawCables(); updateStats(); }, 100);
+            closeImport(); showToast('Build diimpor ke kanvas!', true);
         }
 
-        // --- LOAD DATA (dari Turso via /api/equipment, fallback ke equipment-data.js lokal) ---
-        let deviceDB = (typeof window.__deviceDB !== 'undefined') ? window.__deviceDB : {};
+        // --- GALLERY ---
+        function openGallery() { showScreen('gallery-screen'); loadGallery('all', document.querySelector('.g-tab[data-scope="all"]')); }
+        async function loadGallery(scope, btn) {
+            document.querySelectorAll('.g-tab').forEach(b=>{ b.classList.remove('bg-blue-600','text-white'); b.classList.add('bg-slate-700','hover:bg-slate-600'); });
+            btn.classList.add('bg-blue-600','text-white'); btn.classList.remove('bg-slate-700','hover:bg-slate-600');
+            const list = document.getElementById('gallery-list'); list.innerHTML = '<p class="text-sm text-slate-500 text-center col-span-full">Memuat…</p>';
+            const { ok, data } = await api('/api/templates?scope='+scope);
+            if (!ok || !data.items || !data.items.length) { list.innerHTML = '<p class="text-sm text-slate-500 text-center col-span-full">Belum ada template.</p>'; return; }
+            list.innerHTML = data.items.map(t => {
+                const isAdmin = currentUser && currentUser.role === 'admin';
+                const isOwner = currentUser && t.owner_id === currentUser.id;
+                const badges = `${t.is_template?'<span class="text-[10px] bg-purple-600 px-1.5 py-0.5 rounded">TEMPLATE</span>':''}${t.is_public?'<span class="text-[10px] bg-green-600 px-1.5 py-0.5 rounded">PUBLIK</span>':''}${t.hidden?'<span class="text-[10px] bg-red-600 px-1.5 py-0.5 rounded">DISEMBUNYIKAN</span>':''}`;
+                return `<div class="bg-slate-800 border border-slate-700 rounded-xl p-4 shadow flex flex-col">
+                    <div class="flex items-center gap-2 mb-2"><i class="${MODULES[t.module]?MODULES[t.module].icon:'fa-solid fa-layer-group'} text-blue-400"></i><h3 class="font-bold flex-grow truncate">${t.title}</h3></div>
+                    <div class="text-[11px] text-slate-400 mb-1">${t.count} alat • ${MODULES[t.module]?MODULES[t.module].name:t.module}</div>
+                    <div class="mb-3">${badges}</div>
+                    <div class="flex gap-2 mt-auto flex-wrap">
+                        <button onclick="useTemplate(${t.id})" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 rounded text-xs font-bold"><i class="fa-solid fa-pen-to-square"></i> Gunakan</button>
+                        <button onclick="viewTemplate(${t.id})" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 rounded text-xs"><i class="fa-solid fa-eye"></i> Lihat</button>
+                        ${(isAdmin||isOwner)?`<button onclick="deleteTemplate(${t.id})" class="px-3 py-1.5 bg-red-700 hover:bg-red-600 rounded text-xs"><i class="fa-solid fa-trash"></i></button>`:''}
+                    </div>
+                </div>`;
+            }).join('');
+        }
+        async function useTemplate(id) {
+            const { ok, data } = await api('/api/templates/'+id); if (!ok) { showToast('Gagal memuat.'); return; }
+            const t = data.template; currentModule = t.module || 'live'; currentTemplateId = id; readOnlyMode = false;
+            document.getElementById('builder-module-badge').textContent = MODULES[currentModule].name + ' (dari template)';
+            document.getElementById('readonly-banner').classList.add('hidden');
+            document.getElementById('builder-actions').style.display = '';
+            clearCanvasSilent();
+            const pd = t.data; (pd.nodes||[]).forEach(n=>spawnDevice(null,n)); connections = pd.connections||[]; nodesCounter = pd.nodesCounter||0;
+            setTimeout(()=>{ drawCables(); updateStats(); }, 100);
+            showScreen('builder-screen'); showToast('Template dimuat — simpan sebagai milik Anda.', true);
+        }
+        async function viewTemplate(id) {
+            const { ok, data } = await api('/api/templates/'+id); if (!ok) { showToast('Gagal memuat.'); return; }
+            const t = data.template; const comments = data.comments || [];
+            document.getElementById('tmpl-title').innerHTML = `<i class="fa-solid fa-layer-group"></i> ${t.title}`;
+            document.getElementById('tmpl-meta').innerHTML = `${MODULES[t.module]?MODULES[t.module].name:t.module} • ${t.count} alat • oleh ${t.owner_name||'anon'} • ${new Date(t.created_at).toLocaleString('id-ID')}`;
+            const adminBox = document.getElementById('tmpl-admin');
+            const isAdmin = currentUser && currentUser.role === 'admin';
+            const isOwner = currentUser && t.owner_id === currentUser.id;
+            if (isAdmin || isOwner) {
+                adminBox.classList.remove('hidden');
+                let btns = '';
+                if (isAdmin) {
+                    btns += `<button onclick="adminTemplate(${t.id},'toggle_public')" class="px-3 py-1.5 bg-green-600 hover:bg-green-500 rounded text-xs"><i class="fa-solid fa-globe"></i> ${t.is_public?'Sembunyikan Publik':'Publikasikan'}</button>`;
+                    btns += `<button onclick="adminTemplate(${t.id},'toggle_template')" class="px-3 py-1.5 bg-purple-600 hover:bg-purple-500 rounded text-xs"><i class="fa-solid fa-star"></i> ${t.is_template?'Batal Template':'Jadikan Template'}</button>`;
+                    btns += `<button onclick="adminTemplate(${t.id},'toggle_hidden')" class="px-3 py-1.5 bg-yellow-600 hover:bg-yellow-500 rounded text-xs"><i class="fa-solid fa-eye-slash"></i> ${t.hidden?'Tampilkan':'Sembunyikan'}</button>`;
+                    btns += `<button onclick="deleteTemplate(${t.id})" class="px-3 py-1.5 bg-red-700 hover:bg-red-600 rounded text-xs"><i class="fa-solid fa-trash"></i> Hapus</button>`;
+                }
+                btns += `<button onclick="useTemplate(${t.id})" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 rounded text-xs"><i class="fa-solid fa-pen-to-square"></i> Gunakan/Edit</button>`;
+                adminBox.innerHTML = btns;
+            } else adminBox.classList.add('hidden');
+            const cbox = document.getElementById('tmpl-comments');
+            cbox.innerHTML = comments.length ? comments.map(c=>`<div class="bg-slate-900 rounded-lg p-2 text-sm"><div class="flex justify-between"><span class="font-bold text-xs text-blue-300">${c.user_name||'anon'}</span><span class="text-[10px] text-slate-500">${new Date(c.created_at).toLocaleString('id-ID')}</span></div><div class="text-slate-300">${c.text}</div>${((isAdmin)||(currentUser&&c.user_id===currentUser.id))?`<button onclick="deleteComment(${t.id},${c.id})" class="text-[10px] text-red-400 mt-1"><i class="fa-solid fa-trash"></i> Hapus</button>`:''}</div>`).join('') : '<p class="text-xs text-slate-500">Belum ada komentar.</p>';
+            document.getElementById('tmpl-comment-form').style.display = currentUser ? 'flex' : 'none';
+            document.getElementById('template-modal').classList.add('active');
+            window._tmplId = t.id;
+        }
+        function closeTemplate() { document.getElementById('template-modal').classList.remove('active'); }
+        async function postComment() {
+            if (!currentUser) { showToast('Login untuk komentar!'); return; }
+            const text = document.getElementById('tmpl-comment-input').value.trim(); if (!text) return;
+            const { ok } = await api('/api/comments?id='+window._tmplId, { method:'POST', body:{ text } });
+            if (ok) { document.getElementById('tmpl-comment-input').value=''; viewTemplate(window._tmplId); }
+            else showToast('Gagal kirim komentar.');
+        }
+        async function deleteComment(tid, cid) {
+            const { ok } = await api('/api/comments?id='+tid+'&cid='+cid, { method:'DELETE' });
+            if (ok) viewTemplate(tid); else showToast('Gagal hapus.');
+        }
+        async function adminTemplate(id, action) {
+            const { ok } = await api('/api/templates/'+id, { method:'PUT', body:{ action } });
+            if (ok) { showToast('Diperbarui.', true); viewTemplate(id); loadGallery('all', document.querySelector('.g-tab[data-scope="all"]')); }
+            else showToast('Gagal.');
+        }
+        async function deleteTemplate(id) {
+            if (!confirm('Hapus template ini?')) return;
+            const { ok } = await api('/api/templates/'+id, { method:'DELETE' });
+            if (ok) { closeTemplate(); showToast('Template dihapus.', true); loadGallery('all', document.querySelector('.g-tab[data-scope="all"]')); }
+            else showToast('Gagal hapus.');
+        }
 
+        // --- SHARE / READ-ONLY VIEW (no login) ---
+        async function loadShareView(id) {
+            const { ok, data } = await api('/api/templates/'+id);
+            if (!ok) { document.body.innerHTML = '<div class="flex items-center justify-center h-screen text-slate-300"><div class="text-center"><i class="fa-solid fa-triangle-exclamation text-4xl text-red-500 mb-3"></i><p>Template tidak ditemukan atau tidak tersedia.</p></div></div>'; return; }
+            const t = data.template; currentModule = t.module || 'live'; readOnlyMode = true; currentTemplateId = id;
+            document.getElementById('builder-module-badge').textContent = MODULES[currentModule].name;
+            document.getElementById('readonly-banner').classList.remove('hidden');
+            document.getElementById('builder-actions').style.display = 'none';
+            clearCanvasSilent();
+            const pd = t.data; (pd.nodes||[]).forEach(n=>spawnDevice(null,n)); connections = pd.connections||[]; nodesCounter = pd.nodesCounter||0;
+            setTimeout(()=>{ drawCables(); updateStats(); }, 100);
+            showScreen('builder-screen');
+        }
+
+        // --- EQUIPMENT LOAD ---
         function buildDeviceDB(items) {
             const db = {};
             items.forEach(it => {
-                const cat = it.cat || 'Lainnya';
-                const key = 'cat_' + cat.toLowerCase().replace(/[\s/&]/g, '_');
-                if (!db[key]) db[key] = { title: cat, items: [] };
-                db[key].items.push({
-                    id: it.id, name: it.name, brand: it.brand, img: it.img,
-                    emoji: it.emoji || '🔧', hasSettings: !!it.hasSettings,
-                    inputs: it.inputs || [], outputs: it.outputs || [], func: it.func || ''
-                });
+                const cat = it.cat || 'Lainnya'; const key = 'cat_'+cat.toLowerCase().replace(/[\s/&]/g,'_');
+                if (!db[key]) db[key] = { title:cat, items:[] };
+                db[key].items.push({ id:it.id, name:it.name, brand:it.brand, img:it.img, hasSettings:!!it.hasSettings, inputs:it.inputs||[], outputs:it.outputs||[], func:it.func||'' });
             });
             return db;
         }
-
         async function loadEquipment() {
             try {
-                const res = await fetch('/api/equipment');
-                if (res.ok) {
-                    const data = await res.json();
-                    if (data.items && data.items.length) {
-                        deviceDB = buildDeviceDB(data.items);
-                        renderCatalog();
-                        return;
-                    }
-                }
-            } catch (e) {
-                console.warn('API gagal, pakai data lokal:', e);
-            }
-            // Fallback: gunakan deviceDB dari equipment-data.js
-            if (typeof window.__deviceDB !== 'undefined') {
-                deviceDB = window.__deviceDB;
-            }
-            renderCatalog();
+                const res = await fetch('/api/equipment'); if (res.ok) { const data = await res.json(); if (data.items && data.items.length) { deviceDB = buildDeviceDB(data.items); return; } }
+            } catch(e){}
+            if (typeof window.__deviceDB !== 'undefined') deviceDB = window.__deviceDB;
         }
 
         // --- INIT ---
-        window.onload = () => {
-            loadEquipment();
-            renderLegend();
-            updateStats();
+        window.onload = async () => {
+            renderLegend(); updateStats();
+            const params = new URLSearchParams(location.search);
+            const shareId = params.get('template') || params.get('share');
+            if (shareId) { await loadEquipment(); loadShareView(shareId); return; }
+            if (params.get('loggedin') === '1') { currentUser = await refreshMe(); if (currentUser) { enterApp(); return; } }
+            currentUser = await refreshMe();
+            await loadEquipment();
+            if (currentUser) enterApp(); else showScreen('login-screen');
         };
     </script>
 </body>
